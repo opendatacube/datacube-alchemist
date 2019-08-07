@@ -1,1 +1,2 @@
+datacube
 git+https://github.com/GeoscienceAustralia/eo-datasets@eodatasets3
