@@ -1,1 +1,1 @@
-git+https://github.com/GeoscienceAustralia/eo-datasets@branch=eodatasets3
+git+https://github.com/GeoscienceAustralia/eo-datasets@eodatasets3
