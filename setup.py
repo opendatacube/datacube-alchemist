@@ -23,7 +23,7 @@ setup(name='datacube-alchemist',
       include_package_data=True,
       install_requires=[
           'datacube',
-          'eo-datasets3'
+          'eodatasets3'
       ],
       entry_points={
           'console_scripts': [
