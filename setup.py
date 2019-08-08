@@ -21,10 +21,7 @@ setup(name='datacube-alchemist',
                    ],
       packages=find_packages(exclude=('tests',)),
       include_package_data=True,
-      install_requires=[
-          'datacube',
-          'eodatasets3'
-      ],
+      install_requires=open('requirements.txt').read().strip().split('\n'),
       entry_points={
           'console_scripts': [
               'datacube-alchemist = datacube_alchemist.cli:cli',
