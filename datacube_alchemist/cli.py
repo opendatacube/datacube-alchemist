@@ -5,7 +5,7 @@ import structlog
 
 from datacube import Datacube
 from datacube.ui import click as ui
-from datacube_alchemist.worker import Dataset2Dataset, execute_with_dask, execute_task, D2DSettings
+from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task, AlchemistSettings
 
 _LOG = structlog.get_logger()
 
@@ -14,7 +14,7 @@ def cli():
     pass
 
 
-def setup_dask_client(config: D2DSettings):
+def setup_dask_client(config: AlchemistSettings):
     from dask.distributed import Client
     client = Client(**config.processing.dask_client)
     _LOG.info('started dask', dask_client=client)
@@ -30,11 +30,11 @@ def setup_dask_client(config: D2DSettings):
 @ui.parsed_search_expressions
 def run_many(config_file, expressions, environment=None, limit=None):
     # Load Configuration file
-    d4 = Dataset2Dataset(config_file=config_file, dc_env=environment)
+    alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
-    tasks = d4.generate_tasks(expressions, limit=limit)
+    tasks = alchemist.generate_tasks(expressions, limit=limit)
 
-    client = setup_dask_client(d4.config)
+    client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
 
 
@@ -43,13 +43,13 @@ def run_many(config_file, expressions, environment=None, limit=None):
 @click.argument('config_file')
 @click.argument('input_dataset')
 def run_one(config_file, input_dataset, environment=None):
-    d4 = Dataset2Dataset(config_file=config_file, dc_env=environment)
+    alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
     input_uri = Path(input_dataset).as_uri()
     dc = Datacube(env=environment)
     ds = dc.index.datasets.get_datasets_for_location(input_uri)
 
-    task = d4.generate_task(ds)
+    task = alchemist.generate_task(ds)
     execute_task(task)
 
 

@@ -1,2 +1,5 @@
 datacube
 eodatasets3
+attrs
+cattrs
+structlog

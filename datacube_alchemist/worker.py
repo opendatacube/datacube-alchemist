@@ -56,30 +56,30 @@ class ProcessingSettings:
 
 
 @attr.s(auto_attribs=True)
-class D2DSettings:
+class AlchemistSettings:
     specification: Specification
     output: OutputSettings
     processing: ProcessingSettings
 
 
 @attr.s(auto_attribs=True)
-class D2DTask:
+class AlchemistTask:
     dataset: Dataset
-    settings: D2DSettings
+    settings: AlchemistSettings
 
 
-class Dataset2Dataset:
+class Alchemist:
     def __init__(self, *, config=None, config_file=None, dc_env=None):
         if config is not None:
             self.config = config
         else:
-            self.config = cattr.structure(yaml.safe_load(Path(config_file).read_bytes()), D2DSettings)
+            self.config = cattr.structure(yaml.safe_load(Path(config_file).read_bytes()), AlchemistSettings)
 
         # Connect to the ODC Index
         self.dc = datacube.Datacube(env=dc_env)
         self.input_product = self.dc.index.products.get_by_name(self.config.specification.product)
 
-    def generate_tasks(self, query, limit=None) -> Iterable[D2DTask]:
+    def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
         # Find which datasets needs to be processed
         datasets = self.dc.index.datasets.search(limit=limit, product=self.config.specification.product,
                                                  **query)
@@ -88,12 +88,12 @@ class Dataset2Dataset:
 
         return tasks
 
-    def generate_task(self, dataset) -> D2DTask:
-        return D2DTask(dataset=dataset,
-                       settings=self.config)
+    def generate_task(self, dataset) -> AlchemistTask:
+        return AlchemistTask(dataset=dataset,
+                             settings=self.config)
 
 
-def execute_with_dask(client, tasks: Iterable[D2DTask]):
+def execute_with_dask(client, tasks: Iterable[AlchemistTask]):
     # Execute the tasks across the dask cluster
     completed = dask_compute_stream(client,
                                     execute_task,
@@ -109,7 +109,7 @@ def execute_with_dask(client, tasks: Iterable[D2DTask]):
     _LOG.info('completed')
 
 
-def execute_task(task: D2DTask):
+def execute_task(task: AlchemistTask):
     log = _LOG.bind(task=task)
     transform = _import_transform(task.settings.specification.transform)
     transform = transform(**task.settings.specification.transform_args)
@@ -158,10 +158,15 @@ def execute_task(task: D2DTask):
         p.processed = datetime.utcnow()
 
         p.note_software_version(
-            'd2dtransformer',
-            "https://github.com/GeoscienceAustralia/digitalearthau",
+            'datacube-alchemist',
+            "https://github.com/opendatacube/datacube-alchemist",
             "0.1.0"
         )
+
+        # TODO Note Software Version of Transformer (if available)
+
+        # TODO Note configuration settings of
+        # p.extend_user_metadata()
 
         p.write_measurements_odc_xarray(
             output_data,
