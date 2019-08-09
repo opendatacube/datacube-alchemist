@@ -52,6 +52,7 @@ class Specification:
 @attr.s(auto_attribs=True)
 class ProcessingSettings:
     dask_chunks: Mapping[str, int]
+    dask_client: Optional[Mapping[str, Any]]
 
 
 @attr.s(auto_attribs=True)
@@ -92,11 +93,8 @@ class Dataset2Dataset:
                        settings=self.config)
 
 
-def execute_with_dask(tasks: Iterable[D2DTask]):
+def execute_with_dask(client, tasks: Iterable[D2DTask]):
     # Execute the tasks across the dask cluster
-    from dask.distributed import Client
-    client = Client()
-    _LOG.info('started dask', dask_client=client)
     completed = dask_compute_stream(client,
                                     execute_task,
                                     tasks)

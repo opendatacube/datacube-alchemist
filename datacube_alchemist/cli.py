@@ -1,19 +1,27 @@
 from pathlib import Path
 
 import click
+import structlog
 
 from datacube import Datacube
 from datacube.ui import click as ui
 from datacube_alchemist.worker import Dataset2Dataset, execute_with_dask, execute_task
 
+_LOG = structlog.get_logger()
 
 @click.group()
 def cli():
     pass
 
 
+def setup_dask_client(config):
+    from dask.distributed import Client
+    client = Client()
+    _LOG.info('started dask', dask_client=client)
+
+
 @cli.command()
-@click.option('--environment',
+@click.option('--environment', '-E',
               help='Name of the datacube environment to connect to.')
 @click.option('--limit', type=int,
               help='For testing, specify a small number of tasks to run.')
@@ -25,7 +33,8 @@ def run_many(config_file, expressions, environment=None, limit=None):
 
     tasks = d4.generate_tasks(expressions, limit=limit)
 
-    execute_with_dask(tasks)
+    client = setup_dask_client(d4.config)
+    execute_with_dask(client, tasks)
 
 
 @cli.command()
