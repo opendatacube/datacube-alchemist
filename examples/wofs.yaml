@@ -22,5 +22,9 @@ output:
 
 processing:
   dask_chunks:
-    x: 1000
-    y: 1000
+    x: 3000
+    y: 3000
+#  dask_client:
+#    processes: True
+#    threads_per_worker: 1
+#    n_workers: 4

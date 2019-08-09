@@ -5,7 +5,7 @@ import structlog
 
 from datacube import Datacube
 from datacube.ui import click as ui
-from datacube_alchemist.worker import Dataset2Dataset, execute_with_dask, execute_task
+from datacube_alchemist.worker import Dataset2Dataset, execute_with_dask, execute_task, D2DSettings
 
 _LOG = structlog.get_logger()
 
@@ -14,10 +14,11 @@ def cli():
     pass
 
 
-def setup_dask_client(config):
+def setup_dask_client(config: D2DSettings):
     from dask.distributed import Client
-    client = Client()
+    client = Client(**config.processing.dask_client)
     _LOG.info('started dask', dask_client=client)
+    return client
 
 
 @cli.command()

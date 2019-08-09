@@ -51,8 +51,8 @@ class Specification:
 
 @attr.s(auto_attribs=True)
 class ProcessingSettings:
-    dask_chunks: Mapping[str, int]
-    dask_client: Optional[Mapping[str, Any]]
+    dask_chunks: Mapping[str, int] = attr.ib(default=dict())
+    dask_client: Optional[Mapping[str, Any]] = attr.ib(default=dict())
 
 
 @attr.s(auto_attribs=True)
