@@ -45,9 +45,15 @@ def run_many(config_file, expressions, environment=None, limit=None):
 def run_one(config_file, input_dataset, environment=None):
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
-    input_uri = Path(input_dataset).as_uri()
+    if '://' in input_dataset:
+        # Smells like a url
+        input_url = input_dataset
+    else:
+        # Treat the input as a local file path
+        input_url = Path(input_dataset).as_uri()
+
     dc = Datacube(env=environment)
-    ds = dc.index.datasets.get_datasets_for_location(input_uri)
+    ds = dc.index.datasets.get_datasets_for_location(input_url)
 
     task = alchemist.generate_task(ds)
     execute_task(task)
