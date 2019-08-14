@@ -1,0 +1,58 @@
+specification:
+  product: ls5_ard # for ard_interop
+  measurements: ['nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2']
+  measurement_renames:
+    nbart_green: green
+    nbart_red: red
+    nbart_nir: nir
+    nbart_swir_1: swir1
+    nbart_swir_2: swir2
+  # For africa data
+  #  product: ls5_usgs_sr_scene
+  #  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
+
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
+  transform: fc.virtualproduct.FakeFractionalCover
+  transform_args:
+    regression_coefficients:
+      blue:
+        - 0.00041
+        - 0.97470
+      green:
+        - 0.00289
+        - 0.99779
+      red:
+        - 0.00274
+        - 1.00446
+      nir:
+        - 0.00004
+        - 0.98906
+      swir1:
+        - 0.00256
+        - 0.99467
+      swir2:
+        - -0.00327
+        - 1.02551
+
+
+
+output:
+  location: '/g/data/u46/users/dra547/data/c3-testing/'
+  dtype: uint8 # single value for all bands
+  nodata: 255 # single value for all bands
+  preview_image: [pv, npv, bs]
+
+#  reference_source_dataset: False
+  metadata: # metadata are settings available on DatasetAssembler
+    product_family: fractional_cover
+    producer: ga.gov.au
+    dataset_version: 2.0.0
+  properties: # Properties can be anything and everything
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 1000
+    y: 1000
+

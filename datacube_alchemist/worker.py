@@ -38,6 +38,7 @@ class OutputSettings:
     preview_image: Optional[List[str]] = None
     metadata: Optional[Mapping[str, str]] = None
     properties: Optional[Mapping[str, str]] = None
+    reference_source_dataset: bool = attr.ib(default=True)
 
 
 @attr.s(auto_attribs=True)
@@ -47,6 +48,7 @@ class Specification:
     transform: str
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
+    override_product_family: Optional[str] = attr.ib(default=None)
 
 
 @attr.s(auto_attribs=True)
@@ -140,14 +142,16 @@ def execute_task(task: AlchemistTask):
 
     if 'crs' not in output_data.attrs:
         output_data.attrs['crs'] = crs
-    source_doc = _convert_old_odc_dataset_to_new(task.dataset)
 
     # Ensure output path exists
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
 
     with DatasetAssembler(output_location, naming_conventions="dea") as p:
-        p.add_source_dataset(source_doc, auto_inherit_properties=True)
+        if task.settings.output.reference_source_dataset:
+            source_doc = _munge_dataset_to_eo3(task.dataset)
+            p.add_source_dataset(source_doc, auto_inherit_properties=True,
+                                 classifier=task.settings.specification.override_product_family)
 
         # Copy in metadata and properties
         for k, v in task.settings.output.metadata.items():
@@ -181,16 +185,41 @@ def execute_task(task: AlchemistTask):
     return dataset_id, metadata_path
 
 
-def _convert_old_odc_dataset_to_new(ds: Dataset) -> DatasetDoc:
+def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
+    """
+    Convert to the DatasetDoc format that eodatasets expects.
+    """
+    if ds.metadata_type.name == 'eo_plus':
+        return convert_eo_plus(ds)
+
+    # Else we have an already mostly eo3 style dataset
     product = ProductDoc(name=ds.type.name)
-    properties = StacPropertyView(ds.metadata_doc['properties'])
+    # Wrap properties to avoid typos and the like
+    properties = StacPropertyView(ds.metadata_doc.get('properties', {}))
     return DatasetDoc(
         id=ds.id,
         product=product,
         crs=ds.crs.crs_str,
         properties=properties
-
     )
+
+def convert_eo_plus(ds) -> DatasetDoc:
+    # Definitely need: # - 'datetime' # - 'eo:instrument' # - 'eo:platform' # - 'odc:region_code'
+    properties = StacPropertyView({
+        'odc:region_code': ds.metadata.region_code,
+        'datetime': ds.center_time,
+        'eo:instrument': ds.metadata.instrument,
+        'eo:platform': ds.metadata.platform,
+        'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'), # Used to find abbreviated instrument id
+    })
+    product = ProductDoc(name=ds.type.name)
+    return DatasetDoc(
+        id=ds.id,
+        product=product,
+        crs=ds.crs.crs_str,
+        properties=properties
+    )
+
 
 
 def _import_transform(transform_name: str) -> Type[Transformation]:
