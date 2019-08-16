@@ -3,3 +3,5 @@ eodatasets3
 attrs
 cattrs
 structlog
+cloudpickle
+boto3

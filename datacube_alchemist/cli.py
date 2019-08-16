@@ -2,6 +2,8 @@ from pathlib import Path
 
 import click
 import structlog
+import boto3
+import cloudpickle
 
 from datacube import Datacube
 from datacube.ui import click as ui
@@ -33,13 +35,13 @@ def run_many(config_file, expressions, environment=None, limit=None):
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
-
     client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
 
 
 @cli.command()
-@click.option('--environment')
+@click.option('--environment', '-E',
+              help='Name of the datacube environment to connect to.')
 @click.argument('config_file')
 @click.argument('input_dataset')
 def run_one(config_file, input_dataset, environment=None):
@@ -58,6 +60,62 @@ def run_one(config_file, input_dataset, environment=None):
     task = alchemist.generate_task(ds)
     execute_task(task)
 
+
+@cli.command()
+@click.option('--environment', '-E',
+              help='Name of the datacube environment to connect to.')
+@click.option('--limit', type=int,
+              help='For testing, specify a small number of tasks to run.')
+@click.argument('config_file')
+@click.argument('message_queue')
+
+@ui.parsed_search_expressions
+def add_to_queue(config_file, message_queue, expressions, environment=None, limit=None):
+
+    #Set up the queue
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName=message_queue)
+
+    # Load Configuration file
+    alchemist = Alchemist(config_file=config_file, dc_env=environment)
+
+    tasks = alchemist.generate_tasks(expressions, limit=limit)
+    for task in tasks:
+        pickled_task = cloudpickle.dumps(task)
+        atts ={
+        'pickled_task': {
+            'BinaryValue': pickled_task,
+            'DataType': 'Binary'
+                        }
+                }
+
+        queue.send_message(MessageBody=task.dataset.local_uri,  MessageAttributes=atts)
+
+
+@cli.command()
+@click.argument('message_queue')
+
+def pull_from_queue(message_queue):
+    # Set up the queue
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName=message_queue)
+
+    messages = queue.receive_messages(
+        VisibilityTimeout=10,
+#        VisibilityTimeout=VISIBILITYTIMEOUT,
+        MaxNumberOfMessages=1,
+    MessageAttributeNames=['All']
+    )
+    _LOG.info("Found task to process: {}".format(messages))
+    message = None
+    if len(messages) > 0:
+        message = messages[0]
+        pickled_task = message.message_attributes['pickled_task']['BinaryValue']
+        task = cloudpickle.loads(pickled_task)
+        _LOG.info("Found task to process: {}".format(task))
+        execute_task(task)
+    else:
+        _LOG.warning("No messages!")
 
 if __name__ == '__main__':
     cli()
