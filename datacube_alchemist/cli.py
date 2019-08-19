@@ -11,6 +11,7 @@ from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task
 
 _LOG = structlog.get_logger()
 
+
 @click.group()
 def cli():
     pass
@@ -68,11 +69,10 @@ def run_one(config_file, input_dataset, environment=None):
               help='For testing, specify a small number of tasks to run.')
 @click.argument('config_file')
 @click.argument('message_queue')
-
 @ui.parsed_search_expressions
 def add_to_queue(config_file, message_queue, expressions, environment=None, limit=None):
 
-    #Set up the queue
+    # Set up the queue
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
@@ -82,10 +82,11 @@ def add_to_queue(config_file, message_queue, expressions, environment=None, limi
     tasks = alchemist.generate_tasks(expressions, limit=limit)
     for task in tasks:
         pickled_task = cloudpickle.dumps(task)
-        atts ={'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
+        atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
         # The information is in the pickled_task message attribute
         # The message body is not used by the s/w
-        queue.send_message(MessageBody=task.dataset.local_uri,  MessageAttributes=atts)
+        body = task.dataset.local_uri if task.dataset.local_uri is not None else 'local_uri is None'
+        queue.send_message(MessageBody=body,  MessageAttributes=atts)
 
 
 @cli.command()
@@ -101,7 +102,7 @@ def pull_from_queue(message_queue, sqs_timeout=None):
     messages = queue.receive_messages(
         VisibilityTimeout=sqs_timeout,
         MaxNumberOfMessages=1,
-    MessageAttributeNames=['All']
+        MessageAttributeNames=['All']
     )
     if len(messages) > 0:
         message = messages[0]
@@ -114,6 +115,7 @@ def pull_from_queue(message_queue, sqs_timeout=None):
         _LOG.info("SQS message deleted")
     else:
         _LOG.warning("No messages!")
+
 
 if __name__ == '__main__':
     cli()
