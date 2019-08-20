@@ -1,7 +1,16 @@
 datacube
 eodatasets3
-attrs
+attrs>=18.1
 cattrs
 structlog
 cloudpickle
 boto3
+
+dask>=2
+distributed
+fsspec>=0.3.3
+
+# for eodatasets3
+jsonschema>=3
+h5py
+

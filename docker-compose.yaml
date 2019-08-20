@@ -1,0 +1,27 @@
+version: "3.4"
+services:
+  fc-alchemist:
+    build: .
+    network_mode: "host"
+    environment:
+      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
+      - AWS_DEFAULT_REGION=us-west-2
+
+      - INPUT_S3_BUCKET=frontiersi-odc-data
+      - OUTPUT_S3_BUCKET=test.data.frontiersi.io
+      # - OUTPUT_PATH=usgs/wofs
+
+      # - SQS_QUEUE_URL=landsat-to-wofs
+
+      - LOG_LEVEL=INFO
+      - DRY_RUN=True
+
+      - DB_DATABASE=opendatacube
+      - DB_USERNAME=opendatacube
+      - DB_PASSWORD=opendatacubepassword
+      - DB_PORT=5432
+      - DB_HOSTNAME=172.19.0.3
+    volumes:
+      - ./data:/opt/data
+      - ./Docker:/opt/scripts
