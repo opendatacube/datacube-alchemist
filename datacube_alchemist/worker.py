@@ -206,6 +206,7 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
         properties=properties
     )
 
+
 def convert_eo_plus(ds) -> DatasetDoc:
     # Definitely need: # - 'datetime' # - 'eo:instrument' # - 'eo:platform' # - 'odc:region_code'
     properties = StacPropertyView({
@@ -213,7 +214,7 @@ def convert_eo_plus(ds) -> DatasetDoc:
         'datetime': ds.center_time,
         'eo:instrument': ds.metadata.instrument,
         'eo:platform': ds.metadata.platform,
-        'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'), # Used to find abbreviated instrument id
+        'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'),  # Used to find abbreviated instrument id
     })
     product = ProductDoc(name=ds.type.name)
     return DatasetDoc(
@@ -231,7 +232,7 @@ def convert_eo(ds) -> DatasetDoc:
         'datetime': ds.center_time,
         'eo:instrument': ds.metadata.instrument,
         'eo:platform': ds.metadata.platform,
-        'landsat:landsat_scene_id': ds.metadata.instrument, # Used to find abbreviated instrument id
+        'landsat:landsat_scene_id': ds.metadata.instrument,  # Used to find abbreviated instrument id
     })
     product = ProductDoc(name=ds.type.name)
     return DatasetDoc(
@@ -240,6 +241,7 @@ def convert_eo(ds) -> DatasetDoc:
         crs=ds.crs.crs_str,
         properties=properties
     )
+
 
 def _import_transform(transform_name: str) -> Type[Transformation]:
     module_name, class_name = transform_name.rsplit('.', maxsplit=1)

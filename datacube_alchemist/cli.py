@@ -8,6 +8,7 @@ import cloudpickle
 from datacube import Datacube
 from datacube.ui import click as ui
 from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task, AlchemistSettings
+from datacube_alchemist.upload import S3Upload
 
 _LOG = structlog.get_logger()
 
@@ -93,7 +94,7 @@ def add_to_queue(config_file, message_queue, expressions, environment=None, limi
 @click.argument('message_queue')
 @click.option('--sqs_timeout', '-s', type=int,
               help='The SQS message Visability Timeout.',
-              default=1000)
+              default=400)
 def pull_from_queue(message_queue, sqs_timeout=None):
     # Set up the queue
     sqs = boto3.resource('sqs')
@@ -108,8 +109,12 @@ def pull_from_queue(message_queue, sqs_timeout=None):
         message = messages[0]
         pickled_task = message.message_attributes['pickled_task']['BinaryValue']
         task = cloudpickle.loads(pickled_task)
+        s3ul = S3Upload(task.settings.output.location)
+        # make location local if the location is S3
+        task.settings.output.location = s3ul.location
         _LOG.info("Found task to process: {}".format(task))
         execute_task(task)
+        s3ul.upload_if_needed()
 
         message.delete()
         _LOG.info("SQS message deleted")
