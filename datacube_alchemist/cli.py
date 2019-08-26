@@ -9,6 +9,7 @@ from datacube import Datacube
 from datacube.ui import click as ui
 from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task, AlchemistSettings
 from datacube_alchemist.upload import S3Upload
+from datacube_alchemist import cloud_wrapper
 
 _LOG = structlog.get_logger()
 
@@ -72,23 +73,7 @@ def run_one(config_file, input_dataset, environment=None):
 @click.argument('message_queue')
 @ui.parsed_search_expressions
 def add_to_queue(config_file, message_queue, expressions, environment=None, limit=None):
-
-    # Set up the queue
-    sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName=message_queue)
-
-    # Load Configuration file
-    alchemist = Alchemist(config_file=config_file, dc_env=environment)
-
-    tasks = alchemist.generate_tasks(expressions, limit=limit)
-    for task in tasks:
-        pickled_task = cloudpickle.dumps(task)
-        atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
-        # The information is in the pickled_task message attribute
-        # The message body is not used by the s/w
-        body = task.dataset.local_uri if task.dataset.local_uri is not None else 'local_uri is None'
-        queue.send_message(MessageBody=body,  MessageAttributes=atts)
-
+    cloud_wrapper.add_to_queue(config_file, message_queue, expressions, environment, limit)
 
 @cli.command()
 @click.argument('message_queue')

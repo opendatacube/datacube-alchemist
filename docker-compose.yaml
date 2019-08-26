@@ -4,18 +4,13 @@ services:
     build: .
     network_mode: "host"
     environment:
+      - SQS_QUEUE=alchemist-standard
+      - SQS_TIMEOUT_SEC=500
+      - MAKE_PUBLIC=True
+
       - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
       - AWS_DEFAULT_REGION=us-west-2
-
-      - INPUT_S3_BUCKET=frontiersi-odc-data
-      - OUTPUT_S3_BUCKET=test.data.frontiersi.io
-      # - OUTPUT_PATH=usgs/wofs
-
-      # - SQS_QUEUE_URL=landsat-to-wofs
-
-      - LOG_LEVEL=INFO
-      - DRY_RUN=True
 
       - DB_DATABASE=opendatacube
       - DB_USERNAME=opendatacube

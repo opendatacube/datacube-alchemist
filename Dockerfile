@@ -1,6 +1,6 @@
 FROM opendatacube/datacube-core:1.7
 
-ENV APPDIR=/tmp/code
+ENV APPDIR=/opt/scripts
 RUN mkdir -p $APPDIR
 COPY . $APPDIR
 WORKDIR $APPDIR
@@ -20,8 +20,9 @@ ENV FILE_PREFIX="" \
     DB_PORT="5432" \
     DB_USERNAME="africa" \
     DB_PASSWORD="" \
+    DB_DATABASE="africa" \
     SQS_QUEUE="alchemist-standard" \
-   $SQS_TIMEOUT_SEC=500 \
+    SQS_TIMEOUT_SEC="500" \
     MAKE_PUBLIC="True"
 
-CMD ["sh", "-c", "datacube-alchemist pull_from_queue $SQS_QUEUE -s $SQS_TIMEOUT_SEC", ]
+CMD ["sh", "-c", "datacube-alchemist pull_from_queue $SQS_QUEUE -s $SQS_TIMEOUT_SEC"]
