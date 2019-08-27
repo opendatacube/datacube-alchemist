@@ -25,7 +25,6 @@ ENV FILE_PREFIX="" \
     DB_DATABASE="africa" \
     SQS_QUEUE="alchemist-standard" \
     SQS_TIMEOUT_SEC="500" \
-    MAKE_PUBLIC="True" \
     COMMAND="pull_from_queue" \
     EXPRESSIONS=""
 

@@ -46,7 +46,7 @@ class S3Url(object):
         return self._parsed.geturl()
 
 
-def _upload(client, bucket, remote_path, local_file, make_public=False, mimetype=None):
+def _upload(client, bucket, remote_path, local_file, mimetype=None):
     if mimetype is None:
         _, file_ext = os.path.splitext(local_file)
         if file_ext == ".tif":
@@ -60,8 +60,6 @@ def _upload(client, bucket, remote_path, local_file, make_public=False, mimetype
 
     extra_args = dict()
 
-    if make_public:
-        extra_args['ACL'] = 'public-read'
     if mimetype is not None:
         extra_args['ContentType'] = mimetype
 
@@ -91,11 +89,11 @@ class S3Upload(object):
     def location(self):
         return self._location
 
-    def upload_if_needed(self, make_public=False):
+    def upload_if_needed(self):
         if self.upload is True:
             self.upload_now(make_public)
 
-    def upload_now(self, make_public=False):
+    def upload_now(self):
 
         s3_resource = boto3.resource('s3')
 
@@ -110,8 +108,7 @@ class S3Upload(object):
                     s3_resource,
                     self.s3url.bucket,
                     os.path.join(self.s3url.key, rel_path),
-                    local_file=full_path,
-                    make_public=make_public
+                    local_file=full_path
                 )
         shutil.rmtree(self.tmp_results)
 

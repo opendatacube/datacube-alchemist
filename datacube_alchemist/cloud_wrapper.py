@@ -31,7 +31,7 @@ def add_to_queue(config_file, message_queue, expressions, environment=None, limi
         body = task.dataset.local_uri if task.dataset.local_uri is not None else 'local_uri is None'
         queue.send_message(MessageBody=body,  MessageAttributes=atts)
 
-def pull_from_queue(message_queue, sqs_timeout=None, make_public=False):
+def pull_from_queue(message_queue, sqs_timeout=None):
     # Set up the queue
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
@@ -50,7 +50,7 @@ def pull_from_queue(message_queue, sqs_timeout=None, make_public=False):
         task.settings.output.location = s3ul.location
         _LOG.info("Found task to process: {}".format(task))
         execute_task(task)
-        s3ul.upload_if_needed(make_public)
+        s3ul.upload_if_needed()
 
         message.delete()
         _LOG.info("SQS message deleted")
@@ -69,9 +69,7 @@ def run_command():
     command = os.getenv('COMMAND')
     if command == 'pull_from_queue':
         sqs_timeout_sec = int(os.getenv('SQS_TIMEOUT_SEC', '500'))
-        make_public = os.getenv('MAKE_PUBLIC', 'False')
-        make_public = make_public in ['true', 'True']
-        pull_from_queue(sqs_queue, sqs_timeout_sec, make_public)
+        pull_from_queue(sqs_queue, sqs_timeout_sec)
     elif command == 'pull_from_queue':
         config_file = ''   #  Let's write this locally
         expressions = os.getenv('EXPRESSIONS', '')
