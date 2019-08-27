@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: user-africa-alchemist-pod
+  labels:
+    app: odc
+  annotations:
+    iam.amazonaws.com/role: deafrica-ec2-s3_access
+spec:
+  containers:
+  - name: datacube-alchemist-container
+    image: opendatacube/datacube-alchemist
+    env:
+    - name: DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: africa-datacube
+          key: postgres-username
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: africa-datacube
+          key: postgres-password
+    - name: ADMIN_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: deafrica-eks
+          key: postgres-username
+    - name: ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: deafrica-eks
+          key: postgres-password
+    - name: DATACUBE_CONFIG_PATH
+      value: "/opt/custom-config.conf" 
+    - name: DB_DATABASE
+      value: "test_africa"
+    - name: DB_HOSTNAME
+      value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
+    - name: DB_PORT
+      value: "5432"
+    - name: AWS_DEFAULT_REGION
+      value: us-west-2
+      
+    ports:
+    - containerPort: 80
+    command: ["/bin/sh", "-ec", "docker-entrypoint.sh && while :; do echo '.'; sleep 5 ; done"]
+  nodeSelector:
+    beta.kubernetes.io/os: linux
