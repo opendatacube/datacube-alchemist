@@ -1,6 +1,7 @@
 import os
 import tempfile
 import boto3
+import structlog
 from distutils.dir_util import copy_tree
 import shutil
 
@@ -8,6 +9,9 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
+
+
+_LOG = structlog.get_logger()
 
 
 class S3Url(object):
@@ -21,19 +25,6 @@ class S3Url(object):
     >>> s.url
     's3://bucket/hello/world'
 
-    >>> s = S3Url("s3://bucket/hello/world?qwe1=3#ddd")
-    >>> s.bucket
-    'bucket'
-    >>> s.key
-    'hello/world?qwe1=3#ddd'
-    >>> s.url
-    's3://bucket/hello/world?qwe1=3#ddd'
-
-    >>> s = S3Url("s3://bucket/hello/world#foo?bar=2")
-    >>> s.key
-    'hello/world#foo?bar=2'
-    >>> s.url
-    's3://bucket/hello/world#foo?bar=2'
     """
 
     def __init__(self, url):
@@ -55,7 +46,7 @@ class S3Url(object):
         return self._parsed.geturl()
 
 
-def _upload(client, bucket, remote_path, local_file, makepublic=False, mimetype=None):
+def _upload(client, bucket, remote_path, local_file, make_public=False, mimetype=None):
     if mimetype is None:
         _, file_ext = os.path.splitext(local_file)
         if file_ext == ".tif":
@@ -69,13 +60,14 @@ def _upload(client, bucket, remote_path, local_file, makepublic=False, mimetype=
 
     extra_args = dict()
 
-    if makepublic:
+    if make_public:
         extra_args['ACL'] = 'public-read'
     if mimetype is not None:
         extra_args['ContentType'] = mimetype
 
     args = { 'ExtraArgs': extra_args }
-
+    _LOG.info('Uploading yaml: s3://' + bucket + '/' + remote_path)
+    _LOG.info('local_file: ' + local_file)
     client.meta.client.upload_fileobj(
         Fileobj=data,
         Bucket=bucket,
@@ -99,11 +91,11 @@ class S3Upload(object):
     def location(self):
         return self._location
 
-    def upload_if_needed(self):
+    def upload_if_needed(self, make_public=False):
         if self.upload is True:
-            self.upload_now()
+            self.upload_now(make_public)
 
-    def upload_now(self):
+    def upload_now(self, make_public=False):
 
         s3_resource = boto3.resource('s3')
 
@@ -119,7 +111,7 @@ class S3Upload(object):
                     self.s3url.bucket,
                     os.path.join(self.s3url.key, rel_path),
                     local_file=full_path,
-                    makepublic=MAKE_PUBLIC
+                    make_public=make_public
                 )
         shutil.rmtree(self.tmp_results)
 
@@ -141,4 +133,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    #pass

@@ -1,6 +1,6 @@
 FROM opendatacube/datacube-core:1.7
 
-ENV APPDIR=/opt/scripts
+ENV APPDIR=/tmp/code
 RUN mkdir -p $APPDIR
 COPY . $APPDIR
 WORKDIR $APPDIR
@@ -14,8 +14,10 @@ RUN pip3 install --upgrade pip \
 RUN apt-get update && apt-get install -y gfortran
 RUN pip3 install git+https://github.com/GeoscienceAustralia/fc --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
 RUN pip3 install numexpr
+RUN apt-get install -y emacs
 
 ENV FILE_PREFIX="" \
+    DATACUBE_CONFIG_PATH="/opt/custom-config.conf" \
     DB_HOSTNAME="localhost" \
     DB_PORT="5432" \
     DB_USERNAME="africa" \
@@ -23,6 +25,14 @@ ENV FILE_PREFIX="" \
     DB_DATABASE="africa" \
     SQS_QUEUE="alchemist-standard" \
     SQS_TIMEOUT_SEC="500" \
-    MAKE_PUBLIC="True"
+    MAKE_PUBLIC="True" \
+    COMMAND="pull_from_queue" \
+    EXPRESSIONS=""
 
-CMD ["sh", "-c", "datacube-alchemist pull_from_queue $SQS_QUEUE -s $SQS_TIMEOUT_SEC"]
+
+# Set up an entrypoint that drops environment variables into the config file
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+CMD ["python3", "datacube_alchemist/cloud_wrapper.py"]
+#CMD ["datacube-alchemist/", "--help"]
+#CMD ["sh", "-c", "datacube-alchemist pull_from_queue $SQS_QUEUE -s $SQS_TIMEOUT_SEC"]

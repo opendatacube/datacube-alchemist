@@ -2,8 +2,6 @@ from pathlib import Path
 
 import click
 import structlog
-import boto3
-import cloudpickle
 
 from datacube import Datacube
 from datacube.ui import click as ui
@@ -74,6 +72,7 @@ def run_one(config_file, input_dataset, environment=None):
 @ui.parsed_search_expressions
 def add_to_queue(config_file, message_queue, expressions, environment=None, limit=None):
     cloud_wrapper.add_to_queue(config_file, message_queue, expressions, environment, limit)
+
 
 @cli.command()
 @click.argument('message_queue')
