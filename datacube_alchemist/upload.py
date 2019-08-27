@@ -91,7 +91,7 @@ class S3Upload(object):
 
     def upload_if_needed(self):
         if self.upload is True:
-            self.upload_now(make_public)
+            self.upload_now()
 
     def upload_now(self):
 

@@ -10,6 +10,7 @@ import cloudpickle
 
 from datacube_alchemist.upload import S3Upload
 from datacube_alchemist.worker import Alchemist, execute_task
+from datacube.ui import expression
 
 _LOG = structlog.get_logger()
 
@@ -70,13 +71,18 @@ def run_command():
     if command == 'pull_from_queue':
         sqs_timeout_sec = int(os.getenv('SQS_TIMEOUT_SEC', '500'))
         pull_from_queue(sqs_queue, sqs_timeout_sec)
-    elif command == 'pull_from_queue':
-        config_file = ''   #  Let's write this locally
+    elif command == 'add_to_queue':
+        # Warning, not tested. Therefore broken.
+        config_file = os.getenv('CONFIG_FILE')
         expressions = os.getenv('EXPRESSIONS', '')
+        environment = os.getenv('ENVIRONMENT', 'datacube')
+        task_limit = os.getenv('TASK_LIMIT', None)
+        parsed_ex = expression.parse_expressions(expressions)
         add_to_queue(config_file,
                      sqs_queue,
-                     expressions,
-                     environment=None, limit=None)
+                     expressions=parsed_ex,
+                     environment=environment,
+                     limit=task_limit)
 
 if __name__ == '__main__':
     run_command()
