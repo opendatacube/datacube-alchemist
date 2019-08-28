@@ -90,14 +90,14 @@ spec:
           value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
         - name: DB_PORT
           value: "5432"
-        - name: TYPE
-          value: "wofs"
+        - name: COMMAND
+          value: "add_to_queue"
         - name: LOG_LEVEL
           value: "INFO"
-        - name: FILE_PREFIX
-          value: ""
-        - name: SQS_MESSAGE_PREFIX
-          value: usgs
+        - name: CONFIG_FILE
+          value: "/opt/datacube-alchemist/examples/DEAfrica_fc_config.yaml"
+        - name: TASK_LIMIT
+          value: "1"
         - name: SQS_POLL_TIME_SEC
           value: "20"
         - name: JOB_MAX_TIME_SEC

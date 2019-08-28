@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alchemist-deployment
+  labels:
+    app: alchemist-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-alchemist-processor
+  template:
+    metadata:
+      annotations:
+        iam.amazonaws.com/role: deafrica-ec2-s3_access
+      labels:
+        app: python-alchemist-processor
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+        #kops.k8s.io/instancegroup: spot-nodes1
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nodetype
+                    operator: In
+                    values:
+                      - spot
+      containers:
+      - name: alchemist-processor-container
+        #image: geoscienceaustralia/landsat-to-cog_pygdal
+        image: opendatacube/datacube-alchemist
+        #command: [ "/bin/cat" ]
+        resources:
+          requests:
+            cpu: 1
+            memory: 8192Mi
+          limits:
+            memory: 8192Mi
+        tty: true
+        stdin: true
+        env:
+        - name: AWS_DEFAULT_REGION
+          value: us-west-2
+        - name: INPUT_S3_BUCKET
+          value: "deafrica-data"
+        - name: IN_PATH
+          value: "usgs"
+        - name: OUTPUT_S3_BUCKET
+          value: "deafrica-data"
+        - name: OUTPUT_PATH
+          value: "test_WOFLS"
+        - name: SQS_QUEUE
+          value: "alchemist-standard"
+        - name: CLEANUP
+          value: "True"
+        - name: ROOT_FOLDER
+          value: "usgs"
+        - name: PRODUCT
+          value: "ls_usgs_wofs_scene"
+        - name: UPLOAD
+          value: "True"
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: africa-datacube
+              key: postgres-username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: africa-datacube
+              key: postgres-password
+        - name: DB_USERNAME_DEAFRICA
+          valueFrom:
+            secretKeyRef:
+              name: deafrica-datacube
+              key: postgres-username
+        - name: DB_PASSWORD_DEAFRICA
+          valueFrom:
+            secretKeyRef:
+              name: deafrica-datacube
+              key: postgres-password
+        - name: DATACUBE_CONFIG_PATH
+          value: "/opt/custom-config.conf" 
+        - name: DB_DATABASE
+          value: "africa"
+        - name: DB_HOSTNAME
+          value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "5432"
+        - name: COMMAND
+          value: "pull_from_queue"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: FILE_PREFIX
+          value: ""
+        - name: SQS_MESSAGE_PREFIX
+          value: usgs
+        - name: SQS_POLL_TIME_SEC
+          value: "20"
+        - name: JOB_MAX_TIME_SEC
+          value: "300"
+        - name: MAX_JOB_PER_WORKER
+          value: "1"
+        - name: MAKE_PUBLIC
+          value: "True"
+
+      

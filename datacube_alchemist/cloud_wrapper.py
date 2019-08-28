@@ -67,7 +67,7 @@ def run_command():
     """
 
     sqs_queue = os.getenv('SQS_QUEUE')
-    command = os.getenv('COMMAND')
+    command = os.getenv('COMMAND', '')
     if command == 'pull_from_queue':
         sqs_timeout_sec = int(os.getenv('SQS_TIMEOUT_SEC', '500'))
         pull_from_queue(sqs_queue, sqs_timeout_sec)
@@ -83,6 +83,8 @@ def run_command():
                      expressions=parsed_ex,
                      environment=environment,
                      limit=task_limit)
+    else:
+         _LOG.warning("For COMMAND env do ['pull_from_queue'|'add_to_queue']")
 
 if __name__ == '__main__':
     run_command()
