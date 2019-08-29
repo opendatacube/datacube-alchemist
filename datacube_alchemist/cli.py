@@ -90,12 +90,13 @@ def add_to_queue(config_file, message_queue, expressions, environment=None, limi
         queue.send_message(MessageBody=body,  MessageAttributes=atts)
 
 
+# export ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE="alchemist-standard"
 @cli.command()
-@click.argument('message_queue')
+@click.option('--message_queue', '-m', type=str)
 @click.option('--sqs_timeout', '-s', type=int,
               help='The SQS message Visability Timeout.',
               default=400)
-def pull_from_queue(message_queue, sqs_timeout=None):
+def pullfromqueue(message_queue, sqs_timeout=None):
     # Set up the queue
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
@@ -120,10 +121,6 @@ def pull_from_queue(message_queue, sqs_timeout=None):
         _LOG.info("SQS message deleted")
     else:
         _LOG.warning("No messages!")
-
-
-
-
 
 if __name__ == '__main__':
     cli(auto_envvar_prefix='ALCHEMIST')
