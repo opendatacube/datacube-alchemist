@@ -15,6 +15,7 @@ import cattr
 import numpy as np
 import structlog
 import yaml
+import fsspec
 
 import datacube
 from datacube.model import Dataset
@@ -75,7 +76,8 @@ class Alchemist:
         if config is not None:
             self.config = config
         else:
-            self.config = cattr.structure(yaml.safe_load(Path(config_file).read_bytes()), AlchemistSettings)
+            with fsspec.open(config_file, mode='r') as f:
+                self.config = cattr.structure(yaml.safe_load(f), AlchemistSettings)
 
         # Connect to the ODC Index
         self.dc = datacube.Datacube(env=dc_env)
