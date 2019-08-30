@@ -71,7 +71,7 @@ def run_one(config_file, input_dataset, environment=None):
 @click.argument('config_file')
 @click.argument('message_queue')
 @ui.parsed_search_expressions
-def add_to_queue(config_file, message_queue, expressions, environment=None, limit=None):
+def addtoqueue(config_file, message_queue, expressions, environment=None, limit=None):
 
     # Set up the queue
     sqs = boto3.resource('sqs')
