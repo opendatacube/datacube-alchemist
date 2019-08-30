@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alchemist-deployment
+  name: alchemist-pull-deployment
   labels:
-    app: alchemist-processor
+    app: alchemist-pull-processor
 spec:
   replicas: 1
   selector:
@@ -32,7 +32,8 @@ spec:
       - name: alchemist-processor-container
         #image: geoscienceaustralia/landsat-to-cog_pygdal
         image: opendatacube/datacube-alchemist
-        #command: [ "/bin/cat" ]
+        #command: [ "datacube-alchemist", "pullfromqueue" ]
+        command: [ "/bin/cat" ]
         resources:
           requests:
             cpu: 1

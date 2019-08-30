@@ -68,8 +68,8 @@ def run_one(config_file, input_dataset, environment=None):
               help='Name of the datacube environment to connect to.')
 @click.option('--limit', type=int,
               help='For testing, specify a small number of tasks to run.')
-@click.argument('config_file')
-@click.argument('message_queue')
+@click.option('--config_file')
+@click.option('--message_queue', '-M')
 @ui.parsed_search_expressions
 def addtoqueue(config_file, message_queue, expressions, environment=None, limit=None):
 
@@ -92,10 +92,11 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
 # export ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE="alchemist-standard"
 @cli.command()
-@click.option('--message_queue', '-m', type=str)
-@click.option('--sqs_timeout', '-s', type=int,
+@click.option('--message_queue', '-M')
+@click.option('--sqs_timeout', '-S', type=int,
               help='The SQS message Visability Timeout.',
               default=400)
+
 def pullfromqueue(message_queue, sqs_timeout=None):
     # Set up the queue
     sqs = boto3.resource('sqs')

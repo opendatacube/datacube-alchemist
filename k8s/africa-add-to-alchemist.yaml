@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alchemist-deployment
+  name: alchemist-add-deployment
   labels:
-    app: alchemist-processor
+    app: alchemist-add-processor
 spec:
   replicas: 1
   selector:
@@ -32,7 +32,8 @@ spec:
       - name: alchemist-processor-container
         #image: geoscienceaustralia/landsat-to-cog_pygdal
         image: opendatacube/datacube-alchemist
-        #command: [ "/bin/cat" ]
+        #command: [ "datacube-alchemist", "addtoqueue" ]
+        command: [ "/bin/cat" ]
         resources:
           requests:
             cpu: 1
@@ -44,24 +45,14 @@ spec:
         env:
         - name: AWS_DEFAULT_REGION
           value: us-west-2
-        - name: ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE
+        - name: ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE
           value: "alchemist-standard"
-        - name: ALCHEMIST_PULLFROMQUEUE_ENVIRONMENT
+        - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
           value: "datacube"
-        - name: ALCHEMIST_PULLFROMQUEUE_LIMIT
+        - name: ALCHEMIST_ADDTOQUEUE_LIMIT
           value: "1"
-        - name: INPUT_S3_BUCKET
-          value: "deafrica-data"
-        - name: OUTPUT_S3_BUCKET
-          value: "deafrica-data"
-        - name: CLEANUP
-          value: "True"
-        - name: ROOT_FOLDER
-          value: "usgs"
-        - name: PRODUCT
-          value: "ls_usgs_wofs_scene"
-        - name: UPLOAD
-          value: "True"
+        - name: ALCHEMIST_ADDTOQUEUE_CONFIG_FILE
+          value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
@@ -72,6 +63,18 @@ spec:
             secretKeyRef:
               name: africa-datacube
               key: postgres-password
+        - name: DATACUBE_CONFIG_PATH
+          value: "/opt/custom-config.conf" 
+        - name: DB_DATABASE
+          value: "test_africa"
+        - name: DB_HOSTNAME
+          value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "5432"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: CONFIG_FILE
+          value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
         - name: DB_USERNAME_DEAFRICA
           valueFrom:
             secretKeyRef:
@@ -82,29 +85,3 @@ spec:
             secretKeyRef:
               name: deafrica-datacube
               key: postgres-password
-        - name: DATACUBE_CONFIG_PATH
-          value: "/opt/custom-config.conf" 
-        - name: DB_DATABASE
-          value: "africa"
-        - name: DB_HOSTNAME
-          value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
-        - name: DB_PORT
-          value: "5432"
-        - name: COMMAND
-          value: "add_to_queue"
-        - name: LOG_LEVEL
-          value: "INFO"
-        - name: CONFIG_FILE
-          value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
-        - name: TASK_LIMIT
-          value: "1"
-        - name: SQS_POLL_TIME_SEC
-          value: "20"
-        - name: JOB_MAX_TIME_SEC
-          value: "300"
-        - name: MAX_JOB_PER_WORKER
-          value: "1"
-        - name: MAKE_PUBLIC
-          value: "True"
-
-      
