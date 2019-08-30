@@ -42,6 +42,8 @@ spec:
         tty: true
         stdin: true
         env:
+        - name: ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE
+          value: "alchemist-standard"
         - name: AWS_DEFAULT_REGION
           value: us-west-2
         - name: INPUT_S3_BUCKET

@@ -44,16 +44,16 @@ spec:
         env:
         - name: AWS_DEFAULT_REGION
           value: us-west-2
+        - name: ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE
+          value: "alchemist-standard"
+        - name: ALCHEMIST_PULLFROMQUEUE_ENVIRONMENT
+          value: "datacube"
+        - name: ALCHEMIST_PULLFROMQUEUE_LIMIT
+          value: "1"
         - name: INPUT_S3_BUCKET
           value: "deafrica-data"
-        - name: IN_PATH
-          value: "usgs"
         - name: OUTPUT_S3_BUCKET
           value: "deafrica-data"
-        - name: OUTPUT_PATH
-          value: "test_WOFLS"
-        - name: SQS_QUEUE_URL
-          value: "landsat-to-wofs"
         - name: CLEANUP
           value: "True"
         - name: ROOT_FOLDER

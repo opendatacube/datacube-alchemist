@@ -31,5 +31,5 @@ up-frak:
 
 
 push:
-	docker build DockerFile --tag opendatacube/datacube-alchemist
+	docker build . --tag opendatacube/datacube-alchemist
 	docker push opendatacube/datacube-alchemist

@@ -13,7 +13,7 @@ RUN pip3 install --upgrade pip \
 
 RUN apt-get update && apt-get install -y gfortran
 RUN pip3 install git+https://github.com/GeoscienceAustralia/fc --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
-RUN pip3 install numexpr
+RUN pip3 install numexpr s3fs
 RUN apt-get install -y emacs
 
 ENV FILE_PREFIX="" \
@@ -25,13 +25,13 @@ ENV FILE_PREFIX="" \
     DB_DATABASE="africa" \
     SQS_QUEUE="alchemist-standard" \
     SQS_TIMEOUT_SEC="500" \
-    COMMAND="" \  #  ['pull_from_queue'|'add_to_queue']
+    COMMAND="" \
     EXPRESSIONS=""
 
 
 # Set up an entrypoint that drops environment variables into the config file
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-CMD ["python3", "datacube_alchemist/cloud_wrapper.py"]
-#CMD ["datacube-alchemist/", "--help"]
+#CMD ["python3", "datacube_alchemist/cloud_wrapper.py"]
+CMD ["datacube-alchemist", "--help"]
 #CMD ["sh", "-c", "datacube-alchemist pull_from_queue $SQS_QUEUE -s $SQS_TIMEOUT_SEC"]
