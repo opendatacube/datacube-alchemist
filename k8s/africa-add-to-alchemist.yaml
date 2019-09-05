@@ -32,8 +32,8 @@ spec:
       - name: alchemist-processor-container
         #image: geoscienceaustralia/landsat-to-cog_pygdal
         image: opendatacube/datacube-alchemist
-        #command: [ "datacube-alchemist", "addtoqueue" ]
-        command: [ "/bin/cat" ]
+        args: [ "datacube-alchemist", "addtoqueue" ]
+        #args: [ "/bin/cat" ]
         resources:
           requests:
             cpu: 1

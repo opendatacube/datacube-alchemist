@@ -47,24 +47,24 @@ spec:
           value: "alchemist-standard"
         - name: AWS_DEFAULT_REGION
           value: us-west-2
-        - name: INPUT_S3_BUCKET
-          value: "deafrica-data"
-        - name: IN_PATH
-          value: "usgs"
-        - name: OUTPUT_S3_BUCKET
-          value: "deafrica-data"
-        - name: OUTPUT_PATH
-          value: "test_WOFLS"
-        - name: SQS_QUEUE
-          value: "alchemist-standard"
-        - name: CLEANUP
-          value: "True"
-        - name: ROOT_FOLDER
-          value: "usgs"
-        - name: PRODUCT
-          value: "ls_usgs_wofs_scene"
-        - name: UPLOAD
-          value: "True"
+#        - name: INPUT_S3_BUCKET
+#          value: "deafrica-data"
+#        - name: IN_PATH
+#          value: "usgs"
+#        - name: OUTPUT_S3_BUCKET
+#          value: "deafrica-data"
+#        - name: OUTPUT_PATH
+#          value: "test_WOFLS"
+#        - name: SQS_QUEUE
+#          value: "alchemist-standard"
+#        - name: CLEANUP
+#          value: "True"
+#        - name: ROOT_FOLDER
+#          value: "usgs"
+#        - name: PRODUCT
+#          value: "ls_usgs_wofs_scene"
+#        - name: UPLOAD
+#          value: "True"
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:

@@ -12,9 +12,11 @@ from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task
 
 _LOG = structlog.get_logger()
 
+def cli():
+    cli2(auto_envvar_prefix='ALCHEMIST')
 
 @click.group()
-def cli():
+def cli2():
     pass
 
 
@@ -25,7 +27,7 @@ def setup_dask_client(config: AlchemistSettings):
     return client
 
 
-@cli.command()
+@cli2.command()
 @click.option('--environment', '-E',
               help='Name of the datacube environment to connect to.')
 @click.option('--limit', type=int,
@@ -41,7 +43,7 @@ def run_many(config_file, expressions, environment=None, limit=None):
     execute_with_dask(client, tasks)
 
 
-@cli.command()
+@cli2.command()
 @click.option('--environment', '-E',
               help='Name of the datacube environment to connect to.')
 @click.argument('config_file')
@@ -63,7 +65,7 @@ def run_one(config_file, input_dataset, environment=None):
     execute_task(task)
 
 
-@cli.command()
+@cli2.command()
 @click.option('--environment', '-E',
               help='Name of the datacube environment to connect to.')
 @click.option('--limit', type=int,
@@ -91,7 +93,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
 
 # export ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE="alchemist-standard"
-@cli.command()
+@cli2.command()
 @click.option('--message_queue', '-M')
 @click.option('--sqs_timeout', '-S', type=int,
               help='The SQS message Visability Timeout.',
@@ -124,4 +126,4 @@ def pullfromqueue(message_queue, sqs_timeout=None):
         _LOG.warning("No messages!")
 
 if __name__ == '__main__':
-    cli(auto_envvar_prefix='ALCHEMIST')
+    cli()
