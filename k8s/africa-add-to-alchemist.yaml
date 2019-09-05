@@ -1,87 +1,69 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   name: alchemist-add-deployment
   labels:
     app: alchemist-add-processor
+  annotations:
+    iam.amazonaws.com/role: deafrica-ec2-s3_access
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: python-alchemist-processor
-  template:
-    metadata:
-      annotations:
-        iam.amazonaws.com/role: deafrica-ec2-s3_access
-      labels:
-        app: python-alchemist-processor
-    spec:
-      nodeSelector:
-        beta.kubernetes.io/os: linux
-        #kops.k8s.io/instancegroup: spot-nodes1
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: nodetype
-                    operator: In
-                    values:
-                      - spot
-      containers:
-      - name: alchemist-processor-container
-        #image: geoscienceaustralia/landsat-to-cog_pygdal
-        image: opendatacube/datacube-alchemist
-        args: [ "datacube-alchemist", "addtoqueue" ]
-        #args: [ "/bin/cat" ]
-        resources:
-          requests:
-            cpu: 1
-            memory: 8192Mi
-          limits:
-            memory: 8192Mi
-        tty: true
-        stdin: true
-        env:
-        - name: AWS_DEFAULT_REGION
-          value: us-west-2
-        - name: ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE
-          value: "alchemist-standard"
-        - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
-          value: "datacube"
-        - name: ALCHEMIST_ADDTOQUEUE_LIMIT
-          value: "1"
-        - name: ALCHEMIST_ADDTOQUEUE_CONFIG_FILE
-          value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: africa-datacube
-              key: postgres-username
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: africa-datacube
-              key: postgres-password
-        - name: DATACUBE_CONFIG_PATH
-          value: "/opt/custom-config.conf" 
-        - name: DB_DATABASE
-          value: "test_africa"
-        - name: DB_HOSTNAME
-          value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
-        - name: DB_PORT
-          value: "5432"
-        - name: LOG_LEVEL
-          value: "INFO"
-        - name: CONFIG_FILE
-          value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
-        - name: DB_USERNAME_DEAFRICA
-          valueFrom:
-            secretKeyRef:
-              name: deafrica-datacube
-              key: postgres-username
-        - name: DB_PASSWORD_DEAFRICA
-          valueFrom:
-            secretKeyRef:
-              name: deafrica-datacube
-              key: postgres-password
+  containers:
+  - name: alchemist-processor-container
+    #image: geoscienceaustralia/landsat-to-cog_pygdal
+    image: opendatacube/datacube-alchemist
+    args: [ "datacube-alchemist", "addtoqueue" ]
+    #args: [ "/bin/cat" ]
+    resources:
+      requests:
+        cpu: 1
+        memory: 8192Mi
+      limits:
+        memory: 8192Mi
+    tty: true
+    stdin: true
+    env:
+    - name: AWS_DEFAULT_REGION
+      value: us-west-2
+    - name: ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE
+      value: "alchemist-standard"
+    - name: ALCHEMIST_ADDTOQUEUE_ENVIRONMENT
+      value: "datacube"
+    - name: ALCHEMIST_ADDTOQUEUE_LIMIT
+      value: "1"
+    - name: ALCHEMIST_ADDTOQUEUE_CONFIG_FILE
+      value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
+    - name: DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: africa-datacube
+          key: postgres-username
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: africa-datacube
+          key: postgres-password
+    - name: DATACUBE_CONFIG_PATH
+      value: "/opt/custom-config.conf"
+    - name: DB_DATABASE
+      value: "test_africa"
+    - name: DB_HOSTNAME
+      value: "db-deafrica-eks-default.clgqttgwz3jw.us-west-2.rds.amazonaws.com"
+    - name: DB_PORT
+      value: "5432"
+    - name: LOG_LEVEL
+      value: "INFO"
+    - name: CONFIG_FILE
+      value: "s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml"
+    - name: DB_USERNAME_DEAFRICA
+      valueFrom:
+        secretKeyRef:
+          name: deafrica-datacube
+          key: postgres-username
+    - name: DB_PASSWORD_DEAFRICA
+      valueFrom:
+        secretKeyRef:
+          name: deafrica-datacube
+          key: postgres-password
+  nodeSelector:
+    beta.kubernetes.io/os: linux
+  restartPolicy: Never
