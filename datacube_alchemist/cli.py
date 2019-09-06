@@ -8,6 +8,7 @@ import cloudpickle
 from datacube import Datacube
 from datacube.ui import click as ui
 from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task, AlchemistSettings
+from datacube_alchemist.upload import S3Upload
 
 
 _LOG = structlog.get_logger()
@@ -74,7 +75,7 @@ def run_one(config_file, input_dataset, environment=None):
 @click.option('--message_queue', '-M')
 @ui.parsed_search_expressions
 def addtoqueue(config_file, message_queue, expressions, environment=None, limit=None):
-
+    _LOG.info("Start add to queue.")
     # Set up the queue
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
@@ -83,14 +84,18 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
-    for task in tasks:
+
+    for count, task in enumerate(tasks):
+        if count % 100 == 0:
+            _LOG.info("Pushed {} items...".format(count))
         pickled_task = cloudpickle.dumps(task)
         atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
         # The information is in the pickled_task message attribute
         # The message body is not used by the s/w
         body = task.dataset.local_uri if task.dataset.local_uri is not None else 'local_uri is None'
-        queue.send_message(MessageBody=body,  MessageAttributes=atts)
 
+        queue.send_message(MessageBody=body,  MessageAttributes=atts)
+    _LOG.info("Ending. Pushed {} items...".format(count + 1))
 
 # export ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE="alchemist-standard"
 @cli2.command()
@@ -100,6 +105,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
               default=400)
 
 def pullfromqueue(message_queue, sqs_timeout=None):
+    _LOG.info("Start pull from queue.")
     # Set up the queue
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)

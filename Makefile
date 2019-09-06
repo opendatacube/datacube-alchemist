@@ -1,34 +1,15 @@
-add-to-queue:
-	BUCKET=deafrica-data \
-	BUCKET_PATH=usgs \
-	LIMIT=3 \
+pullfromqueue:
 	AWS_DEFAULT_REGION=us-west-2 \
-	QUEUE=landsat-to-wofs \
-	python3 add_to_queue.py
+	ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE=alchemist-standard \
+	datacube-alchemist pullfromqueue
 
-add-to-frak:
-	BUCKET=deafrica-data \
-	BUCKET_PATH=usgs/ \
-	LIMIT=99999 \
+addtoqueue:
 	AWS_DEFAULT_REGION=us-west-2 \
-	QUEUE=landsat-to-frak \
-	python3 add_to_queue.py
-
-up-wofs:
-	docker-compose up \
-		-e TYPE=wofs \
-		-e SQS_QUEUE_URL=landsat-to-wofs \
-		-e OUTPUT_PATH=usgs/wofs \
-	 	-e FILE_PREFIX=L8_WATER_3577
-
-up-frak:
-	docker-compose run \
-		-e TYPE=frak \
-		-e SQS_QUEUE_URL=landsat-to-frak \
-		-e OUTPUT_PATH=usgs/frak \
-		-e FILE_PREFIX=L8_FRAK_3577 \
-		wofl-copter
-
+	ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE=alchemist-standard \
+	ALCHEMIST_ADDTOQUEUE_LIMIT=1 \
+	ALCHEMIST_ADDTOQUEUE_ENVIRONMENT=datacube \
+	ALCHEMIST_ADDTOQUEUE_CONFIG_FILE=s3://test-results-deafrica-staging-west/test_configs/DEAfrica_fc_config.yaml \
+	datacube-alchemist addtoqueue
 
 push:
 	docker build . --tag opendatacube/datacube-alchemist
