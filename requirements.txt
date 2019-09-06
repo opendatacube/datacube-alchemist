@@ -13,4 +13,4 @@ s3fs
 # for eodatasets3
 jsonschema>=3
 h5py
-
+numexpr

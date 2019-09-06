@@ -11,7 +11,6 @@ RUN pip3 install --upgrade pip \
     && pip3 install .
 
 RUN apt-get update && apt-get install -y gfortran
-RUN apt-get install -y emacs
 RUN pip3 install git+https://github.com/GeoscienceAustralia/fc --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
 RUN pip3 install numexpr s3fs
 RUN rm -rf $HOME/.cache/pip

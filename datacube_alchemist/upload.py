@@ -24,7 +24,6 @@ class S3Url(object):
     'hello/world'
     >>> s.url
     's3://bucket/hello/world'
-
     """
 
     def __init__(self, url):
@@ -52,9 +51,9 @@ def _upload(client, bucket, remote_path, local_file, mimetype=None):
         if file_ext == ".tif":
             mimetype = "image/tiff"
         elif file_ext == ".yaml":
-            mimetype="application/x-yaml"
+            mimetype = "application/x-yaml"
         elif file_ext == ".jpg":
-            mimetype="image/jpeg"
+            mimetype = "image/jpeg"
 
     data = open(local_file, 'rb')
 
@@ -63,7 +62,7 @@ def _upload(client, bucket, remote_path, local_file, mimetype=None):
     if mimetype is not None:
         extra_args['ContentType'] = mimetype
 
-    args = { 'ExtraArgs': extra_args }
+    args = {'ExtraArgs': extra_args}
     _LOG.info('Uploading yaml: s3://' + bucket + '/' + remote_path)
     _LOG.info('local_file: ' + local_file)
     client.meta.client.upload_fileobj(
@@ -73,6 +72,7 @@ def _upload(client, bucket, remote_path, local_file, mimetype=None):
         **args
     )
     data.close()
+
 
 class S3Upload(object):
     def __init__(self, location):
@@ -94,13 +94,10 @@ class S3Upload(object):
             self.upload_now()
 
     def upload_now(self):
-
         s3_resource = boto3.resource('s3')
-
-        MAKE_PUBLIC = False
         for subdir, dirs, files in os.walk(self.tmp_results):
-            for file in files:
-                full_path = os.path.join(subdir, file)
+            for afile in files:
+                full_path = os.path.join(subdir, afile)
                 rel_path = os.path.relpath(full_path, self.tmp_results)
 
                 # Upload data to S3

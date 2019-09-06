@@ -40,6 +40,7 @@ def run_many(config_file, expressions, environment=None, limit=None):
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
+
     client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
 
@@ -85,6 +86,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
 
+    count = -1
     for count, task in enumerate(tasks):
         if count % 100 == 0:
             _LOG.info("Pushed {} items...".format(count))
