@@ -97,7 +97,6 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         queue.send_message(MessageBody=body,  MessageAttributes=atts)
     _LOG.info("Ending. Pushed {} items...".format(count + 1))
 
-# export ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE="alchemist-standard"
 @cli2.command()
 @click.option('--message_queue', '-M')
 @click.option('--sqs_timeout', '-S', type=int,
