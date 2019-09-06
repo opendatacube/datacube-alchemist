@@ -92,7 +92,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
         # The information is in the pickled_task message attribute
         # The message body is not used by the s/w
-        body = task.dataset.local_uri if task.dataset.local_uri is not None else 'local_uri is None'
+        body = task.dataset.uris[0] if task.dataset.uris is not None else 'location not known.'
 
         queue.send_message(MessageBody=body,  MessageAttributes=atts)
     _LOG.info("Ending. Pushed {} items...".format(count + 1))
