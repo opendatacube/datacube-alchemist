@@ -7,8 +7,9 @@ specification:
   transform: wofs.virtualproduct.WOfSClassifier
 
 # Warning, no dsm
-  transform_args:
-    dsm_path: None
+# And an example of passing no arguments
+  transform_args: {}
+
 
 output:
   location: '/g/data/u46/users/dsg547/data/c3-testing/'
