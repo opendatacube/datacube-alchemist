@@ -2,7 +2,7 @@ specification:
   product: ls5_usgs_sr_scene
   measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
 
-  transform: fc.virtualproduct.FakeFractionalCover
+  transform: fc.virtualproduct.FractionalCover
   transform_args:
     regression_coefficients:
       blue:

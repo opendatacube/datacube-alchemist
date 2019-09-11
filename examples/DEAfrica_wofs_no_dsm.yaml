@@ -1,8 +1,14 @@
 specification:
-  product: ga_ls8c_ard_3
-  measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
+  product: ls5_usgs_sr_scene
+  measurements: ['blue', 'green', 'red', 'nir', 'swir1', 'swir2']
+  #measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
   measurement_renames:
-    oa_fmask: fmask
+    blue: nbart_blue
+    green: nbart_green
+    red: nbart_red
+    nir: nbart_nir
+    swir1: nbart_swir_1
+    swir2: nbart_swir_2
 
   transform: wofs.virtualproduct.WOfSClassifier
 
