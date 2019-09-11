@@ -1,4 +1,5 @@
 # WARNING - INCORRECT FMASK!!!
+# This is more to test the pipeline works
 
 specification:
   product: ls5_usgs_sr_scene
