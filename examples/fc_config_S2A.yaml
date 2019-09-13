@@ -38,7 +38,7 @@ specification:
 
 
 output:
-  location: '/g/data/u46/users/dra547/data/c3-testing/'
+  location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
