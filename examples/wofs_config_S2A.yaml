@@ -1,10 +1,10 @@
 specification:
-  product: ga_s2a_definitive_ard_granule
+  product: ga_s2a_ard_nbar_granule
   measurements: ['nbar_blue', 'nbar_green', 'nbar_red', 'nbar_nir_1', 'nbar_swir_2', 'nbar_swir_3', 'fmask']
   measurement_renames:
-    nbar_blue:nbart_blue
-    nbar_green:nbart_green
-    nbar_green:nbart_green
+    nbar_blue: nbart_blue
+    nbar_green: nbart_green
+    nbar_green: nbart_green
     nbar_nir_1: nbart_nir_1
     nbar_swir_1: nbart_swir_2
     nbar_swir_2: nbart_swir_3
