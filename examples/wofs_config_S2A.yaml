@@ -1,13 +1,16 @@
 specification:
   product: ga_s2a_definitive_ard_granule
-  measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir_1', 'nbart_swir_2', 'nbart_swir_3', 'fmask']
+  measurements: ['nbar_blue', 'nbar_green', 'nbar_red', 'nbar_nir_1', 'nbar_swir_2', 'nbar_swir_3', 'fmask']
   measurement_renames:
-    nbart_nir: nbart_nir_1
-    nbart_swir_1: nbar_swir_2
-    nbart_swir_2: nbar_swir_3
-  # For africa data
-  #  product: ls5_usgs_sr_scene
-  #  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
+    nbar_blue:nbart_blue
+    nbar_green:nbart_green
+    nbar_green:nbart_green
+    nbar_nir_1: nbart_nir_1
+    nbar_swir_1: nbart_swir_2
+    nbar_swir_2: nbart_swir_3
+  # What wofs wants;
+  # 'nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'fmask'
+  # 
 
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 

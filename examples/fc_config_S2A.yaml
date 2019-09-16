@@ -2,11 +2,11 @@ specification:
   product: ga_s2a_ard_nbar_granule
   measurements: ['nbar_green', 'nbar_red', 'nbar_nir_1', 'nbar_swir_2', 'nbar_swir_3']
   measurement_renames:
-    nbart_green: green
-    nbart_red: red
-    nbart_nir_1: nir
-    nbart_swir_2: swir1
-    nbart_swir_3: swir2
+    nbar_green: green
+    nbar_red: red
+    nbar_nir_1: nir
+    nbar_swir_2: swir1
+    nbar_swir_3: swir2
   # For africa data
   #  product: ls5_usgs_sr_scene
   #  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
