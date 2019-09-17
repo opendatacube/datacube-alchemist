@@ -4,7 +4,7 @@ specification:
   measurement_renames:
     nbar_blue: nbart_blue
     nbar_green: nbart_green
-    nbar_green: nbart_green
+    nbar_red: nbart_red
     nbar_nir_1: nbart_nir_1
     nbar_swir_1: nbart_swir_2
     nbar_swir_2: nbart_swir_3
