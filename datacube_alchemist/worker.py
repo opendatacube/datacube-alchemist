@@ -120,7 +120,7 @@ def execute_task(task: AlchemistTask):
 
     # Load and process data
     data = native_load(task.dataset, measurements=task.settings.specification.measurements,
-                       dask_chunks=task.settings.processing.dask_chunks)
+                       dask_chunks=task.settings.processing.dask_chunks, basis='nbar_swir_2')
     data = data.rename(task.settings.specification.measurement_renames)
 
     log.info('data loaded')
