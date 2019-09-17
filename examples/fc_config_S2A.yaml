@@ -39,7 +39,8 @@ specification:
 
 output:
   #location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
-  location: '/g/data/u46/users/dsg547/test_data'
+  #location: '/g/data/u46/users/dsg547/test_data'
+  location: '/home/osboxes/test_data'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
