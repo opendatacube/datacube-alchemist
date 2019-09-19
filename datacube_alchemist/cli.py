@@ -100,6 +100,38 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     _LOG.info("Ending. Pushed {} items...".format(count + 1))
 
 @cli2.command()
+@click.option('--environment', '-E',
+              help='Name of the datacube environment to connect to.')
+@click.option('--limit', type=int,
+              help='For testing, specify a small number of tasks to run.')
+@click.option('--config_file')
+@click.option('--message_queue', '-M')
+@ui.parsed_search_expressions
+def addtoqueuequick(config_file, message_queue, expressions, environment=None, limit=None):
+    _LOG.info("Start add to queue.")
+    # Set up the queue
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName=message_queue)
+
+    # Load Configuration file
+    alchemist = Alchemist(config_file=config_file, dc_env=environment)
+
+    tasks = alchemist.generate_tasks(expressions, limit=limit)
+
+    count = -1
+    for count, task in enumerate(tasks):
+        if count % 100 == 0:
+            _LOG.info("Pushed {} items...".format(count))
+        pickled_task = cloudpickle.dumps(task)
+        atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
+        # The information is in the pickled_task message attribute
+        # The message body is not used by the s/w
+        body = task.dataset.uris[0] if task.dataset.uris is not None else 'location not known.'
+
+        queue.send_message(MessageBody=body,  MessageAttributes=atts)
+    _LOG.info("Ending. Pushed {} items...".format(count + 1))
+    
+@cli2.command()
 @click.option('--message_queue', '-M')
 @click.option('--sqs_timeout', '-S', type=int,
               help='The SQS message Visability Timeout.',
