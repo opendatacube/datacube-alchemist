@@ -63,7 +63,7 @@ def _upload(client, bucket, remote_path, local_file, mimetype=None):
         extra_args['ContentType'] = mimetype
 
     args = {'ExtraArgs': extra_args}
-    _LOG.info('Uploading yaml: s3://' + bucket + '/' + remote_path)
+    _LOG.info('Uploading to: s3://' + bucket + '/' + remote_path)
     _LOG.info('local_file: ' + local_file)
     client.meta.client.upload_fileobj(
         Fileobj=data,
