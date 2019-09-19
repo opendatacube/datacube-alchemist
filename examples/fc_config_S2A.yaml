@@ -13,7 +13,7 @@ specification:
 
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
-  transform: fc.virtualproduct.FakeFractionalCover
+  transform: fc.virtualproduct.FractionalCover
   transform_args:
     regression_coefficients:
       blue:
