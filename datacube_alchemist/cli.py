@@ -126,10 +126,12 @@ def addtoqueuequick(config_file, message_queue, expressions, environment=None, l
     chunk = 3
     tasks = alchemist.generate_tasks(expressions, limit=limit)
     messages = []
+    sum_size = 0
     for count, task in enumerate(tasks):
         pickled_task = cloudpickle.dumps(task)
         msize = sys.getsizeof(pickled_task)
         print (msize)
+        sum_size += msize
         atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
         # The information is in the pickled_task message attribute
         # The message body is not used by the s/w
@@ -137,10 +139,16 @@ def addtoqueuequick(config_file, message_queue, expressions, environment=None, l
         message = {'MessageBody': body, 'Id':str(count), 'MessageAttributes':atts}
         msize = sys.getsizeof(message)
         print (msize)
+        print (sum_size)
         messages.append(message)
-        if count % chunk == 0 and count != 0:
+        # call can't exceed 262,144 bytes.  I'm only measuring the config file size though.
+        # And I'm adding messages until it's over a limit.
+        # So I am conservative.
+        if sum_size  >  180000:
             _ = _push_messages(queue, messages)
             _LOG.info("Pushed {} items...".format(count))
+            _LOG.info("Total Att byte size of ".format(sum_size))
+            sum_size = 0
             messages = []
     # Push the final batch of messages
     if len(messages) >= 1:
