@@ -4,12 +4,15 @@ import boto3
 import structlog
 from distutils.dir_util import copy_tree
 import shutil
-
+import mimetypes
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
 
+
+mimetypes.add_type('application/x-yaml', '.yml')
+mimetypes.add_type('application/x-yaml', '.yaml')
 
 _LOG = structlog.get_logger()
 
@@ -47,31 +50,23 @@ class S3Url(object):
 
 def _upload(client, bucket, remote_path, local_file, mimetype=None):
     if mimetype is None:
-        _, file_ext = os.path.splitext(local_file)
-        if file_ext == ".tif":
-            mimetype = "image/tiff"
-        elif file_ext == ".yaml":
-            mimetype = "application/x-yaml"
-        elif file_ext == ".jpg":
-            mimetype = "image/jpeg"
+        mimetype, _ = mimetypes.guess_type(local_file, strict=False)
 
-    data = open(local_file, 'rb')
+    with open(local_file, 'rb') as data:
+        extra_args = dict()
 
-    extra_args = dict()
+        if mimetype is not None:
+            extra_args['ContentType'] = mimetype
 
-    if mimetype is not None:
-        extra_args['ContentType'] = mimetype
-
-    args = {'ExtraArgs': extra_args}
-    _LOG.info('Uploading to: s3://' + bucket + '/' + remote_path)
-    _LOG.info('local_file: ' + local_file)
-    client.meta.client.upload_fileobj(
-        Fileobj=data,
-        Bucket=bucket,
-        Key=remote_path,
-        **args
-    )
-    data.close()
+        args = {'ExtraArgs': extra_args}
+        _LOG.info('Uploading to: s3://' + bucket + '/' + remote_path)
+        _LOG.info('local_file: ' + local_file)
+        client.meta.client.upload_fileobj(
+            Fileobj=data,
+            Bucket=bucket,
+            Key=remote_path,
+            **args
+        )
 
 
 class S3Upload(object):
@@ -120,7 +115,9 @@ def main():
     s3ul = S3Upload(location)
     location = s3ul.location
     # This is the sort of data that execute produces (/2)
-    copy_tree("/g/data/u46/users/dsg547/data/c3-testing", location)
+    local = "/g/data/u46/users/dsg547/data/c3-testing"
+    local = "/home/osboxes/test_data"
+    copy_tree(local, location)
 
     s3ul.upload_if_needed()
 
