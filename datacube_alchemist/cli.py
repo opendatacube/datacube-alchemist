@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import sys
 import click
 import structlog
 import boto3
@@ -99,6 +100,12 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         queue.send_message(MessageBody=body,  MessageAttributes=atts)
     _LOG.info("Ending. Pushed {} items...".format(count + 1))
 
+    
+def _push_messages(queue, messages):
+    response = queue.send_messages(Entries=messages)
+    return response
+
+    
 @cli2.command()
 @click.option('--environment', '-E',
               help='Name of the datacube environment to connect to.')
@@ -116,8 +123,31 @@ def addtoqueuequick(config_file, message_queue, expressions, environment=None, l
     # Load Configuration file
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
+    chunk = 3
     tasks = alchemist.generate_tasks(expressions, limit=limit)
+    messages = []
+    for count, task in enumerate(tasks):
+        pickled_task = cloudpickle.dumps(task)
+        msize = sys.getsizeof(pickled_task)
+        print (msize)
+        atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
+        # The information is in the pickled_task message attribute
+        # The message body is not used by the s/w
+        body = task.dataset.uris[0] if task.dataset.uris is not None else 'location not known.'
+        message = {'MessageBody': body, 'Id':str(count), 'MessageAttributes':atts}
+        msize = sys.getsizeof(message)
+        print (msize)
+        messages.append(message)
+        if count % chunk == 0 and count != 0:
+            _ = _push_messages(queue, messages)
+            _LOG.info("Pushed {} items...".format(count))
+            messages = []
+    # Push the final batch of messages
+    if len(messages) >= 1:
+        _ = _push_messages(queue, messages)
+    _LOG.info("Ending. Pushed {} items...".format(count + 1))
 
+    """
     count = -1
     for count, task in enumerate(tasks):
         if count % 100 == 0:
@@ -130,6 +160,7 @@ def addtoqueuequick(config_file, message_queue, expressions, environment=None, l
 
         queue.send_message(MessageBody=body,  MessageAttributes=atts)
     _LOG.info("Ending. Pushed {} items...".format(count + 1))
+    """
     
 @cli2.command()
 @click.option('--message_queue', '-M')
