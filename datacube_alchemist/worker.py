@@ -15,6 +15,7 @@ import cattr
 import numpy as np
 import structlog
 import yaml
+import fsspec
 
 import datacube
 from datacube.model import Dataset
@@ -75,7 +76,8 @@ class Alchemist:
         if config is not None:
             self.config = config
         else:
-            self.config = cattr.structure(yaml.safe_load(Path(config_file).read_bytes()), AlchemistSettings)
+            with fsspec.open(config_file, mode='r') as f:
+                self.config = cattr.structure(yaml.safe_load(f), AlchemistSettings)
 
         # Connect to the ODC Index
         self.dc = datacube.Datacube(env=dc_env)
@@ -192,6 +194,9 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
     if ds.metadata_type.name == 'eo_plus':
         return convert_eo_plus(ds)
 
+    if ds.metadata_type.name == 'eo':
+        return convert_eo(ds)
+
     # Else we have an already mostly eo3 style dataset
     product = ProductDoc(name=ds.type.name)
     # Wrap properties to avoid typos and the like
@@ -203,6 +208,7 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
         properties=properties
     )
 
+
 def convert_eo_plus(ds) -> DatasetDoc:
     # Definitely need: # - 'datetime' # - 'eo:instrument' # - 'eo:platform' # - 'odc:region_code'
     properties = StacPropertyView({
@@ -210,7 +216,7 @@ def convert_eo_plus(ds) -> DatasetDoc:
         'datetime': ds.center_time,
         'eo:instrument': ds.metadata.instrument,
         'eo:platform': ds.metadata.platform,
-        'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'), # Used to find abbreviated instrument id
+        'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'),  # Used to find abbreviated instrument id
     })
     product = ProductDoc(name=ds.type.name)
     return DatasetDoc(
@@ -220,6 +226,23 @@ def convert_eo_plus(ds) -> DatasetDoc:
         properties=properties
     )
 
+
+def convert_eo(ds) -> DatasetDoc:
+    # Definitely need: # - 'datetime' # - 'eo:instrument' # - 'eo:platform' # - 'odc:region_code'
+    properties = StacPropertyView({
+        'odc:region_code': ds.metadata_doc['region_code'],
+        'datetime': ds.center_time,
+        'eo:instrument': ds.metadata.instrument,
+        'eo:platform': ds.metadata.platform,
+        'landsat:landsat_scene_id': ds.metadata.instrument,  # Used to find abbreviated instrument id
+    })
+    product = ProductDoc(name=ds.type.name)
+    return DatasetDoc(
+        id=ds.id,
+        product=product,
+        crs=ds.crs.crs_str,
+        properties=properties
+    )
 
 
 def _import_transform(transform_name: str) -> Type[Transformation]:

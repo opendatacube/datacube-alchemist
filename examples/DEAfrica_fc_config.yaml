@@ -1,0 +1,45 @@
+specification:
+  product: ls5_usgs_sr_scene
+  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
+
+  transform: fc.virtualproduct.FractionalCover
+  transform_args:
+    regression_coefficients:
+      blue:
+        - 0.00041
+        - 0.97470
+      green:
+        - 0.00289
+        - 0.99779
+      red:
+        - 0.00274
+        - 1.00446
+      nir:
+        - 0.00004
+        - 0.98906
+      swir1:
+        - 0.00256
+        - 0.99467
+      swir2:
+        - -0.00327
+        - 1.02551
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
+output:
+  #location: '/g/data/u46/users/dsg547/sandpit/odc_testing/aws_fc_testing'
+  location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
+  dtype: uint8 # single value for all bands
+  nodata: 255 # single value for all bands
+  preview_image: [pv, npv, bs]
+
+  metadata: # metadata are settings available on DatasetAssembler
+    product_family: fractional_cover
+    producer: ga.gov.au
+    dataset_version: 2.0.0
+  properties: # Properties can be anything and everything
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 1000
+    y: 1000

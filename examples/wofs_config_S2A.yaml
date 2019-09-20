@@ -1,0 +1,59 @@
+specification:
+  product: ga_s2a_ard_nbar_granule
+  measurements: ['nbar_blue', 'nbar_green', 'nbar_red', 'nbar_nir_1', 'nbar_swir_2', 'nbar_swir_3', 'fmask']
+  measurement_renames:
+    nbar_blue: nbart_blue
+    nbar_green: nbart_green
+    nbar_red: nbart_red
+    nbar_nir_1: nbart_nir_1
+    nbar_swir_1: nbart_swir_2
+    nbar_swir_2: nbart_swir_3
+  # What wofs wants;
+  # 'nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'fmask'
+  # 
+
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
+  transform: fc.virtualproduct.FakeFractionalCover
+  transform_args:
+    regression_coefficients:
+      blue:
+        - 0.00041
+        - 0.97470
+      green:
+        - 0.00289
+        - 0.99779
+      red:
+        - 0.00274
+        - 1.00446
+      nir:
+        - 0.00004
+        - 0.98906
+      swir1:
+        - 0.00256
+        - 0.99467
+      swir2:
+        - -0.00327
+        - 1.02551
+
+
+
+output:
+  location: '/g/data/u46/users/dra547/data/c3-testing/'
+  dtype: uint8 # single value for all bands
+  nodata: 255 # single value for all bands
+  preview_image: [pv, npv, bs]
+
+#  reference_source_dataset: False
+  metadata: # metadata are settings available on DatasetAssembler
+    product_family: fractional_cover
+    producer: ga.gov.au
+    dataset_version: 2.0.0
+  properties: # Properties can be anything and everything
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 1000
+    y: 1000
+
