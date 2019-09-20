@@ -12,8 +12,9 @@ specification:
   #  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
 
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+  basis: nbar_green
 
-  transform: fc.virtualproduct.FractionalCover
+  transform: fc.virtualproduct.FakeFractionalCover
   transform_args:
     regression_coefficients:
       blue:
@@ -39,8 +40,8 @@ specification:
 
 output:
   #location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
-  #location: '/g/data/u46/users/dsg547/test_data'
-  location: '/home/osboxes/test_data'
+  location: '/g/data/u46/users/dsg547/test_data'
+  #location: '/home/osboxes/test_data'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]

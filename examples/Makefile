@@ -45,3 +45,6 @@ c3fcaddtoqueue:
 	ALCHEMIST_ADDTOQUEUE_ENVIRONMENT=c3_samples \
 	ALCHEMIST_ADDTOQUEUE_CONFIG_FILE=c3_samples_config.yaml \
 	datacube-alchemist addtoqueue
+
+S2Afcrunmany:
+	datacube-alchemist run-many -E odc_conf_test --limit 1 fc_config_S2A.yaml

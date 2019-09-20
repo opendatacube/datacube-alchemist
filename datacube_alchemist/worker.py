@@ -50,6 +50,7 @@ class Specification:
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
     override_product_family: Optional[str] = attr.ib(default=None)
+    basis: Optional[str] =  attr.ib(default=None)
 
 
 @attr.s(auto_attribs=True)
@@ -120,7 +121,8 @@ def execute_task(task: AlchemistTask):
 
     # Load and process data
     data = native_load(task.dataset, measurements=task.settings.specification.measurements,
-                       dask_chunks=task.settings.processing.dask_chunks)
+                       dask_chunks=task.settings.processing.dask_chunks,
+                       basis=task.settings.specification.basis)
     data = data.rename(task.settings.specification.measurement_renames)
 
     log.info('data loaded')
