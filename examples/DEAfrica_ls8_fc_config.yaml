@@ -9,7 +9,7 @@ specification:
     b6: swir1
     b7: swir2
 
-  transform: fc.virtualproduct.FakeFractionalCover
+  transform: fc.virtualproduct.FractionalCover
   transform_args:
     regression_coefficients:
       blue:
@@ -34,7 +34,7 @@ specification:
 
 output:
   #location: '/g/data/u46/users/dsg547/sandpit/odc_testing/aws_fc_testing'
-  location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
+  location: 's3://test-results-deafrica-staging-west/fc-alchemist-testsII'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
