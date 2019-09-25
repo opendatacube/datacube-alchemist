@@ -1,6 +1,13 @@
 specification:
   product: usgs_ls8c_level2_2
-  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
+  measurements: ['b2', 'b3', 'b4', 'b5', 'b6', 'b7']
+  measurement_renames:
+    b2: blue
+    b3: green
+    b4: red
+    b5: nir
+    b6: swir1
+    b7: swir2
 
   transform: fc.virtualproduct.FakeFractionalCover
   transform_args:
