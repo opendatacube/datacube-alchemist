@@ -1,3 +1,4 @@
+--extra-index-url https://packages.dea.gadevs.ga/
 datacube
 eodatasets3
 attrs>=18.1
@@ -14,3 +15,6 @@ s3fs
 jsonschema>=3
 h5py
 numexpr
+
+fc
+wofs
