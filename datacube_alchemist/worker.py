@@ -5,6 +5,7 @@
 
 import importlib
 import sys
+import cloudpickle
 # pylint: disable=map-builtin-not-iterating
 from datetime import datetime
 from pathlib import Path
@@ -25,6 +26,8 @@ from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from ._dask import dask_compute_stream
+from datacube_alchemist.upload import S3Upload
+
 
 _LOG = structlog.get_logger()
 
@@ -253,3 +256,12 @@ def _import_transform(transform_name: str) -> Type[Transformation]:
     imported_class = getattr(module, class_name)
     assert issubclass(imported_class, Transformation)
     return imported_class
+
+def execute_pickled_task(pickled_task):
+    task = cloudpickle.loads(pickled_task)
+    s3ul = S3Upload(task.settings.output.location)
+    # make location local if the location is S3
+    task.settings.output.location = s3ul.location
+    _LOG.info("Found task to process: {}".format(task))
+    execute_task(task)
+    s3ul.upload_if_needed()
