@@ -1,13 +1,13 @@
 FROM opendatacube/datacube-core:1.7
 
-ENV APPDIR=/tmp/code
+ENV APPDIR=/tmp/code/
 RUN mkdir -p $APPDIR
-COPY requirements.txt $APPDIR
+COPY requirements* $APPDIR/
 WORKDIR $APPDIR
 
 
 RUN pip3 install --upgrade pip \
-    && pip3 install -r requirements.txt \
+    && pip3 install -r requirements-docker.txt \
     && rm -rf $HOME/.cache/pip
 
 
