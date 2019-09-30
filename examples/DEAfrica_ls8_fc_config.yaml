@@ -34,7 +34,7 @@ specification:
 
 output:
   #location: '/g/data/u46/users/dsg547/sandpit/odc_testing/aws_fc_testing'
-  location: 's3://test-results-deafrica-staging-west/fc-alchemist-testsII'
+  location: 's3://test-results-deafrica-staging-west/fc-alchemist-testsIII'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
