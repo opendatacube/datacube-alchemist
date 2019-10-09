@@ -5,7 +5,7 @@ specification:
     swir_1: swir1
     swir_2: swir2
 
-  transform: fc.virtualproduct.FractionalCover
+  transform: fc.virtualproduct.FakeFractionalCover
   transform_args:
     c2_scaling: True
     regression_coefficients:
@@ -30,11 +30,11 @@ specification:
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
 output:
-  location: '/g/data/u46/users/dsg547/sandpit/odc_testing/fc_testing'
-  #location: 's3://deafrica-collection2-testing/fc-scaling-alchemist-tests'
-  dtype: uint8 # single value for all bands
+  location: '/g/data/u46/users/dsg547/test_data/aws_fc_testingII'
+  #location: 's3://deafrica-collection2-testing/fc-scaling-alchemist-tests-scaledII'
+  dtype: uint16 # single value for all bands
   nodata: 255 # single value for all bands
-  preview_image: [pv, npv, bs]
+  preview_image: ['green', 'red', 'blue']
 
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
