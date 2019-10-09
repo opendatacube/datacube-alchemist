@@ -2,8 +2,8 @@
 # This is more to test the pipeline works
 
 specification:
-  product: ls5_usgs_sr_scene
-  measurements: ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+  product: usgs_ls8c_level2_2
+  measurements: ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'quality_l1_pixel']
   #measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
   measurement_renames:
     blue: nbart_blue
@@ -12,7 +12,7 @@ specification:
     nir: nbart_nir
     swir1: nbart_swir_1
     swir2: nbart_swir_2
-    pixel_qa: fmask
+    quality_l1_pixel: fmask
 
   transform: wofs.virtualproduct.WOfSClassifier
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
@@ -23,7 +23,8 @@ specification:
 
 
 output:
-  location: 's3://test-results-deafrica-staging-west/wofs-alchemist-tests'
+  #location: 's3://test-results-deafrica-staging-west/wofs-alchemist-tests'
+  location: '/g/data/u46/users/dsg547/test_data/wofs_testing'
   nodata: 1
   dtype: int16
 
