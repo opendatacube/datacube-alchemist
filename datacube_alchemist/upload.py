@@ -11,8 +11,8 @@ class S3Upload(object):
             self._location = self.tmp_results
             self.s3location = location
         else:
-            self.upload == False
             self._location = location
+            self.upload = False
 
     @property
     def location(self):
@@ -41,7 +41,7 @@ def main():
     location = s3ul.location
     # This is the sort of data that execute produces (/2)
     local = "/g/data/u46/users/dsg547/data/c3-testing"
-    local = "/home/osboxes/test_data"
+    #local = "/home/osboxes/test_data"
     copy_tree(local, location)
 
     s3ul.upload_if_needed()
