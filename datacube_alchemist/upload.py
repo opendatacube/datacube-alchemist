@@ -11,7 +11,7 @@ class S3Upload(object):
             self._location = self.tmp_results
             self.s3location = location
         else:
-            self.upload == False
+            self.upload = False
             self._location = location
 
     @property
