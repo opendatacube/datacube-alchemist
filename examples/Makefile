@@ -3,6 +3,11 @@ pullfromqueue:
 	ALCHEMIST_PULLFROMQUEUE_MESSAGE_QUEUE=alchemist-standard \
 	datacube-alchemist pullfromqueue
 
+processqueue:
+	AWS_DEFAULT_REGION=us-west-2 \
+	ALCHEMIST_PROCESSQUEUE_MESSAGE_QUEUE=alchemist-standard \
+	datacube-alchemist processqueue
+
 fcaddtoqueue:
 	AWS_DEFAULT_REGION=us-west-2 \
 	ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE=alchemist-standard \
@@ -45,3 +50,14 @@ c3fcaddtoqueue:
 	ALCHEMIST_ADDTOQUEUE_ENVIRONMENT=c3_samples \
 	ALCHEMIST_ADDTOQUEUE_CONFIG_FILE=c3_samples_config.yaml \
 	datacube-alchemist addtoqueue
+
+DEAfricafcaddtoqueue:
+	AWS_DEFAULT_REGION=us-west-2 \
+	ALCHEMIST_ADDTOQUEUE_MESSAGE_QUEUE=alchemist-standard \
+	ALCHEMIST_ADDTOQUEUE_LIMIT=10 \
+	ALCHEMIST_ADDTOQUEUE_ENVIRONMENT=odc_conf_test \
+	ALCHEMIST_ADDTOQUEUE_CONFIG_FILE=DEAfrica_fc_config.yaml \
+	datacube-alchemist addtoqueue
+
+S2Afcrunmany:
+	datacube-alchemist run-many -E odc_conf_test --limit 1 fc_config_S2A.yaml

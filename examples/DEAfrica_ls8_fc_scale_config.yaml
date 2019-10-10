@@ -1,21 +1,13 @@
 specification:
-  product: ga_s2a_ard_nbar_granule
-  measurements: ['nbar_green', 'nbar_red', 'nbar_nir_1', 'nbar_swir_2', 'nbar_swir_3']
+  product: usgs_ls8c_level2_2
+  measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2']
   measurement_renames:
-    nbar_green: green
-    nbar_red: red
-    nbar_nir_1: nir
-    nbar_swir_2: swir1
-    nbar_swir_3: swir2
-  # For africa data
-  #  product: ls5_usgs_sr_scene
-  #  measurements: ['green', 'red', 'nir', 'swir1', 'swir2']
+    swir_1: swir1
+    swir_2: swir2
 
-  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
-  basis: nbar_green
-
-  transform: fc.virtualproduct.FakeFractionalCover
+  transform: fc.virtualproduct.FractionalCover
   transform_args:
+    c2_scaling: True
     regression_coefficients:
       blue:
         - 0.00041
@@ -35,18 +27,15 @@ specification:
       swir2:
         - -0.00327
         - 1.02551
-
-
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
 output:
-  #location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
-  location: '/g/data/u46/users/dsg547/test_data'
-  #location: '/home/osboxes/test_data'
+  location: '/g/data/u46/users/dsg547/sandpit/odc_testing/fc_testing'
+  #location: 's3://deafrica-collection2-testing/fc-scaling-alchemist-tests'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
 
-#  reference_source_dataset: False
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
     producer: ga.gov.au
@@ -58,4 +47,3 @@ processing:
   dask_chunks:
     x: 1000
     y: 1000
-

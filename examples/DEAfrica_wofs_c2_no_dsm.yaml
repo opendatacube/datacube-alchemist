@@ -3,15 +3,15 @@
 
 specification:
   product: usgs_ls8c_level2_2
-  measurements: ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'quality_l1_pixel']
+  measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2', 'quality_l1_pixel']
   #measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
   measurement_renames:
     blue: nbart_blue
     green: nbart_green
     red: nbart_red
     nir: nbart_nir
-    swir1: nbart_swir_1
-    swir2: nbart_swir_2
+    swir_1: nbart_swir_1
+    swir_2: nbart_swir_2
     quality_l1_pixel: fmask
 
   transform: wofs.virtualproduct.WOfSClassifier
@@ -19,8 +19,8 @@ specification:
 
 # Warning, no dsm
 # And an example of passing no arguments
-  transform_args: {}
-
+  transform_args:
+    c2: True
 
 output:
   #location: 's3://test-results-deafrica-staging-west/wofs-alchemist-tests'
