@@ -1,6 +1,3 @@
-# WARNING - INCORRECT FMASK!!!
-# This is more to test the pipeline works
-
 specification:
   product: usgs_ls8c_level2_2
   measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2', 'quality_l2_aerosol']
