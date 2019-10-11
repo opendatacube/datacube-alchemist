@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import sys
+import time
+
 import click
 import structlog
 import boto3
@@ -83,6 +85,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         return response
 
     _LOG.info("Start add to queue.")
+    start_time = time.time()
     # Set up the queue
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
@@ -114,7 +117,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     # Push the final batch of messages
     if len(messages) >= 1:
         _ = _push_messages(queue, messages)
-    _LOG.info("Ending. Pushed {} items...".format(count + 1))
+    _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
     
 @cli2.command()
