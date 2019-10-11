@@ -1,7 +1,20 @@
 import tempfile
+import os
 from distutils.dir_util import copy_tree
 import fsspec
+from pathlib import Path
 
+def _files_to_copy(src_base, dst_base):
+    src_base = Path(src_base)
+    src_base = src_base.absolute()
+    n_skip = len(str(src_base))
+
+    for base, _, files in os.walk(src_base):
+        b = Path(base)
+        for f in files:
+            src = b/f
+            dst = str(src)[n_skip:]
+            yield (src, dst_base  + dst)
 
 class S3Upload(object):
     def __init__(self, location):
@@ -27,7 +40,9 @@ class S3Upload(object):
 
     def upload_now(self):
         fs = fsspec.filesystem('s3')
-        fs.put(self._location, self.s3location, recursive=True)
+        #fs.put(self._location, self.s3location, recursive=True)
+        for f_src, f_dst in _files_to_copy(self._location, self.s3location):
+            fs.put(str(f_src), str(f_dst))
     
 
 def main():
@@ -40,7 +55,8 @@ def main():
     s3ul = S3Upload(location)
     location = s3ul.location
     # This is the sort of data that execute produces (/2)
-    local = "/g/data/u46/users/dsg547/data/c3-testing"
+    local = "/g/data/u46/users/dsg547/test_data/wofs_testing_bitmask"
+    #local = "/g/data/u46/users/dsg547/data/c3-testing"
     #local = "/home/osboxes/test_data"
     copy_tree(local, location)
 
