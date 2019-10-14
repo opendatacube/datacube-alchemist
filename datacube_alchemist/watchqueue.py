@@ -55,6 +55,9 @@ def processing_loop(sqs, sqs_queue_url, sqs_poll_time=10, job_max_time=600, max_
                 _LOG.info("Processing message: {}".format(message.get("Body")))
                 pickled_task = message['MessageAttributes']['pickled_task']['BinaryValue']
                 execute_pickled_task(pickled_task)
+                
+                message.delete()
+                _LOG.info("SQS message deleted")
 
 
 if __name__ == '__main__':
