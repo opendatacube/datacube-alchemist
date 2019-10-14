@@ -12,7 +12,6 @@ from datacube import Datacube
 from datacube.ui import click as ui
 from datacube_alchemist.worker import Alchemist, execute_with_dask, \
     execute_task, AlchemistSettings, execute_pickled_task
-from datacube_alchemist.watchqueue import processing_loop
 
 
 _LOG = structlog.get_logger()
@@ -155,14 +154,30 @@ def pullfromqueue(message_queue, sqs_timeout=None):
               default=400)
 
 def processqueue(message_queue, sqs_timeout=None):
-    sqs = boto3.client('sqs')
 
-    response = sqs.get_queue_url(QueueName=message_queue)
-    queue_url = response.get('QueueUrl')
+    _LOG.info("Start pull from queue.")
+    # Set up the queue
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName=message_queue)
 
-    processing_loop(sqs=sqs,
-                    sqs_queue_url=queue_url,
-                    job_max_time=int(sqs_timeout))
+    more_mesages = True
+    while more_mesages:
+        messages = queue.receive_messages(
+            VisibilityTimeout=int(sqs_timeout),
+            MaxNumberOfMessages=1,
+            MessageAttributeNames=['All']
+        )
+        if len(messages) == 0:
+            # No messages, exit successfully
+            _LOG.info("No new messages, exiting successfully")
+            more_mesages = False
+        else:
+            message = messages[0]
+            pickled_task = message.message_attributes['pickled_task']['BinaryValue']
+            execute_pickled_task(pickled_task)
+
+            message.delete()
+            _LOG.info("SQS message deleted")
 
 
 if __name__ == '__main__':
