@@ -30,7 +30,7 @@ def delete_message(sqs, queue_url, message):
     _LOG.debug("Deleted Message %s", message.get("MessageId"))
 
 
-def processing_loop(sqs, sqs_queue_url, sqs_poll_time=10, job_max_time=600, max_jobs=10):
+def processing_loop(sqs, sqs_queue_url, sqs_poll_time=10, job_max_time=600, max_jobs=1):
 
     messages_processed = 0
     more_mesages = True
@@ -55,7 +55,7 @@ def processing_loop(sqs, sqs_queue_url, sqs_poll_time=10, job_max_time=600, max_
                 _LOG.info("Processing message: {}".format(message.get("Body")))
                 pickled_task = message['MessageAttributes']['pickled_task']['BinaryValue']
                 execute_pickled_task(pickled_task)
-                
+
                 message.delete()
                 _LOG.info("SQS message deleted")
 
