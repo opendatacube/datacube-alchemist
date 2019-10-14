@@ -30,34 +30,30 @@ def delete_message(sqs, queue_url, message):
     _LOG.debug("Deleted Message %s", message.get("MessageId"))
 
 
-def processing_loop(sqs, sqs_queue_url, sqs_poll_time=10, job_max_time=600, max_jobs=1):
+def processing_loop(message_queue, sqs_timeout=600):
+    _LOG.info("Start pull from queue.")
+    # Set up the queue
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName=message_queue)
 
-    messages_processed = 0
     more_mesages = True
     while more_mesages:
-        # Check the queue for messages
-        # _LOG.debug("Checking Queue, %s wait time: %s, job time: %s, max jobs per worker, %s",
-        #               sqs_queue_url, sqs_poll_time, job_max_time, max_jobs)
-        start_time = time.time()
-        response = sqs.receive_message(
-            QueueUrl=sqs_queue_url,
-            WaitTimeSeconds=sqs_poll_time,
-            VisibilityTimeout=job_max_time,
-            MaxNumberOfMessages=max_jobs,
-            MessageAttributeNames=['All'])
-        print (response)
-        if "Messages" not in response:
+        messages = queue.receive_messages(
+            VisibilityTimeout=int(sqs_timeout),
+            MaxNumberOfMessages=1,
+            MessageAttributeNames=['All']
+        )
+        if len(messages) == 0:
             # No messages, exit successfully
             _LOG.info("No new messages, exiting successfully")
             more_mesages = False
         else:
-            for message in response.get("Messages"):
-                _LOG.info("Processing message: {}".format(message.get("Body")))
-                pickled_task = message['MessageAttributes']['pickled_task']['BinaryValue']
-                execute_pickled_task(pickled_task)
+            message = messages[0]
+            pickled_task = message.message_attributes['pickled_task']['BinaryValue']
+            execute_pickled_task(pickled_task)
 
-                message.delete()
-                _LOG.info("SQS message deleted")
+            message.delete()
+            _LOG.info("SQS message deleted")
 
 
 if __name__ == '__main__':
