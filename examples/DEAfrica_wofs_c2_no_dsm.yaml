@@ -1,6 +1,3 @@
-# WARNING - INCORRECT FMASK!!!
-# This is more to test the pipeline works
-
 specification:
   product: usgs_ls8c_level2_2
   measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2', 'quality_l2_aerosol']
@@ -23,8 +20,7 @@ specification:
     c2: True
 
 output:
-  location: 's3://deafrica-usgs-c2-data/wofs-alchemist-test'
-  #location: '/g/data/u46/users/dsg547/test_data/wofs_testing_refac'
+  location: 's3://deafrica-usgs-c2-data/wofs-alchemist-testII'
   nodata: 1
   dtype: int16
 
