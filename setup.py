@@ -5,7 +5,6 @@ from setuptools import setup, find_packages
 
 
 setup(name='datacube-alchemist',
-      version='0.0.1',
       description='Batch process Open Data Cube Datasets',
       keywords='datacube-alchemist',
       url='https://github.com/opendatacube/datacube-alchemist',
@@ -25,6 +24,8 @@ setup(name='datacube-alchemist',
       packages=find_packages(exclude=('tests',)),
       include_package_data=True,
       install_requires=open('requirements.txt').read().strip().split('\n'),
+      use_scm_version=True,
+      setup_requires=['setuptools_scm'],
       entry_points={
           'console_scripts': [
               'datacube-alchemist = datacube_alchemist.cli:cli',
