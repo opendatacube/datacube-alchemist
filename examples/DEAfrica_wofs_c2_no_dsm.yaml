@@ -24,6 +24,9 @@ output:
   nodata: 1
   dtype: int16
 
+  write_data_settings:
+    overview_resampling: nearest
+
   metadata:
     product_family: wofs
     producer: ga.gov.au
