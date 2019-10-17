@@ -1,13 +1,14 @@
 """ Dask Distributed Tools
    - dask_compute_stream
 """
-from typing import Any, Iterable
-from random import randint
-import toolz
 import queue
-from dask.distributed import Client
-import dask.bag
 import threading
+from random import randint
+from typing import Any, Iterable
+
+import dask.bag
+import toolz
+from dask.distributed import Client
 
 
 def _randomize(prefix):
@@ -43,6 +44,7 @@ def dask_compute_stream(client: Client,
     :param max_in_flight: Maximum number of active tasks to submit
     :param name:   Dask name for computation
     """
+
     def lump_proc(dd):
         if dd is None:
             return None
@@ -53,7 +55,7 @@ def dask_compute_stream(client: Client,
 
     data_name = _randomize('data_' + name)
     name = _randomize(name)
-    priority = 2**31
+    priority = 2 ** 31
 
     def feeder(its, lump, q, client):
         for i, x in enumerate(toolz.partition_all(lump, its)):
