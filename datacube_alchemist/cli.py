@@ -94,6 +94,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     tasks = alchemist.generate_tasks(expressions, limit=limit)
     messages = []
     sum_size = 0
+    count = -1
     for count, task in enumerate(tasks):
         pickled_task = cloudpickle.dumps(task)
         msize = sys.getsizeof(pickled_task)
