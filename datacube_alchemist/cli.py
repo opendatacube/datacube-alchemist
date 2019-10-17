@@ -13,11 +13,12 @@ from datacube.ui import click as ui
 from datacube_alchemist.worker import Alchemist, execute_with_dask, \
     execute_task, AlchemistSettings, execute_pickled_task
 
-
 _LOG = structlog.get_logger()
+
 
 def cli():
     cli2(auto_envvar_prefix='ALCHEMIST')
+
 
 @click.group()
 def cli2():
@@ -99,16 +100,16 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         msize = sys.getsizeof(pickled_task)
         sum_size += msize
         atts = {'pickled_task': {'BinaryValue': pickled_task, 'DataType': 'Binary'}}
-        
+
         # The information is in the pickled_task message attribute
         # The message body is not used by the s/w
         body = task.dataset.uris[0] if task.dataset.uris is not None else 'location not known.'
-        messages.append({'MessageBody': body, 'Id':str(count), 'MessageAttributes':atts})
-        
+        messages.append({'MessageBody': body, 'Id': str(count), 'MessageAttributes': atts})
+
         # Call can't exceed 262,144 bytes.  I'm only measuring the config file size though.
         # And I'm adding messages until it's over a limit.
         # So I am conservative.
-        if sum_size  >  180000:
+        if sum_size > 180000:
             _ = _push_messages(queue, messages)
             _LOG.info("Pushed {} items. Total Att byte size of {}".format(count, sum_size))
             sum_size = 0
@@ -118,13 +119,12 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         _ = _push_messages(queue, messages)
     _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
-    
+
 @cli2.command()
 @click.option('--message_queue', '-M')
 @click.option('--sqs_timeout', '-S', type=int,
               help='The SQS message Visability Timeout.',
               default=400)
-
 def pullfromqueue(message_queue, sqs_timeout=None):
     _LOG.info("Start pull from queue.")
     # Set up the queue
@@ -152,9 +152,7 @@ def pullfromqueue(message_queue, sqs_timeout=None):
 @click.option('--sqs_timeout', '-S', type=int,
               help='The SQS message Visability Timeout.',
               default=400)
-
 def processqueue(message_queue, sqs_timeout=None):
-
     _LOG.info("Start pull from queue.")
     # Set up the queue
     sqs = boto3.resource('sqs')

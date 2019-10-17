@@ -5,7 +5,6 @@
 
 import importlib
 import sys
-import cloudpickle
 # pylint: disable=map-builtin-not-iterating
 from datetime import datetime
 from pathlib import Path
@@ -13,21 +12,21 @@ from typing import Sequence, Iterable, Mapping, Type, Optional, List, Any
 
 import attr
 import cattr
+import cloudpickle
+import fsspec
 import numpy as np
 import structlog
 import yaml
-import fsspec
 
 import datacube
 from datacube.model import Dataset
 from datacube.testutils.io import native_load
 from datacube.virtual import Transformation
+from datacube_alchemist.upload import S3Upload
 from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from ._dask import dask_compute_stream
-from datacube_alchemist.upload import S3Upload
-
 
 _LOG = structlog.get_logger()
 
@@ -53,7 +52,7 @@ class Specification:
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
     override_product_family: Optional[str] = attr.ib(default=None)
-    basis: Optional[str] =  attr.ib(default=None)
+    basis: Optional[str] = attr.ib(default=None)
 
 
 @attr.s(auto_attribs=True)
@@ -256,6 +255,7 @@ def _import_transform(transform_name: str) -> Type[Transformation]:
     imported_class = getattr(module, class_name)
     assert issubclass(imported_class, Transformation)
     return imported_class
+
 
 def execute_pickled_task(pickled_task):
     task = cloudpickle.loads(pickled_task)
