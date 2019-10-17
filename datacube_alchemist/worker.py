@@ -17,6 +17,7 @@ import fsspec
 import numpy as np
 import structlog
 import yaml
+from rasterio.enums import Resampling
 
 import datacube
 from datacube.model import Dataset
@@ -33,11 +34,19 @@ _LOG = structlog.get_logger()
 cattr.register_structure_hook(np.dtype, np.dtype)
 
 
+def _convert_write_data_settings(settings):
+    if 'overview_resampling' in settings:
+        strval = settings['overview_resampling']
+        settings['overview_resampling'] = Resampling[strval]
+    return settings
+
+
 @attr.s(auto_attribs=True)
 class OutputSettings:
     location: str
     dtype: np.dtype
     nodata: int  # type depends on dtype
+    write_data_settings: Optional[Mapping[str, str]] = attr.ib(converter=_convert_write_data_settings)
     preview_image: Optional[List[str]] = None
     metadata: Optional[Mapping[str, str]] = None
     properties: Optional[Mapping[str, str]] = None
@@ -180,7 +189,8 @@ def execute_task(task: AlchemistTask):
 
         p.write_measurements_odc_xarray(
             output_data,
-            nodata=task.settings.output.nodata
+            nodata=task.settings.output.nodata,
+            **task.settings.output.write_data_settings
         )
 
         if task.settings.output.preview_image is not None:
