@@ -28,6 +28,7 @@ from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from ._dask import dask_compute_stream
+from datacube_alchemist import __version__
 
 _LOG = structlog.get_logger()
 
@@ -179,7 +180,7 @@ def execute_task(task: AlchemistTask):
         p.note_software_version(
             'datacube-alchemist',
             "https://github.com/opendatacube/datacube-alchemist",
-            "0.1.0"
+            __version__
         )
 
         # TODO Note Software Version of Transformer (if available)
