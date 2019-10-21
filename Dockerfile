@@ -5,6 +5,8 @@ RUN mkdir -p $APPDIR
 COPY requirements* $APPDIR/
 WORKDIR $APPDIR
 
+RUN apt-get update && apt-get install -y gfortran \
+&& rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --upgrade pip \
     && pip3 install -r requirements-docker.txt \
