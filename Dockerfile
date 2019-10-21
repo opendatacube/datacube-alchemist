@@ -6,8 +6,9 @@ COPY requirements* $APPDIR/
 WORKDIR $APPDIR
 
 RUN apt-get update && apt-get install -y gfortran \
-&& rm -rf /var/lib/apt/lists/*
-
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install git+https://github.com/GeoscienceAustralia/fc --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'  \
+    && rm -rf $HOME/.cache/pip
 RUN pip3 install --upgrade pip \
     && pip3 install -r requirements-docker.txt \
     && pip3 install scipy ephem \
