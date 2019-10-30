@@ -185,8 +185,10 @@ def execute_task(task: AlchemistTask):
 
         # TODO Note Software Version of Transformer (if available)
 
-        # TODO Note configuration settings of
+        # TODO Note configuration settings of this Task
         # p.extend_user_metadata()
+
+        # TODO Check whether output already exists
 
         p.write_measurements_odc_xarray(
             output_data,
