@@ -45,7 +45,9 @@ output:
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
-
+  write_data_settings:
+      overview_resampling: average
+      
 #  reference_source_dataset: False
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
