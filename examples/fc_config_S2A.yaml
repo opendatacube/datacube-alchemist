@@ -39,12 +39,12 @@ specification:
 
 
 output:
-  #location: 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
-  location: '/g/data/u46/users/dsg547/test_data'
+  location: 's3://dsg-dev-bucket/fc-s2-alchemist-tests'
+  #location: '/g/data/u46/users/dsg547/test_data'
   #location: '/home/osboxes/test_data'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
-  preview_image: [pv, npv, bs]
+  preview_image: [bs, pv, npv]
 
 #  reference_source_dataset: False
   metadata: # metadata are settings available on DatasetAssembler
