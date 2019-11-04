@@ -7,8 +7,13 @@ from random import randint
 from typing import Any, Iterable
 
 import dask.bag
+import structlog
 import toolz
 from dask.distributed import Client
+
+from datacube_alchemist.settings import AlchemistSettings
+
+_LOG = structlog.get_logger()
 
 
 def _randomize(prefix):
@@ -83,3 +88,10 @@ def dask_compute_stream(client: Client,
         del yy
 
     in_thread.join()
+
+
+def setup_dask_client(config: AlchemistSettings):
+    from dask.distributed import Client
+    client = Client(**config.processing.dask_client)
+    _LOG.info('started dask', dask_client=client)
+    return client

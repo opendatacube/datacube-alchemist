@@ -8,80 +8,30 @@ import sys
 # pylint: disable=map-builtin-not-iterating
 from datetime import datetime
 from pathlib import Path
-from typing import Sequence, Iterable, Mapping, Type, Optional, List, Any
+from typing import Iterable, Type
 
-import attr
 import cattr
 import cloudpickle
 import fsspec
 import numpy as np
 import structlog
 import yaml
-from rasterio.enums import Resampling
 
 import datacube
 from datacube.model import Dataset
 from datacube.testutils.io import native_load
 from datacube.virtual import Transformation
+from datacube_alchemist import __version__
+from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 from datacube_alchemist.upload import S3Upload
 from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from ._dask import dask_compute_stream
-from datacube_alchemist import __version__
 
 _LOG = structlog.get_logger()
 
 cattr.register_structure_hook(np.dtype, np.dtype)
-
-
-def _convert_write_data_settings(settings):
-    if 'overview_resampling' in settings:
-        strval = settings['overview_resampling']
-        settings['overview_resampling'] = Resampling[strval]
-    return settings
-
-
-@attr.s(auto_attribs=True)
-class OutputSettings:
-    location: str
-    dtype: np.dtype
-    nodata: int  # type depends on dtype
-    write_data_settings: Optional[Mapping[str, str]] = attr.ib(converter=_convert_write_data_settings)
-    preview_image: Optional[List[str]] = None
-    metadata: Optional[Mapping[str, str]] = None
-    properties: Optional[Mapping[str, str]] = None
-    reference_source_dataset: bool = attr.ib(default=True)
-
-
-@attr.s(auto_attribs=True)
-class Specification:
-    product: str
-    measurements: Sequence[str]
-    transform: str
-    measurement_renames: Optional[Mapping[str, str]] = None
-    transform_args: Any = None
-    override_product_family: Optional[str] = attr.ib(default=None)
-    basis: Optional[str] = attr.ib(default=None)
-
-
-@attr.s(auto_attribs=True)
-class ProcessingSettings:
-    dask_chunks: Mapping[str, int] = attr.ib(default=dict())
-    dask_client: Optional[Mapping[str, Any]] = attr.ib(default=dict())
-
-
-@attr.s(auto_attribs=True)
-class AlchemistSettings:
-    specification: Specification
-    output: OutputSettings
-    processing: ProcessingSettings
-
-
-@attr.s(auto_attribs=True)
-class AlchemistTask:
-    dataset: Dataset
-    settings: AlchemistSettings
 
 
 class Alchemist:

@@ -1,38 +1,40 @@
-from pathlib import Path
-
 import sys
 import time
+from pathlib import Path
 
-import click
-import structlog
 import boto3
+import click
 import cloudpickle
+import structlog
 
 from datacube import Datacube
 from datacube.ui import click as ui
+from datacube_alchemist._dask import setup_dask_client
 from datacube_alchemist.worker import Alchemist, execute_with_dask, \
-    execute_task, AlchemistSettings, execute_pickled_task
+    execute_task, execute_pickled_task
 
 _LOG = structlog.get_logger()
 
+# Define common options for all the commands
+message_queue_option = click.option('--message_queue', '-M',
+                                    help='Name of an AWS SQS Message Queue')
 
+environment_option = click.option('--environment', '-E',
+                                  help='Name of the Datacube environment to connect to.')
+
+
+def cli_with_envvar_handling():
+    cli(auto_envvar_prefix='ALCHEMIST')
+
+
+@click.group(context_settings=dict(max_content_width=120))
 def cli():
-    cli2(auto_envvar_prefix='ALCHEMIST')
+    """
+    Transform Open Data Cube Datasets into a new type of Dataset
+    """
 
 
-@click.group()
-def cli2():
-    pass
-
-
-def setup_dask_client(config: AlchemistSettings):
-    from dask.distributed import Client
-    client = Client(**config.processing.dask_client)
-    _LOG.info('started dask', dask_client=client)
-    return client
-
-
-@cli2.command()
+@cli.command()
 @click.option('--environment', '-E',
               help='Name of the datacube environment to connect to.')
 @click.option('--limit', type=int,
@@ -40,6 +42,9 @@ def setup_dask_client(config: AlchemistSettings):
 @click.argument('config_file')
 @ui.parsed_search_expressions
 def run_many(config_file, expressions, environment=None, limit=None):
+    """
+    Run Alchemist with CONFIG_FILE, on all the Datasets matching an ODC query expression
+    """
     # Load Configuration file
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
@@ -49,12 +54,16 @@ def run_many(config_file, expressions, environment=None, limit=None):
     execute_with_dask(client, tasks)
 
 
-@cli2.command()
-@click.option('--environment', '-E',
-              help='Name of the datacube environment to connect to.')
+@cli.command()
+@environment_option
 @click.argument('config_file')
 @click.argument('input_dataset')
 def run_one(config_file, input_dataset, environment=None):
+    """
+    Run with CONFIG_FILE on a single INPUT_DATASET
+
+    INPUT_DATASET may be either a URL or a Dataset ID
+    """
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
     if '://' in input_dataset:
@@ -71,15 +80,18 @@ def run_one(config_file, input_dataset, environment=None):
     execute_task(task)
 
 
-@cli2.command()
-@click.option('--environment', '-E',
-              help='Name of the datacube environment to connect to.')
+@cli.command()
+@environment_option
 @click.option('--limit', type=int,
-              help='For testing, specify a small number of tasks to run.')
+              help='For testing, limit the number of tasks to create.')
+@message_queue_option
 @click.option('--config_file')
-@click.option('--message_queue', '-M')
 @ui.parsed_search_expressions
 def addtoqueue(config_file, message_queue, expressions, environment=None, limit=None):
+    """
+    Search for Datasets and enqueue Tasks into an AWS SQS Queue for later processing.
+    """
+
     def _push_messages(queue, messages):
         response = queue.send_messages(Entries=messages)
         return response
@@ -121,12 +133,15 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
 
-@cli2.command()
-@click.option('--message_queue', '-M')
+@cli.command()
+@message_queue_option
 @click.option('--sqs_timeout', '-S', type=int,
               help='The SQS message Visability Timeout.',
               default=400)
 def pullfromqueue(message_queue, sqs_timeout=None):
+    """
+    Process a single task from an AWS SQS Queue
+    """
     _LOG.info("Start pull from queue.")
     # Set up the queue
     sqs = boto3.resource('sqs')
@@ -148,12 +163,15 @@ def pullfromqueue(message_queue, sqs_timeout=None):
         _LOG.warning("No messages!")
 
 
-@cli2.command()
+@cli.command()
 @click.option('--message_queue', '-M')
 @click.option('--sqs_timeout', '-S', type=int,
-              help='The SQS message Visability Timeout.',
+              help='The SQS message Visibility Timeout.',
               default=400)
 def processqueue(message_queue, sqs_timeout=None):
+    """
+    Process all available tasks from an AWS SQS Queue
+    """
     _LOG.info("Start pull from queue.")
     # Set up the queue
     sqs = boto3.resource('sqs')
@@ -180,4 +198,4 @@ def processqueue(message_queue, sqs_timeout=None):
 
 
 if __name__ == '__main__':
-    cli()
+    cli_with_envvar_handling()
