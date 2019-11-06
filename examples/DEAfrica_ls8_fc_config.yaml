@@ -1,16 +1,13 @@
 specification:
   product: usgs_ls8c_level2_2
-  measurements: ['b2', 'b3', 'b4', 'b5', 'b6', 'b7']
+  measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2']
   measurement_renames:
-    b2: blue
-    b3: green
-    b4: red
-    b5: nir
-    b6: swir1
-    b7: swir2
+    swir_1: swir1
+    swir_2: swir2
 
   transform: fc.virtualproduct.FractionalCover
   transform_args:
+    c2_scaling: True
     regression_coefficients:
       blue:
         - 0.00041
@@ -33,11 +30,14 @@ specification:
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
 output:
-  #location: '/g/data/u46/users/dsg547/sandpit/odc_testing/aws_fc_testing'
-  location: 's3://deafrica-collection2-testing/fc-alchemist-testsIII'
+  location: '/g/data/u46/users/dsg547/data/deafrica_fc_testing'
+  #location: 's3://deafrica-collection2-testing/fc-alchemist-testsIII'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [pv, npv, bs]
+
+  write_data_settings:
+    overview_resampling: average
 
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
