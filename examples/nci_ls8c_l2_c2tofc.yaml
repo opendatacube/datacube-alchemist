@@ -1,0 +1,51 @@
+specification:
+  product: usgs_ls8c_level2_2
+  measurements: ['blue', 'green', 'red', 'nir', 'swir_1', 'swir_2']
+  measurement_renames:
+    swir_1: swir1
+    swir_2: swir2
+
+  transform: fc.virtualproduct.FractionalCover
+  transform_args:
+    c2_scaling: True
+    regression_coefficients:
+      blue:
+        - 0.00041
+        - 0.97470
+      green:
+        - 0.00289
+        - 0.99779
+      red:
+        - 0.00274
+        - 1.00446
+      nir:
+        - 0.00004
+        - 0.98906
+      swir1:
+        - 0.00256
+        - 0.99467
+      swir2:
+        - -0.00327
+        - 1.02551
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
+output:
+  location: '/g/data/u46/users/dsg547/dump/fc_testing'
+  #location: 's3://deafrica-data/test/fc-alchemist-test'
+  dtype: uint8 # single value for all bands
+  nodata: 255 # single value for all bands
+  preview_image: [pv, npv, bs]
+  write_data_settings:
+    overview_resampling: average
+
+  metadata: # metadata are settings available on DatasetAssembler
+    product_family: fractional_cover
+    producer: ga.gov.au
+    dataset_version: 2.0.0
+  properties: # Properties can be anything and everything
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 1000
+    y: 1000
