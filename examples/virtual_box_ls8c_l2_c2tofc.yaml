@@ -30,7 +30,7 @@ specification:
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
 output:
-  location: '/home/osboxes/test_data/dump'
+  location: '/home/osboxes/test_data/fc/bug21/'
   #location: 's3://deafrica-data/test/fc-alchemist-test'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
