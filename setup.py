@@ -28,7 +28,7 @@ setup(name='datacube-alchemist',
       setup_requires=['setuptools_scm'],
       entry_points={
           'console_scripts': [
-              'datacube-alchemist = datacube_alchemist.cli:cli',
+              'datacube-alchemist = datacube_alchemist.cli:cli_with_envvar_handling',
           ]
       },
 )
