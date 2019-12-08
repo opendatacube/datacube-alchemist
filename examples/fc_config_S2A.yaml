@@ -17,26 +17,29 @@ specification:
   transform: fc.virtualproduct.FractionalCover
   transform_args:
     regression_coefficients:
+      #  These coefficients are for Sentinel 2
+      #  The coefficients is applied to band values in the 0-10,000 range, before it is scaled to a fraction
+      #  This means the first coefficient has been also scaled when compared to the literature
+      #  This is where I got the coefficients from
+      #  https://github.com/GeoscienceAustralia/fc/blob/s2a-coefficients/config/s2_fc_albers.yaml
       blue:
-        - 0.00041
-        - 0.97470
+        - -22.0
+        - 0.9551
       green:
-        - 0.00289
-        - 0.99779
+        - 31.0
+        - 1.0582
       red:
-        - 0.00274
-        - 1.00446
+        - 64.0
+        - 0.9871
       nir:
-        - 0.00004
-        - 0.98906
+        - 120.0
+        - 1.0187
       swir1:
-        - 0.00256
-        - 0.99467
+        - 79.0
+        - 0.9528
       swir2:
-        - -0.00327
-        - 1.02551
-
-
+        - -42.0
+        - 0.9688
 
 output:
   location: 's3://dea-public-data-dev/alchemist/fc-s2-alchemist-tests'
