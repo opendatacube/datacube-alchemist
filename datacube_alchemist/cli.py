@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 from pathlib import Path
@@ -6,6 +7,11 @@ import boto3
 import click
 import cloudpickle
 import structlog
+
+from boto3 import Session
+from botocore.session import get_session
+from botocore.credentials import RefreshableCredentials
+from helper.assume_role_helper.py import refresh_credentials
 
 from datacube import Datacube
 from datacube.ui import click as ui
@@ -25,6 +31,25 @@ environment_option = click.option('--environment', '-E',
 
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix='ALCHEMIST')
+
+
+def get_role_session():
+    """
+    setup assume role/session based access
+    """
+    role_with_web_identity_params = {
+        "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+        "RoleArn": os.getenv('AWS_ROLE_ARN'),
+        "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+        "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+    }
+    session = get_session()
+    session._credentials = RefreshableCredentials.create_from_metadata(
+        metadata=refresh_credentials(**role_with_web_identity_params),
+        refresh_using=refresh_credentials,
+        method="sts-assume-role-with-web-identity",
+    )
+    return Session(botocore_session=session)
 
 
 @click.group(context_settings=dict(max_content_width=120))
@@ -98,8 +123,13 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
     _LOG.info("Start add to queue.")
     start_time = time.time()
+
     # Set up the queue
-    sqs = boto3.resource('sqs')
+    if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+        autorefresh_session = get_role_session()
+        sqs = autorefresh_session.resource('sqs')
+    else:
+        sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
     # Load Configuration file
@@ -143,8 +173,13 @@ def pullfromqueue(message_queue, sqs_timeout=None):
     Process a single task from an AWS SQS Queue
     """
     _LOG.info("Start pull from queue.")
+
     # Set up the queue
-    sqs = boto3.resource('sqs')
+    if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+        autorefresh_session = get_role_session()
+        sqs = autorefresh_session.resource('sqs')
+    else:
+        sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
     messages = queue.receive_messages(
@@ -173,8 +208,14 @@ def processqueue(message_queue, sqs_timeout=None):
     Process all available tasks from an AWS SQS Queue
     """
     _LOG.info("Start pull from queue.")
+
     # Set up the queue
-    sqs = boto3.resource('sqs')
+    if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+        autorefresh_session = get_role_session()
+        sqs = autorefresh_session.resource('sqs')
+    else:
+        sqs = boto3.resource('sqs')
+
     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
     more_mesages = True
