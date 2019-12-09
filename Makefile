@@ -18,5 +18,6 @@ lint:
 		opendatacube/datacube-alchemist:test \
 			flake8
 
-test-local:
-	pytest tests
+push:
+	docker build . --tag opendatacube/datacube-alchemist:unstable-1.0.0
+	docker push opendatacube/datacube-alchemist:unstable-1.0.0
