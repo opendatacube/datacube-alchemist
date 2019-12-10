@@ -40,7 +40,6 @@ specification:
 
 output:
   location: 's3://dea-public-data-dev/alchemist/fc-s2-test-alex'
-  #location: '/home/osboxes/test_data'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
