@@ -5,6 +5,7 @@ from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError
+from .helper.assume_role_helper import get_autorefresh_session
 
 from urllib.parse import urlparse
 
@@ -45,7 +46,12 @@ class S3Upload(object):
             self.upload_now_change_control()
 
     def upload_now_change_control(self):
-        s3_client = boto3.client('s3')
+        if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+            autorefresh_session = get_autorefresh_session(**os.environ["role_with_web_identity_params"])
+            s3_client = autorefresh_session.client('s3')
+        else:
+            s3_client = boto3.client('s3')
+
         for f_src, f_dst in _files_to_copy(self._location, self.s3location):
             o = urlparse(str(f_dst), allow_fragments=False)
             bucket = o.netloc

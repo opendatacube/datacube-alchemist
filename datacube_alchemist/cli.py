@@ -25,11 +25,15 @@ message_queue_option = click.option('--message_queue', '-M',
 environment_option = click.option('--environment', '-E',
                                   help='Name of the Datacube environment to connect to.')
 
-role_with_web_identity_params = {
+if 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+    web_identity_token = open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read()
+else:
+    web_identity_token = ''
+os.environ["role_with_web_identity_params"] = {
     "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
     "RoleArn": os.getenv('AWS_ROLE_ARN'),
     "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
-    "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+    "WebIdentityToken": web_identity_token,
 }
 
 def cli_with_envvar_handling():
@@ -110,7 +114,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-        autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
+        autorefresh_session = get_autorefresh_session(**os.environ["role_with_web_identity_params"])
         sqs = autorefresh_session.resource('sqs')
     else:
         sqs = boto3.resource('sqs')
