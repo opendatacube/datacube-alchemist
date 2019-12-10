@@ -25,17 +25,6 @@ message_queue_option = click.option('--message_queue', '-M',
 environment_option = click.option('--environment', '-E',
                                   help='Name of the Datacube environment to connect to.')
 
-web_identity_token = ''
-if 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-    web_identity_token = open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read()
-
-os.environ["role_with_web_identity_params"] = {
-    "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
-    "RoleArn": os.getenv('AWS_ROLE_ARN'),
-    "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
-    "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
-}
-
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix='ALCHEMIST')
 
@@ -114,7 +103,13 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-        autorefresh_session = get_autorefresh_session(**os.environ["role_with_web_identity_params"])
+        role_with_web_identity_params = {
+            "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+            "RoleArn": os.getenv('AWS_ROLE_ARN'),
+            "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+            "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+        }
+        autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
         sqs = autorefresh_session.resource('sqs')
     else:
         sqs = boto3.resource('sqs')
@@ -164,6 +159,12 @@ def pullfromqueue(message_queue, sqs_timeout=None):
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+        role_with_web_identity_params = {
+            "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+            "RoleArn": os.getenv('AWS_ROLE_ARN'),
+            "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+            "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+        }
         autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
         sqs = autorefresh_session.resource('sqs')
     else:
@@ -199,6 +200,12 @@ def processqueue(message_queue, sqs_timeout=None):
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+        role_with_web_identity_params = {
+            "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+            "RoleArn": os.getenv('AWS_ROLE_ARN'),
+            "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+            "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+        }
         autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
         sqs = autorefresh_session.resource('sqs')
     else:

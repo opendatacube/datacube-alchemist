@@ -47,7 +47,13 @@ class S3Upload(object):
 
     def upload_now_change_control(self):
         if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-            autorefresh_session = get_autorefresh_session(**os.environ["role_with_web_identity_params"])
+            role_with_web_identity_params = {
+                "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+                "RoleArn": os.getenv('AWS_ROLE_ARN'),
+                "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+                "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+            }
+            autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
             s3_client = autorefresh_session.client('s3')
         else:
             s3_client = boto3.client('s3')
