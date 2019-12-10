@@ -1,10 +1,17 @@
 import os
 import tempfile
+import boto3
 from distutils.dir_util import copy_tree
 from pathlib import Path
+import mimetypes
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
-import fsspec
 
+mimetypes.add_type('application/x-yaml', '.yml')
+mimetypes.add_type('application/x-yaml', '.yaml')
 
 def _files_to_copy(src_base, dst_base):
     src_base = Path(src_base)
@@ -39,28 +46,35 @@ class S3Upload(object):
         If the data needs to be moved from a tmp location to s3 do the move.
         """
         if self.upload is True:
-            self.upload_now()
+            self.upload_now_change_control()
 
-    def upload_now(self):
-        fs = fsspec.filesystem('s3')
-        # fs.put(self._location, self.s3location, recursive=True)
+    def upload_now_change_control(self):
+        s3_resource = boto3.resource('s3')
         for f_src, f_dst in _files_to_copy(self._location, self.s3location):
-            fs.put(str(f_src), str(f_dst))
-
+            o = urlparse(str(f_dst), allow_fragments=False)
+            bucket = o.netloc
+            key = o.path.lstrip('/')
+            mimetype, _ = mimetypes.guess_type(str(f_src), strict=False)
+            args = {'ExtraArgs': {'ContentType': mimetype}}
+            with open(f_src, 'rb') as data:
+                s3_resource.meta.client.upload_fileobj(
+                    Fileobj=data,
+                    Bucket=bucket,
+                    Key=key,
+                    **args
+                )
+                s3_resource.ObjectAcl(bucket, key).put(ACL='bucket-owner-full-control')
 
 def main():
     """
     Very hacky test.
     :return:
     """
-    location = 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
+    location = 's3://dea-public-data-dev/alchemist/tests'
 
     s3ul = S3Upload(location)
     location = s3ul.location
-    # This is the sort of data that execute produces (/2)
-    local = "/g/data/u46/users/dsg547/test_data/wofs_testing_bitmask"
-    # local = "/g/data/u46/users/dsg547/data/c3-testing"
-    # local = "/home/osboxes/test_data"
+    local = "/home/osboxes/dump2"
     copy_tree(local, location)
 
     s3ul.upload_if_needed()
