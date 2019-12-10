@@ -42,7 +42,7 @@ specification:
         - 0.9688
 
 output:
-  location: 's3://dea-public-data-dev/alchemist/fc-s2-alchemist-tests-deployment'
+  location: 's3://dea-public-data-dev/alchemist/fc-s2-alchemist-tests-download'
   #location: '/g/data/u46/users/dsg547/test_data'
   #location: '/home/osboxes/test_data'
   dtype: uint8 # single value for all bands
