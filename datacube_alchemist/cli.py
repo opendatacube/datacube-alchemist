@@ -11,7 +11,7 @@ import structlog
 from boto3 import Session
 from botocore.session import get_session
 from botocore.credentials import RefreshableCredentials
-from helper.assume_role_helper.py import refresh_credentials
+from .helper.assume_role_helper import refresh_credentials
 
 from datacube import Datacube
 from datacube.ui import click as ui
