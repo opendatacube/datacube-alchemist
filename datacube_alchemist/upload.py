@@ -4,10 +4,7 @@ import boto3
 from distutils.dir_util import copy_tree
 from pathlib import Path
 import mimetypes
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from urlparse import urlparse
 
 
 mimetypes.add_type('application/x-yaml', '.yml')
