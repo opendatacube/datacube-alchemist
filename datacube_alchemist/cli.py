@@ -25,15 +25,15 @@ message_queue_option = click.option('--message_queue', '-M',
 environment_option = click.option('--environment', '-E',
                                   help='Name of the Datacube environment to connect to.')
 
+web_identity_token = ''
 if 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
     web_identity_token = open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read()
-else:
-    web_identity_token = ''
+
 os.environ["role_with_web_identity_params"] = {
     "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
     "RoleArn": os.getenv('AWS_ROLE_ARN'),
     "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
-    "WebIdentityToken": web_identity_token,
+    "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
 }
 
 def cli_with_envvar_handling():

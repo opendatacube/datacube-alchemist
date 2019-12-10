@@ -19,5 +19,5 @@ lint:
 			flake8
 
 push:
-	docker build . --tag opendatacube/datacube-alchemist:unstable-1.0.2
-	docker push opendatacube/datacube-alchemist:unstable-1.0.2
+	docker build . --tag opendatacube/datacube-alchemist:unstable-1.0.3
+	docker push opendatacube/datacube-alchemist:unstable-1.0.3
