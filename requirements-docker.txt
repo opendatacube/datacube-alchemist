@@ -1,5 +1,0 @@
---extra-index-url https://packages.dea.gadevs.ga/
---requirement requirements.txt
-
-fc
-#wofs
