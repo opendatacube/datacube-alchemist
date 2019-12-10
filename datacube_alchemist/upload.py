@@ -1,17 +1,13 @@
 import os
 import tempfile
-import boto3
 from distutils.dir_util import copy_tree
 from pathlib import Path
-import mimetypes
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
 
+import boto3
+from botocore.exceptions import ClientError
 
-mimetypes.add_type('application/x-yaml', '.yml')
-mimetypes.add_type('application/x-yaml', '.yaml')
+from urllib.parse import urlparse
+
 
 def _files_to_copy(src_base, dst_base):
     src_base = Path(src_base)
@@ -49,21 +45,21 @@ class S3Upload(object):
             self.upload_now_change_control()
 
     def upload_now_change_control(self):
-        s3_resource = boto3.resource('s3')
+        s3_client = boto3.client('s3')
         for f_src, f_dst in _files_to_copy(self._location, self.s3location):
             o = urlparse(str(f_dst), allow_fragments=False)
             bucket = o.netloc
             key = o.path.lstrip('/')
-            mimetype, _ = mimetypes.guess_type(str(f_src), strict=False)
-            args = {'ExtraArgs': {'ContentType': mimetype}}
-            with open(f_src, 'rb') as data:
-                s3_resource.meta.client.upload_fileobj(
-                    Fileobj=data,
-                    Bucket=bucket,
-                    Key=key,
-                    **args
+            try:
+                s3_client.upload_file(
+                    str(f_src),  # I don't know why this isn't a string already
+                    bucket,
+                    key,
+                    ExtraArgs={'ACL': 'bucket-owner-full-control'}
                 )
-                s3_resource.ObjectAcl(bucket, key).put(ACL='bucket-owner-full-control')
+            except ClientError as e:
+                print("Failed to upload with error {}".format(e))
+
 
 def main():
     """
@@ -74,7 +70,7 @@ def main():
 
     s3ul = S3Upload(location)
     location = s3ul.location
-    local = "/home/osboxes/dump2"
+    local = "/tmp/test"
     copy_tree(local, location)
 
     s3ul.upload_if_needed()
