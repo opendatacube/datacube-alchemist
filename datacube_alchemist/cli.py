@@ -8,10 +8,7 @@ import click
 import cloudpickle
 import structlog
 
-from boto3 import Session
-from botocore.session import get_session
-from botocore.credentials import RefreshableCredentials
-from .helper.assume_role_helper import refresh_credentials
+from .helper.assume_role_helper import get_autorefresh_session
 
 from datacube import Datacube
 from datacube.ui import click as ui
@@ -28,28 +25,15 @@ message_queue_option = click.option('--message_queue', '-M',
 environment_option = click.option('--environment', '-E',
                                   help='Name of the Datacube environment to connect to.')
 
+role_with_web_identity_params = {
+    "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+    "RoleArn": os.getenv('AWS_ROLE_ARN'),
+    "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+    "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+}
 
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix='ALCHEMIST')
-
-
-def get_role_session():
-    """
-    setup assume role/session based access
-    """
-    role_with_web_identity_params = {
-        "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
-        "RoleArn": os.getenv('AWS_ROLE_ARN'),
-        "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
-        "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
-    }
-    session = get_session()
-    session._credentials = RefreshableCredentials.create_from_metadata(
-        metadata=refresh_credentials(**role_with_web_identity_params),
-        refresh_using=refresh_credentials,
-        method="sts-assume-role-with-web-identity",
-    )
-    return Session(botocore_session=session)
 
 
 @click.group(context_settings=dict(max_content_width=120))
@@ -126,7 +110,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-        autorefresh_session = get_role_session()
+        autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
         sqs = autorefresh_session.resource('sqs')
     else:
         sqs = boto3.resource('sqs')
@@ -176,7 +160,7 @@ def pullfromqueue(message_queue, sqs_timeout=None):
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-        autorefresh_session = get_role_session()
+        autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
         sqs = autorefresh_session.resource('sqs')
     else:
         sqs = boto3.resource('sqs')
@@ -211,7 +195,7 @@ def processqueue(message_queue, sqs_timeout=None):
 
     # Set up the queue
     if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-        autorefresh_session = get_role_session()
+        autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
         sqs = autorefresh_session.resource('sqs')
     else:
         sqs = boto3.resource('sqs')
