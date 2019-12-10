@@ -3,7 +3,10 @@ import tempfile
 from distutils.dir_util import copy_tree
 from pathlib import Path
 
-import fsspec
+import boto3
+from botocore.exceptions import ClientError
+
+from urllib.parse import urlparse
 
 
 def _files_to_copy(src_base, dst_base):
@@ -39,13 +42,23 @@ class S3Upload(object):
         If the data needs to be moved from a tmp location to s3 do the move.
         """
         if self.upload is True:
-            self.upload_now()
+            self.upload_now_change_control()
 
-    def upload_now(self):
-        fs = fsspec.filesystem('s3')
-        # fs.put(self._location, self.s3location, recursive=True)
+    def upload_now_change_control(self):
+        s3_client = boto3.client('s3')
         for f_src, f_dst in _files_to_copy(self._location, self.s3location):
-            fs.put(str(f_src), str(f_dst))
+            o = urlparse(str(f_dst), allow_fragments=False)
+            bucket = o.netloc
+            key = o.path.lstrip('/')
+            try:
+                s3_client.upload_file(
+                    str(f_src),  # I don't know why this isn't a string already
+                    bucket,
+                    key,
+                    ExtraArgs={'ACL': 'bucket-owner-full-control'}
+                )
+            except ClientError as e:
+                print("Failed to upload with error {}".format(e))
 
 
 def main():
@@ -53,14 +66,11 @@ def main():
     Very hacky test.
     :return:
     """
-    location = 's3://test-results-deafrica-staging-west/fc-alchemist-tests'
+    location = 's3://dea-public-data-dev/alchemist/tests'
 
     s3ul = S3Upload(location)
     location = s3ul.location
-    # This is the sort of data that execute produces (/2)
-    local = "/g/data/u46/users/dsg547/test_data/wofs_testing_bitmask"
-    # local = "/g/data/u46/users/dsg547/data/c3-testing"
-    # local = "/home/osboxes/test_data"
+    local = "/tmp/test"
     copy_tree(local, location)
 
     s3ul.upload_if_needed()
