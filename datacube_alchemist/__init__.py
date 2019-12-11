@@ -4,4 +4,3 @@ try:
 except DistributionNotFound:
     # package is not installed
     __version__ = 'package-not-installed'
-
