@@ -1,4 +1,5 @@
 import boto3
+import os
 from botocore.session import get_session
 from botocore.credentials import RefreshableCredentials
 
@@ -6,10 +7,10 @@ def role_arn_to_session(**args):
     """ Create boto3 session using federated access
         Usage :
             params = {
-                "RoleArn": 'arn:aws:iam::012345678901:role/example-role',
-                "RoleSessionName": 'ExampleSessionName',
-                "WebIdentityToken": 'ExampleToken',
-                "DurationSeconds": 3600,
+                "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+                "RoleArn": os.getenv('AWS_ROLE_ARN'),
+                "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+                "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
             }
             session = role_arn_to_session(**params)
             client = session.client('sqs')
@@ -63,4 +64,11 @@ def refresh_credentials(**args):
         "token": response.get("SessionToken"),
         "expiry_time": response.get("Expiration").isoformat(),
     }
+
+    # Export AWS credential to support external dependencies
+    os.environ['AWS_ACCESS_KEY_ID'] = response.get("AccessKeyId")
+    os.environ['AWS_SECRET_ACCESS_KEY'] = response.get("SecretAccessKey")
+    os.environ['AWS_SESSION_TOKEN'] = response.get("SessionToken")
+    os.environ['AWS_EXPIRATION'] = response.get("Expiration").isoformat()
+
     return credentials
