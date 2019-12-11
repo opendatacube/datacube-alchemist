@@ -39,7 +39,7 @@ specification:
         - 0.9688
 
 output:
-  location: 's3://dea-sandbox-data-staging/test/fc-s2-test-alex'
+  location: 's3://dea-sandbox-data-staging/test/fc-s2-alex-metadatatest'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
@@ -49,8 +49,11 @@ output:
     product_family: fractional_cover
     producer: ga.gov.au
     dataset_version: 0.9.1
+    product: alexsimpleproduct
   properties: # Properties can be anything and everything
+    # dataset maturity, on the other hand, needs to be one of three things
     dea:dataset_maturity: interim
+    alexkey: appropriate
 
 processing:
   dask_chunks:
