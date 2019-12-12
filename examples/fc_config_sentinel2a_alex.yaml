@@ -55,5 +55,5 @@ output:
 
 processing:
   dask_chunks:
-    x: 1000
-    y: 1000
+    x: 6000
+    y: 6000
