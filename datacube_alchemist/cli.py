@@ -25,8 +25,10 @@ message_queue_option = click.option('--message_queue', '-M',
 environment_option = click.option('--environment', '-E',
                                   help='Name of the Datacube environment to connect to.')
 
+
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix='ALCHEMIST')
+
 
 def create_sqs_connection():
     # Set up the queue
@@ -42,6 +44,7 @@ def create_sqs_connection():
     else:
         sqs = boto3.resource('sqs')
     return sqs
+
 
 @click.group(context_settings=dict(max_content_width=120))
 def cli():
