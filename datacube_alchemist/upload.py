@@ -5,9 +5,25 @@ from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError
-from .helper.assume_role_helper import get_autorefresh_session
+from datacube_alchemist.assume_role_helper import get_autorefresh_session
 
 from urllib.parse import urlparse
+
+
+def create_s3_connection():
+    # Set up s3 connection
+    if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
+        role_with_web_identity_params = {
+            "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
+            "RoleArn": os.getenv('AWS_ROLE_ARN'),
+            "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
+            "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
+        }
+        autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
+        s3_client = autorefresh_session.client('s3')
+    else:
+        s3_client = boto3.client('s3')
+    return s3_client
 
 
 def _files_to_copy(src_base, dst_base):
@@ -46,17 +62,7 @@ class S3Upload(object):
             self.upload_now_change_control()
 
     def upload_now_change_control(self):
-        if 'AWS_ROLE_ARN' in os.environ and 'AWS_WEB_IDENTITY_TOKEN_FILE' in os.environ:
-            role_with_web_identity_params = {
-                "DurationSeconds": os.getenv('SESSION_DURATION', 3600),
-                "RoleArn": os.getenv('AWS_ROLE_ARN'),
-                "RoleSessionName": os.getenv('AWS_SESSION_NAME', 'test_session'),
-                "WebIdentityToken": open(os.getenv('AWS_WEB_IDENTITY_TOKEN_FILE')).read(),
-            }
-            autorefresh_session = get_autorefresh_session(**role_with_web_identity_params)
-            s3_client = autorefresh_session.client('s3')
-        else:
-            s3_client = boto3.client('s3')
+        s3_client = create_s3_connection()
 
         for f_src, f_dst in _files_to_copy(self._location, self.s3location):
             o = urlparse(str(f_dst), allow_fragments=False)
