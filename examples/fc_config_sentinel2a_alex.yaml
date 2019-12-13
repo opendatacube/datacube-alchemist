@@ -48,7 +48,7 @@ output:
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
     producer: ga.gov.au
-    dataset_version: 0.9.1
+    dataset_version: 2.2.1
   properties: # Properties can be anything and everything
     # dataset maturity must be nrt, interim or final
     dea:dataset_maturity: interim
