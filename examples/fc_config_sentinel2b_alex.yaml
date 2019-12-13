@@ -39,7 +39,7 @@ specification:
         - 0.9688
 
 output:
-  location: 's3://dea-sandbox-data-staging/test/s2-fc-run2'
+  location: 's3://dea-sandbox-data-staging/alchemist/s2-fc-pre-prod'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
@@ -55,5 +55,5 @@ output:
 
 processing:
   dask_chunks:
-    x: 1000
-    y: 1000
+    x: 4000
+    y: 4000
