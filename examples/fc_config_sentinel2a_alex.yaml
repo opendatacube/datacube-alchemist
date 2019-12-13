@@ -39,7 +39,7 @@ specification:
         - 0.9688
 
 output:
-  location: 's3://dea-sandbox-data-staging/alchemist/s2-fc-pre-prod'
+  location: 's3://dea-sandbox-data-staging/fractional-cover/fc/v2.2.1'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]

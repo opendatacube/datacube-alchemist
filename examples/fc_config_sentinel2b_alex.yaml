@@ -39,7 +39,7 @@ specification:
         - 0.9688
 
 output:
-  location: 's3://dea-sandbox-data-staging/alchemist/s2-fc-pre-prod'
+  location: 's3://dea-sandbox-data-staging/fractional-cover/fc/v2.2.1'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
@@ -48,7 +48,7 @@ output:
   metadata: # metadata are settings available on DatasetAssembler
     product_family: fractional_cover
     producer: ga.gov.au
-    dataset_version: 0.9.1
+    dataset_version: 2.2.1
   properties: # Properties can be anything and everything
     # dataset maturity must be nrt, interim or final
     dea:dataset_maturity: interim
