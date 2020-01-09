@@ -27,6 +27,7 @@ from datacube_alchemist.upload import S3Upload
 from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
+from odc.index import odc_uuid
 from ._dask import dask_compute_stream
 
 _LOG = structlog.get_logger()
@@ -112,7 +113,7 @@ def execute_task(task: AlchemistTask):
     # Ensure output path exists
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
-
+    uuid = deterministic_uuid(task)
     with DatasetAssembler(output_location, naming_conventions="dea") as p:
         if task.settings.output.reference_source_dataset:
             source_doc = _munge_dataset_to_eo3(task.dataset)
@@ -228,3 +229,9 @@ def execute_pickled_task(pickled_task):
     _LOG.info("Found task to process: {}".format(task))
     execute_task(task)
     s3ul.upload_if_needed()
+
+def deterministic_uuid(task):
+    uuid = odc_uuid(algorithm=task.settings.specification.transform,
+                    algorithm_version='',
+                    sources=[task.dataset.id])
+    return uuid
