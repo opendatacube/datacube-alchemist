@@ -1,5 +1,5 @@
 datacube
-eodatasets3
+#eodatasets3
 attrs>=18.1
 cattrs
 structlog
