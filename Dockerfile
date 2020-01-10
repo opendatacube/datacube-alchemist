@@ -10,6 +10,8 @@ RUN pip3 install git+https://github.com/GeoscienceAustralia/wofs --no-deps --glo
 
 RUN pip3 install git+https://github.com/GeoscienceAustralia/eo-datasets@duuid --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
 
+RUN pip3 install shapely boltons ruamel.yaml
+
 ENV APPDIR=/tmp/code/
 RUN mkdir -p $APPDIR
 COPY requirements.txt $APPDIR/
