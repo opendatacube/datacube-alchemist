@@ -113,8 +113,8 @@ def execute_task(task: AlchemistTask):
     # Ensure output path exists
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
-    uuid = deterministic_uuid(task)
-    with DatasetAssembler(output_location, naming_conventions="dea") as p:
+    uuid, _ = deterministic_uuid(task)
+    with DatasetAssembler(output_location, naming_conventions="dea", dataset_id=uuid) as p:
         if task.settings.output.reference_source_dataset:
             source_doc = _munge_dataset_to_eo3(task.dataset)
             p.add_source_dataset(source_doc, auto_inherit_properties=True,
@@ -149,7 +149,8 @@ def execute_task(task: AlchemistTask):
 
         if task.settings.output.preview_image is not None:
             p.write_thumbnail(*task.settings.output.preview_image)
-
+        if task.dataset.metadata.platform.lower().startswith("sentinel"):
+            p.add_uuid_to_output_location()
         dataset_id, metadata_path = p.done()
 
     return dataset_id, metadata_path
@@ -230,8 +231,27 @@ def execute_pickled_task(pickled_task):
     execute_task(task)
     s3ul.upload_if_needed()
 
-def deterministic_uuid(task):
+def deterministic_uuid(task, algorithm_version=None, **other_tags):
+
+    if not algorithm_version:
+        algorithm_version = get_transform_version(task.settings.specification.transform)
     uuid = odc_uuid(algorithm=task.settings.specification.transform,
-                    algorithm_version='',
-                    sources=[task.dataset.id])
-    return uuid
+                    algorithm_version=algorithm_version,
+                    sources=[task.dataset.id], **other_tags)
+
+    uuid_values = other_tags.copy()
+    uuid_values['algorithm_version'] = algorithm_version
+    uuid_values['dataset.id'] = task.dataset.id
+    uuid_values['algorithm'] = task.settings.specification.transform
+
+    return uuid, uuid_values
+
+def get_transform_version(transform):
+    """
+    Note only returns the [major].[minor] version
+    :param transform:
+    :return:
+    """
+    base_module = importlib.import_module(transform.split('.')[0])
+    version = base_module.__version__
+    return '.'.join(version.split('.')[0:2])
