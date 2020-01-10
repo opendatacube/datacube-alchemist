@@ -149,8 +149,8 @@ def execute_task(task: AlchemistTask):
 
         if task.settings.output.preview_image is not None:
             p.write_thumbnail(*task.settings.output.preview_image)
-        if task.dataset.metadata.platform.lower().startswith("sentinel"):
-            p.add_uuid_to_output_location()
+        #if task.dataset.metadata.platform.lower().startswith("sentinel"):
+        #    p.add_uuid_to_output_location()
         dataset_id, metadata_path = p.done()
 
     return dataset_id, metadata_path
