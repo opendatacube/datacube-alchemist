@@ -260,10 +260,10 @@ def get_transform_version(transform):
     :param transform:
     :return:
     """
-    base_module = importlib.import_module(transform.split('.')[0])
     try:
+        base_module = importlib.import_module(transform.split('.')[0])
         version = base_module.__version__
         version_major_minor = '.'.join(version.split('.')[0:2])
-    except AttributeError:
+    except (AttributeError, ModuleNotFoundError) as e:
         version_major_minor = ''
     return version_major_minor
