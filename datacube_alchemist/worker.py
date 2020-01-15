@@ -149,8 +149,8 @@ def execute_task(task: AlchemistTask):
 
         if task.settings.output.preview_image is not None:
             p.write_thumbnail(*task.settings.output.preview_image)
-        #if task.dataset.metadata.platform.lower().startswith("sentinel"):
-        #    p.add_uuid_to_output_location()
+        if task.dataset.metadata.platform.lower().startswith("sentinel"):
+            p.add_uuid_to_output_location()
         dataset_id, metadata_path = p.done()
 
     return dataset_id, metadata_path
@@ -235,9 +235,15 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
 
     if not algorithm_version:
         algorithm_version = get_transform_version(task.settings.specification.transform)
+    if not 'dataset_version' in other_tags:
+        try:
+            other_tags['dataset_version']  = task.settings.output.metadata['dataset_version']
+        except KeyError:
+            _LOG.info('dataset_version not set and not used to generate deterministic uuid')
     uuid = odc_uuid(algorithm=task.settings.specification.transform,
                     algorithm_version=algorithm_version,
                     sources=[task.dataset.id], **other_tags)
+
 
     uuid_values = other_tags.copy()
     uuid_values['algorithm_version'] = algorithm_version
