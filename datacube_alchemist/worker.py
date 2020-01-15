@@ -254,10 +254,14 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
 
 def get_transform_version(transform):
     """
-    Note only returns the [major].[minor] version
+    Given a transform return the [major].[minor] version of the transform.
     :param transform:
     :return:
     """
     base_module = importlib.import_module(transform.split('.')[0])
-    version = base_module.__version__
-    return '.'.join(version.split('.')[0:2])
+    try:
+        version = base_module.__version__
+        version_major_minor = '.'.join(version.split('.')[0:2])
+    except AttributeError:
+        version_major_minor = ''
+    return version_major_minor
