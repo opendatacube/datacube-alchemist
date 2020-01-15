@@ -231,19 +231,20 @@ def execute_pickled_task(pickled_task):
     execute_task(task)
     s3ul.upload_if_needed()
 
-def deterministic_uuid(task, algorithm_version=None, **other_tags):
 
+def deterministic_uuid(task, algorithm_version=None, **other_tags):
     if not algorithm_version:
         algorithm_version = get_transform_version(task.settings.specification.transform)
-    if not 'dataset_version' in other_tags:
+    if 'dataset_version' not in other_tags:
         try:
-            other_tags['dataset_version']  = task.settings.output.metadata['dataset_version']
+            other_tags['dataset_version'] = task.settings.output.metadata['dataset_version']
         except KeyError:
-            _LOG.info('dataset_version not set and not used to generate deterministic uuid')
+            msg = 'dataset_version not set and '
+            msg += 'not used to generate deterministic uuid'
+            _LOG.info(msg)
     uuid = odc_uuid(algorithm=task.settings.specification.transform,
                     algorithm_version=algorithm_version,
                     sources=[task.dataset.id], **other_tags)
-
 
     uuid_values = other_tags.copy()
     uuid_values['algorithm_version'] = algorithm_version
@@ -251,6 +252,7 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
     uuid_values['algorithm'] = task.settings.specification.transform
 
     return uuid, uuid_values
+
 
 def get_transform_version(transform):
     """
