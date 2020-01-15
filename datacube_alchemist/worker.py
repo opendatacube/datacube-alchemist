@@ -260,10 +260,13 @@ def get_transform_version(transform):
     :param transform:
     :return:
     """
+    version_major_minor = ''
     try:
         base_module = importlib.import_module(transform.split('.')[0])
         version = base_module.__version__
         version_major_minor = '.'.join(version.split('.')[0:2])
     except (AttributeError, ModuleNotFoundError) as e:
-        version_major_minor = ''
+            msg = 'algorithm_version not set and '
+            msg += 'not used to generate deterministic uuid'
+            _LOG.info(msg)
     return version_major_minor
