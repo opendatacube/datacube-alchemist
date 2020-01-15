@@ -11,8 +11,12 @@ def test_deterministic_uuid():
     mocked_task.settings.output.metadata = {}
     mocked_task.settings.output.metadata['dataset_version'] = '2.2.1'
     result, uuid_values = deterministic_uuid(mocked_task, algorithm_version='1.4', **other_tags)
-    print (result)
-    print (uuid_values)
+    #print (result)
+    #print (uuid_values)
+
+    result, uuid_values = deterministic_uuid(mocked_task, **other_tags)
+    #print (result)
+    #print (uuid_values)
 
 
 if __name__ == '__main__':
