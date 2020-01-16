@@ -3,6 +3,7 @@ import importlib
 
 from datacube_alchemist.worker import deterministic_uuid, get_transform_info, _import_transform
 
+
 def test_deterministic_uuid():
     mocked_task = mock.MagicMock()
     transform = 'wofs.virtualproduct.WOfSClassifier'
@@ -20,8 +21,9 @@ def test_deterministic_uuid():
     # print (result)
     # print (uuid_values)
 
+
 def test_get_transform_info():
-    transforms  = ['wofs.virtualproduct.WOfSClassifier', 'fc.virtualproduct.FractionalCover']
+    transforms = ['wofs.virtualproduct.WOfSClassifier', 'fc.virtualproduct.FractionalCover']
     for transform in transforms:
         try:
             _ = _import_transform(transform)
@@ -30,6 +32,7 @@ def test_get_transform_info():
             continue
         result = get_transform_info(transform)
         # print (result)
+
 
 if __name__ == '__main__':
     test_deterministic_uuid()
