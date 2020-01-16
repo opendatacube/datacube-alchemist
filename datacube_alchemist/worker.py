@@ -134,7 +134,10 @@ def execute_task(task: AlchemistTask):
             __version__
         )
 
-        # TODO Note Software Version of Transformer (if available)
+        # Software Version of Transformer
+        version_url = get_transform_info(task.settings.specification.transform)
+        p.note_software_version(name=task.settings.specification.transform, url=version_url['url'],
+                                version=version_url['version'])
 
         # TODO Note configuration settings of this Task
         # p.extend_user_metadata()
@@ -234,7 +237,8 @@ def execute_pickled_task(pickled_task):
 
 def deterministic_uuid(task, algorithm_version=None, **other_tags):
     if not algorithm_version:
-        algorithm_version = get_transform_version(task.settings.specification.transform)
+        transform_info = get_transform_info(task.settings.specification.transform)
+        algorithm_version = transform_info['version_major_minor']
     if 'dataset_version' not in other_tags:
         try:
             other_tags['dataset_version'] = task.settings.output.metadata['dataset_version']
@@ -254,12 +258,13 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
     return uuid, uuid_values
 
 
-def get_transform_version(transform):
+def get_transform_info(transform):
     """
-    Given a transform return the [major].[minor] version of the transform.
+    Given a transform return version and url info of the transform.
     :param transform:
     :return:
     """
+    version = ''
     version_major_minor = ''
     try:
         base_module = importlib.import_module(transform.split('.')[0])
@@ -269,4 +274,16 @@ def get_transform_version(transform):
             msg = 'algorithm_version not set and '
             msg += 'not used to generate deterministic uuid'
             _LOG.info(msg)
-    return version_major_minor
+    url = ''
+    try:
+        imported_class = _import_transform(transform)
+        inst = imported_class()
+        algorithm_metadata = inst.algorithm_metadata()
+        url = algorithm_metadata['algorithm']['repo_url']
+    except (KeyError, ModuleNotFoundError, AttributeError) as e:
+        pass
+    return {
+        'version': version,
+        'version_major_minor': version_major_minor,
+        'url': url
+    }
