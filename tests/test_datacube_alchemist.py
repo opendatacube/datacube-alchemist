@@ -1,6 +1,7 @@
-from datacube_alchemist.worker import deterministic_uuid
 from unittest import mock
+import importlib
 
+from datacube_alchemist.worker import deterministic_uuid, get_transform_info, _import_transform
 
 def test_deterministic_uuid():
     mocked_task = mock.MagicMock()
@@ -19,6 +20,17 @@ def test_deterministic_uuid():
     # print (result)
     # print (uuid_values)
 
+def test_get_transform_info():
+    transforms  = ['wofs.virtualproduct.WOfSClassifier', 'fc.virtualproduct.FractionalCover']
+    for transform in transforms:
+        try:
+            _ = _import_transform(transform)
+        except (KeyError, ModuleNotFoundError) as e:
+            # Silently skip if transforms aren't installed
+            continue
+        result = get_transform_info(transform)
+        # print (result)
 
 if __name__ == '__main__':
     test_deterministic_uuid()
+    test_get_transform_info()
