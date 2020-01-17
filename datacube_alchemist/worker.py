@@ -189,6 +189,7 @@ def convert_eo_plus(ds) -> DatasetDoc:
         'eo:instrument': ds.metadata.instrument,
         'eo:platform': ds.metadata.platform,
         'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'),  # Used to find abbreviated instrument id
+        'sentinel:sentinel_tile_id': ds.metadata_doc.get('tile_id', '??'),  # Used to find abbreviated instrument id
     })
     product = ProductDoc(name=ds.type.name)
     return DatasetDoc(
