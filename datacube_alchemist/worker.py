@@ -153,7 +153,8 @@ def execute_task(task: AlchemistTask):
         if task.settings.output.preview_image is not None:
             p.write_thumbnail(*task.settings.output.preview_image)
         if task.dataset.metadata.platform.lower().startswith("sentinel"):
-            p.add_uuid_to_output_location()
+            tile_id = task.dataset.metadata_doc.get('tile_id', '??')
+            p.add_uuid_to_output_location(last_dir=tile_id_to_date(tile_id))
         dataset_id, metadata_path = p.done()
 
     return dataset_id, metadata_path
@@ -216,6 +217,12 @@ def convert_eo(ds) -> DatasetDoc:
         crs=ds.crs.crs_str,
         properties=properties
     )
+
+
+def tile_id_to_date(tile_id):
+    split_tile_id = tile_id.split('_')
+    assert len(split_tile_id) >= 7
+    return split_tile_id[-4]
 
 
 def _import_transform(transform_name: str) -> Type[Transformation]:

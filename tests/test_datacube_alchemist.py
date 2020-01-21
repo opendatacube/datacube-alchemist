@@ -1,7 +1,8 @@
 from unittest import mock
 import importlib
 
-from datacube_alchemist.worker import deterministic_uuid, get_transform_info, _import_transform
+from datacube_alchemist.worker import deterministic_uuid, get_transform_info, _import_transform, \
+    tile_id_to_date
 
 
 def test_deterministic_uuid():
@@ -34,6 +35,13 @@ def test_get_transform_info():
         # print (result)
 
 
+def test_tile_id_to_date():
+    tile_id = 'S2A_OPER_MSI_L1C_TL_SGS__20170822T015626_A011310_T54KYU_N02.05'
+    result = tile_id_to_date(tile_id)
+    assert result == '20170822T015626'
+
+
 if __name__ == '__main__':
     test_deterministic_uuid()
     test_get_transform_info()
+    test_tile_id_to_date()
