@@ -283,13 +283,6 @@ def get_transform_info(transform):
             msg += 'not used to generate deterministic uuid'
             _LOG.info(msg)
     url = ''
-    try:
-        imported_class = _import_transform(transform)
-        inst = imported_class()
-        algorithm_metadata = inst.algorithm_metadata()
-        url = algorithm_metadata['algorithm']['repo_url']
-    except (KeyError, ModuleNotFoundError, AttributeError) as e:
-        pass
     return {
         'version': version,
         'version_major_minor': version_major_minor,
