@@ -152,9 +152,6 @@ def execute_task(task: AlchemistTask):
 
         if task.settings.output.preview_image is not None:
             p.write_thumbnail(*task.settings.output.preview_image)
-        if task.dataset.metadata.platform.lower().startswith("sentinel"):
-            tile_id = task.dataset.metadata_doc.get('tile_id', '??')
-            p.add_uuid_to_output_location(last_dir=tile_id_to_date(tile_id))
         dataset_id, metadata_path = p.done()
 
     return dataset_id, metadata_path
@@ -219,12 +216,6 @@ def convert_eo(ds) -> DatasetDoc:
     )
 
 
-def tile_id_to_date(tile_id):
-    split_tile_id = tile_id.split('_')
-    assert len(split_tile_id) >= 7
-    return split_tile_id[-4]
-
-
 def _import_transform(transform_name: str) -> Type[Transformation]:
     module_name, class_name = transform_name.rsplit('.', maxsplit=1)
     module = importlib.import_module(name=module_name)
@@ -278,9 +269,9 @@ def get_transform_info(transform):
         base_module = importlib.import_module(transform.split('.')[0])
         version = base_module.__version__
         version_major_minor = '.'.join(version.split('.')[0:2])
-    except (AttributeError, ModuleNotFoundError) as e:
-            msg = 'algorithm_version not set and '
-            msg += 'not used to generate deterministic uuid'
+    except (AttributeError, ModuleNotFoundError)e:
+        msg = 'algorithm_version not set and '
+        msg += 'not used to generate deterministic uuid'
             _LOG.info(msg)
     url = ''
     return {
