@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y gfortran \
 
 RUN pip3 install git+https://github.com/GeoscienceAustralia/wofs --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
 
-RUN pip3 install git+https://github.com/GeoscienceAustralia/eo-datasets@duuid --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
+RUN pip3 install git+https://github.com/GeoscienceAustralia/eo-datasets@duuid_no_function --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
 
 RUN pip3 install shapely boltons ruamel.yaml # this is only needed when on an eo-datasets branch
 RUN pip3 install --extra-index-url="https://packages.dea.ga.gov.au" odc-index

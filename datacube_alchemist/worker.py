@@ -114,7 +114,12 @@ def execute_task(task: AlchemistTask):
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
     uuid, _ = deterministic_uuid(task)
-    with DatasetAssembler(output_location, naming_conventions="dea", dataset_id=uuid) as p:
+    if task.dataset.metadata.platform.lower().startswith("sentinel"):
+        name = "dea_s2"
+    else:
+        name = "dea"
+    with DatasetAssembler(output_location, naming_conventions=name,
+                          dataset_id=uuid) as p:
         if task.settings.output.reference_source_dataset:
             source_doc = _munge_dataset_to_eo3(task.dataset)
             p.add_source_dataset(source_doc, auto_inherit_properties=True,
@@ -269,10 +274,10 @@ def get_transform_info(transform):
         base_module = importlib.import_module(transform.split('.')[0])
         version = base_module.__version__
         version_major_minor = '.'.join(version.split('.')[0:2])
-    except (AttributeError, ModuleNotFoundError)e:
+    except (AttributeError, ModuleNotFoundError):
         msg = 'algorithm_version not set and '
         msg += 'not used to generate deterministic uuid'
-            _LOG.info(msg)
+        _LOG.info(msg)
     url = ''
     return {
         'version': version,
