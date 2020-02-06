@@ -278,9 +278,8 @@ def get_transform_info(transform):
         msg = 'algorithm_version not set and '
         msg += 'not used to generate deterministic uuid'
         _LOG.info(msg)
-    url = ''
     return {
         'version': version,
         'version_major_minor': version_major_minor,
-        'url': url
+        'url': ''
     }
