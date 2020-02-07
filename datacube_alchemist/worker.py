@@ -240,7 +240,7 @@ def execute_pickled_task(pickled_task):
 
 
 def deterministic_uuid(task, algorithm_version=None, **other_tags):
-    if not algorithm_version:
+    if algorithm_version is None:
         transform_info = get_transform_info(task.settings.specification.transform)
         algorithm_version = transform_info['version_major_minor']
     if 'dataset_version' not in other_tags:
