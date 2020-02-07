@@ -1,8 +1,6 @@
 from unittest import mock
-import importlib
 
-from datacube_alchemist.worker import deterministic_uuid, get_transform_info, _import_transform, \
-    tile_id_to_date
+from datacube_alchemist.worker import deterministic_uuid, get_transform_info, _import_transform
 
 
 def test_deterministic_uuid():
@@ -14,13 +12,11 @@ def test_deterministic_uuid():
     other_tags = {}
     mocked_task.settings.output.metadata = {}
     mocked_task.settings.output.metadata['dataset_version'] = '2.2.1'
-    result, uuid_values = deterministic_uuid(mocked_task, algorithm_version='1.4', **other_tags)
-    # print (result)
-    # print (uuid_values)
+    result, _ = deterministic_uuid(mocked_task, algorithm_version='1.4', **other_tags)
+    assert str(result) == '262c465e-1930-58ae-853b-818c9dfdc089'
 
-    result, uuid_values = deterministic_uuid(mocked_task, **other_tags)
+    result, _ = deterministic_uuid(mocked_task, **other_tags)
     # print (result)
-    # print (uuid_values)
 
 
 def test_get_transform_info():
