@@ -192,7 +192,7 @@ def convert_eo_plus(ds) -> DatasetDoc:
         'eo:instrument': ds.metadata.instrument,
         'eo:platform': ds.metadata.platform,
         'landsat:landsat_scene_id': ds.metadata_doc.get('tile_id', '??'),  # Used to find abbreviated instrument id
-        'sentinel:sentinel_tile_id': ds.metadata_doc.get('tile_id', '??'),  # Used to find abbreviated instrument id
+        'sentinel:sentinel_tile_id': ds.metadata_doc.get('tile_id', '??'),
     })
     product = ProductDoc(name=ds.type.name)
     return DatasetDoc(
@@ -247,9 +247,8 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
         try:
             other_tags['dataset_version'] = task.settings.output.metadata['dataset_version']
         except KeyError:
-            msg = 'dataset_version not set and '
-            msg += 'not used to generate deterministic uuid'
-            _LOG.info(msg)
+            _LOG.info('dataset_version not set and '
+                      'not used to generate deterministic uuid')
     uuid = odc_uuid(algorithm=task.settings.specification.transform,
                     algorithm_version=algorithm_version,
                     sources=[task.dataset.id], **other_tags)
@@ -275,9 +274,8 @@ def get_transform_info(transform):
         version = base_module.__version__
         version_major_minor = '.'.join(version.split('.')[0:2])
     except (AttributeError, ModuleNotFoundError):
-        msg = 'algorithm_version not set and '
-        msg += 'not used to generate deterministic uuid'
-        _LOG.info(msg)
+        _LOG.info('algorithm_version not set and '
+                  'not used to generate deterministic uuid')
     return {
         'version': version,
         'version_major_minor': version_major_minor,
