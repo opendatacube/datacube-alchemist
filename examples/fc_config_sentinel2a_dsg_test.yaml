@@ -41,7 +41,7 @@ specification:
 output:
   #location: 's3://dea-sandbox-data-staging/fractional-cover/fc/v2.2.1'
   #location: 's3://dea-public-data-dev/alchemist/fc-s2-alchemist-tests-download'
-  location: 's3://dsg-alchemist-test/alchemist/fc-s2-alchemist-tests-download'
+  location: 's3://dsg-alchemist-test/alchemist/fc-s2-alchemist-tests-docker'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
