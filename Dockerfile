@@ -3,8 +3,7 @@ FROM opendatacube/geobase:wheels as env_builder
 COPY requirements.txt /
 RUN env-build-tool new /requirements.txt /env
 
-ENV PATH=${py_env_path}/bin:$PATH \
-    PYTHONPATH=${py_env_path}
+ENV PATH=${py_env_path}/bin:$PATH
 
 # Copy source code and install it
 RUN mkdir -p /code
