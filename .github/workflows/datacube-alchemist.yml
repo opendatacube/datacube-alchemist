@@ -1,4 +1,4 @@
-name: Lint, Test Code and Push Docker image for DEVELOP or TAG
+name: Lint and Test Code and Push Docker image for master branch
 
 on:
   pull_request:
