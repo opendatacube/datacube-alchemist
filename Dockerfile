@@ -1,29 +1,59 @@
-FROM opendatacube/datacube-core:1.7
+FROM opendatacube/geobase:wheels as env_builder
 
-# Install the heavy stuff first
-RUN apt-get update && apt-get install -y gfortran \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip3 install git+https://github.com/GeoscienceAustralia/fc --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'  \
-    && rm -rf $HOME/.cache/pip
+COPY requirements.txt /
+RUN env-build-tool new /requirements.txt /env
 
-RUN pip3 install git+https://github.com/GeoscienceAustralia/wofs --no-deps --global-option=build --global-option='--executable=/usr/bin/env python3'
+ENV PATH=${py_env_path}/bin:$PATH \
+    PYTHONPATH=${py_env_path}
 
-RUN pip3 install --extra-index-url="https://packages.dea.ga.gov.au" odc-index
+# Copy source code and install it
+RUN mkdir -p /code
+WORKDIR /code
+ADD . /code
 
-ENV APPDIR=/tmp/code/
+RUN pip install .
+
+FROM opendatacube/geobase:runner
+
+ENV LC_ALL=C.UTF-8 \
+    DEBIAN_FRONTEND=noninteractive \
+    SHELL=bash
+
+COPY --from=env_builder /env /env
+ENV PATH="/env/bin:${PATH}"
+
+# Environment can be whatever is supported by setup.py
+# so, either deployment, test
+ARG ENVIRONMENT=deployment
+RUN echo "Environment is: $ENVIRONMENT"
+
+# Do the apt install process, including more recent Postgres/PostGIS
+RUN apt-get update && apt-get install -y wget gnupg \
+    && rm -rf /var/lib/apt/lists/*
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+    apt-key add - \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" \
+    >> /etc/apt/sources.list.d/postgresql.list
+
+RUN apt-get update \
+    && apt-get install -y \
+    gfortran \
+    postgresql-11 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up a nice workdir, and only copy the things we care about in
+ENV APPDIR=/code
 RUN mkdir -p $APPDIR
-COPY requirements.txt $APPDIR/
 WORKDIR $APPDIR
 
-RUN pip3 install --upgrade pip \
-    && pip3 install -r requirements.txt \
-    && rm -rf $HOME/.cache/pip
+ADD . $APPDIR
 
-COPY . $APPDIR
-RUN pip3 install . \
-    && rm -rf $HOME/.cache/pip
-
-# Set up an entrypoint that drops environment variables into the config file
-ENTRYPOINT ["docker-entrypoint.sh"]
+# These ENVIRONMENT flags make this a bit complex, but basically, if we are in dev
+# then we want to link the source (with the -e flag) and if we're in prod, we
+# want to delete the stuff in the /code folder to keep it simple.
+RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
+    else /env/bin/pip install --editable .[$ENVIRONMENT] ; \
+    fi
 
 CMD ["datacube-alchemist", "--help"]

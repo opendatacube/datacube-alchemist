@@ -1,0 +1,55 @@
+name: Lint, Test Code and Push Docker image for DEVELOP or TAG
+
+on:
+  pull_request:
+    paths:
+      - '**'
+
+  push:
+    paths:
+      - '**'
+
+  release:
+    types:
+      - created
+
+env:
+  IMAGE_NAME: opendatacube/datacube-alchemist
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build Docker
+      run: |
+        make build
+
+    - name: Run linting
+      run: |
+        make lint
+
+    - name: Run tests
+      run: |
+        make test
+
+    # - name: Upload coverage to Codecov
+    #   uses: codecov/codecov-action@v1
+    #   with:
+    #     token: ${{ secrets.CodeCovToken }}
+    #     file: ./coverage.xml
+    #     fail_ci_if_error: false
+
+    - name: Push image for master
+      if: github.ref == 'refs/heads/master'
+      run: |
+        docker build . --tag ${{ env.IMAGE_NAME }} --build-arg ENVIRONMENT=production
+        docker push ${{ env.IMAGE_NAME }}
+        TAG=${{ env.IMAGE_NAME }}:$(date +'%Y-%m-%d')
+        echo $TAG
+        docker tag ${{ env.IMAGE_NAME }} $TAG
+        docker push $TAG

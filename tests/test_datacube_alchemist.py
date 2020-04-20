@@ -16,8 +16,6 @@ def test_deterministic_uuid():
     assert str(result) == '262c465e-1930-58ae-853b-818c9dfdc089'
 
     result, _ = deterministic_uuid(mocked_task, **other_tags)
-    # print (result)
-
 
 def test_get_transform_info():
     transforms = ['wofs.virtualproduct.WOfSClassifier', 'fc.virtualproduct.FractionalCover']
@@ -28,8 +26,6 @@ def test_get_transform_info():
             # Silently skip if transforms aren't installed
             continue
         result = get_transform_info(transform)
-        # print (result)
-
 
 if __name__ == '__main__':
     test_deterministic_uuid()

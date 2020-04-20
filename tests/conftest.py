@@ -28,4 +28,3 @@ def run_alchemist():
         return result
 
     return _run_cli
-

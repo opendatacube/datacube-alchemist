@@ -1,6 +1,6 @@
 from datacube_alchemist._dask import setup_dask_client
 from datacube_alchemist.worker import Alchemist, execute_with_dask
-
+import pytest
 
 def test_help_message(run_alchemist):
     result = run_alchemist('--help')
@@ -21,7 +21,7 @@ def test_help_message(run_alchemist):
     result = run_alchemist('processqueue', '--help')
     print(result)
 
-
+@pytest.mark.skip(reason="Example doesn't exist yet")
 def test_api():
     alchemist = Alchemist(config_file='test_config_file.yaml',
                           dc_env='test_environment')
