@@ -47,6 +47,7 @@ jobs:
     - name: Push image for master
       if: github.ref == 'refs/heads/master'
       run: |
+        docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PASS }}
         docker build . --tag ${{ env.IMAGE_NAME }} --build-arg ENVIRONMENT=production
         docker push ${{ env.IMAGE_NAME }}
         TAG=${{ env.IMAGE_NAME }}:$(date +'%Y-%m-%d')
