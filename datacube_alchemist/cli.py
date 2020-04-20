@@ -62,7 +62,7 @@ def run_one(config_file, input_dataset, environment=None):
     """
     Run with CONFIG_FILE on a single INPUT_DATASET
 
-    INPUT_DATASET as URL 
+    INPUT_DATASET as URL
     """
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 

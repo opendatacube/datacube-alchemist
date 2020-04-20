@@ -3,13 +3,16 @@ datacube-alchemist - ODC Dataset to Dataset Converter
 =====================================================
 
 :Info: This is the README file for datacube-alchemist
+
 .. :Author: {{ cookiecutter.full_name }} <{{ cookiecutter.email }}>
+
 :Copyright: © 2019, Geoscience Australia.
 :Version: 0.0.1
 
-.. index: README
-.. image:: https://travis-ci.org/opendatacube/datacube-alchemist.svg?branch=master
-   :target: https://travis-ci.org/opendatacube/datacube-alchemist
+.. figure:: https://github.com/opendatacube/datacube-alchemist/workflows/Lint%20and%20Test%20Code%20and%20Push%20Docker%20image%20for%20master%20branch/badge.svg
+   :alt: Lint and Test Code and Push Docker image for master branch
+
+   Lint and Test Code and Push Docker image for master branch
 
 PURPOSE
 -------

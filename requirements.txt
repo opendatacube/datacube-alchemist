@@ -1,16 +1,6 @@
-datacube
-eodatasets3 >= 0.7.0
-attrs>=18.1
-cattrs
-structlog
-cloudpickle
-boto3
-dask>=2
-distributed
-fsspec>=0.3.3
-s3fs
-jsonschema>=3
-h5py
-numexpr
-scipy
-ephem
+--extra-index-url="https://packages.dea.ga.gov.au"
+datacube[s3,performance]
+eodatasets3>=0.7.0
+wofs
+fc
+odc-index

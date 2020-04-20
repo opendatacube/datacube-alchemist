@@ -3,6 +3,11 @@
 import io
 from setuptools import setup, find_packages
 
+tests_require = [
+    "flake8",
+    "pytest",
+    "pytest-cov"
+]
 
 setup(
     name='datacube-alchemist',
@@ -25,7 +30,26 @@ setup(
     ],
     packages=find_packages(exclude=('tests',)),
     include_package_data=True,
-    install_requires=open('requirements.txt').read().strip().split('\n'),
+    install_requires=[
+        "attrs>=18.1",
+        "cattrs",
+        "structlog",
+        "cloudpickle",
+        "boto3",
+        "dask>=2",
+        "distributed",
+        "fsspec>=0.3.3",
+        "s3fs",
+        "jsonschema>=3",
+        "h5py",
+        "numexpr",
+        "scipy",
+        "ephem"
+    ],
+    tests_require=tests_require,
+    extras_require={
+        "test": tests_require
+    },
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
     entry_points={
