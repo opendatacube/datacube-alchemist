@@ -6,7 +6,7 @@ build:
 build-prod:
 	docker build . \
 		--tag opendatacube/datacube-alchemist:latest \
-		--build-arg ENVIRONMENT=production
+		--build-arg ENVIRONMENT=deployment
 
 test:
 	docker run --rm \

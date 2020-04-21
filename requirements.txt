@@ -1,6 +1,6 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
 datacube[s3,performance]
-eodatasets3>=0.7.0
+eodatasets3
 wofs
 fc
 odc-index
