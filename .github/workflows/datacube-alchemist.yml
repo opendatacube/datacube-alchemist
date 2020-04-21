@@ -64,3 +64,4 @@ jobs:
         username: "${{ secrets.DOCKER_USER }}"
         password: "${{ secrets.DOCKER_PASS }}"
         image_tag: latest,${{ env.GITTAG }}
+        build_extra_args: "--build-arg=ENVIRONMENT=deployment"

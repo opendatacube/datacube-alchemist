@@ -12,6 +12,7 @@ ADD . /code
 
 RUN pip install .
 
+# Build the production runner stage from here
 FROM opendatacube/geobase:runner
 
 ENV LC_ALL=C.UTF-8 \
@@ -19,7 +20,7 @@ ENV LC_ALL=C.UTF-8 \
     SHELL=bash
 
 COPY --from=env_builder /env /env
-ENV PATH="/env/bin:${PATH}"
+ENV PATH=/env/bin:$PATH
 
 # Environment can be whatever is supported by setup.py
 # so, either deployment, test
@@ -51,7 +52,7 @@ ADD . $APPDIR
 # then we want to link the source (with the -e flag) and if we're in prod, we
 # want to delete the stuff in the /code folder to keep it simple.
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
-    else /env/bin/pip install --editable .[$ENVIRONMENT] ; \
+    else pip install --editable .[$ENVIRONMENT] ; \
     fi
 
 CMD ["datacube-alchemist", "--help"]
