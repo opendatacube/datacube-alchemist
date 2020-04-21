@@ -25,7 +25,6 @@ jobs:
       with:
         fetch-depth: 0
 
-
     - name: Build image with cache
       uses: whoan/docker-build-with-cache-action@v4
       with:
