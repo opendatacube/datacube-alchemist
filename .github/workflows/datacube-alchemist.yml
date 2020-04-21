@@ -52,6 +52,7 @@ jobs:
 
     - name: Get git commit hash for merged PR's
       run: |
+        git fetch --tags
         echo ::set-env name=GITTAG::$(git describe --tag)
         echo $GITTAG
 
