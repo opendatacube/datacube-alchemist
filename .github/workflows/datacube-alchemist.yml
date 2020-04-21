@@ -54,7 +54,7 @@ jobs:
       run: |
         git fetch --tags
         echo ::set-env name=GITTAG::$(git describe --tag)
-        echo $GITTAG
+      run: echo $GITTAG
 
     - name: Build and Push unstable Docker Image from PR
       uses: whoan/docker-build-with-cache-action@v4

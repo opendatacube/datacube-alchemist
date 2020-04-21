@@ -36,7 +36,6 @@ RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
 
 RUN apt-get update \
     && apt-get install -y \
-    gfortran \
     postgresql-11 \
     git \
     && rm -rf /var/lib/apt/lists/*
