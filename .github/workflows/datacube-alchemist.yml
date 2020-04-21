@@ -33,6 +33,7 @@ jobs:
         password: "${{ secrets.DOCKER_PASS }}"
         image_tag: test
         push_image_and_stages: false
+        build_extra_args: "--build-arg=ENVIRONMENT=test"
 
     - name: Run linting
       run: |

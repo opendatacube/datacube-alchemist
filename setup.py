@@ -44,7 +44,8 @@ setup(
         "h5py",
         "numexpr",
         "scipy",
-        "ephem"
+        "ephem",
+        "requests"
     ],
     tests_require=tests_require,
     extras_require={
