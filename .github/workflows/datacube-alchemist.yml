@@ -25,9 +25,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Build Docker
-      run: |
-        make build
+    - name: Build image with cache
+      uses: whoan/docker-build-with-cache-action@v4
+      with:
+        image_name: ${{ env.IMAGE_NAME }}
+        username: "${{ secrets.DOCKER_USER }}"
+        password: "${{ secrets.DOCKER_PASS }}"
+        image_tag: test
+        push_image_and_stages: false
+        build_extra_args: "--build-arg=ENVIRONMENT=test"
 
     - name: Run linting
       run: |
@@ -44,13 +50,16 @@ jobs:
     #     file: ./coverage.xml
     #     fail_ci_if_error: false
 
-    - name: Push image for master
-      if: github.ref == 'refs/heads/master'
+    - name: Get git commit hash for merged PR's
       run: |
-        docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PASS }}
-        docker build . --tag ${{ env.IMAGE_NAME }} --build-arg ENVIRONMENT=production
-        docker push ${{ env.IMAGE_NAME }}
-        TAG=${{ env.IMAGE_NAME }}:$(date +'%Y-%m-%d')
-        echo $TAG
-        docker tag ${{ env.IMAGE_NAME }} $TAG
-        docker push $TAG
+        echo ::set-env name=GITTAG::$(git describe --tag)
+        echo $GITTAG
+
+    - name: Build and Push unstable Docker Image from PR
+      uses: whoan/docker-build-with-cache-action@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        image_name: ${{ env.IMAGE_NAME }}
+        username: "${{ secrets.DOCKER_USER }}"
+        password: "${{ secrets.DOCKER_PASS }}"
+        image_tag: latest,${{ env.GITTAG }}
