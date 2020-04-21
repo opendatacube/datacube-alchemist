@@ -18,5 +18,9 @@ lint:
 		opendatacube/datacube-alchemist:test \
 			flake8
 
+run-prod:
+	docker run --rm \
+		opendatacube/datacube-alchemist
+
 test-local:
 	pytest tests

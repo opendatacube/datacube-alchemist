@@ -12,6 +12,7 @@ ADD . /code
 
 RUN pip install .
 
+# Build the production runner stage from here
 FROM opendatacube/geobase:runner
 
 ENV LC_ALL=C.UTF-8 \
@@ -19,7 +20,7 @@ ENV LC_ALL=C.UTF-8 \
     SHELL=bash
 
 COPY --from=env_builder /env /env
-ENV PATH="/env/bin:${PATH}"
+ENV PATH=${py_env_path}/bin:$PATH
 
 # Environment can be whatever is supported by setup.py
 # so, either deployment, test
