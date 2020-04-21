@@ -31,6 +31,8 @@ setup(
     packages=find_packages(exclude=('tests',)),
     include_package_data=True,
     install_requires=[
+        "datacube",
+        "eodatasets3",
         "attrs>=18.1",
         "cattrs",
         "structlog",
