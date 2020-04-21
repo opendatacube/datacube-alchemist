@@ -25,9 +25,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Build Docker
-      run: |
-        make build
+
+    - name: Build image with cache
+      uses: whoan/docker-build-with-cache-action@v4
+      with:
+        image_name: ${{ env.IMAGE_NAME }}
+        username: "${{ secrets.DOCKER_USER }}"
+        password: "${{ secrets.DOCKER_PASS }}"
+        image_tag: test
+        push_image_and_stages: false
 
     - name: Run linting
       run: |
