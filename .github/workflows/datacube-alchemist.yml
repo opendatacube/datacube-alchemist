@@ -50,7 +50,7 @@ jobs:
     #     file: ./coverage.xml
     #     fail_ci_if_error: false
 
-    - name: Get git commit hash for merged PR's
+    - name: Get the git tag
       run: |
         git fetch --tags
         echo ::set-env name=GITTAG::$(git describe --tag)
