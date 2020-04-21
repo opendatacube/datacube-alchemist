@@ -45,14 +45,13 @@ jobs:
     #     fail_ci_if_error: false
 
     - name: Get git commit hash for merged PR's
-      if: github.event.pull_request.merged
       run: |
         echo ::set-env name=GITTAG::$(git describe --tag)
         echo $GITTAG
 
     - name: Build and Push unstable Docker Image from PR
       uses: whoan/docker-build-with-cache-action@v4
-      if: github.event.pull_request.merged
+      if: github.ref == 'refs/heads/master'
       with:
         image_name: ${{ env.IMAGE_NAME }}
         username: "${{ secrets.DOCKER_USER }}"
