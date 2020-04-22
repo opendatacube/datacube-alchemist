@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: kartoza/postgis:11.0-2.5
+    environment:
+      - POSTGRES_DB=opendatacube
+      - POSTGRES_PASSWORD=opendatacubepassword
+      - POSTGRES_USER=opendatacube
+    ports:
+      - 5432:5432
+    restart: always
+
+  alchemist:
+    build:
+      context: .
+      args:
+        - ENVIRONMENT=test
+    environment:
+      - DB_HOSTNAME=postgres
+      - DB_USERNAME=opendatacube
+      - DB_PASSWORD=opendatacubepassword
+      - DB_DATABASE=opendatacube
+      # - AWS_NO_SIGN_REQUEST=true
+      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
+    volumes:
+      - .:/code
+      - ./examples:/opt/alchemist/examples
+      - ./codependency:/opt/alchemist/codependency
+      - /tmp/alchemist:/tmp/alchemist
+    command: tail /dev/null
+    tty: true

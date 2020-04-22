@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import time
 from pathlib import Path
@@ -62,20 +64,28 @@ def run_one(config_file, input_dataset, environment=None):
     """
     Run with CONFIG_FILE on a single INPUT_DATASET
 
-    INPUT_DATASET as URL
+    INPUT_DATASET may be either a URL or a Dataset ID
     """
     alchemist = Alchemist(config_file=config_file, dc_env=environment)
 
-    if '://' in input_dataset:
-        # Smells like a url
-        input_url = input_dataset
-    else:
-        # Treat the input as a local file path
-        input_url = Path(input_dataset).as_uri()
-
     dc = Datacube(env=environment)
-    ds = dc.index.datasets.get_datasets_for_location(input_url)
+    try:
+        ds = dc.index.datasets.get(input_dataset)
+    except ValueError as e:
+        _LOG.info("Couldn't find dataset with ID={} with exception {} trying by URL".format(
+            input_dataset, e
+        ))
+        # Couldn't find a dataset by ID, try something
+        if '://' in input_dataset:
+            # Smells like a url
+            input_url = input_dataset
+        else:
+            # Treat the input as a local file path
+            input_url = Path(input_dataset).as_uri()
 
+        ds = dc.index.datasets.get_datasets_for_location(input_url)
+
+    # Currently this doesn't work by URL... TODO: fixme!
     task = alchemist.generate_task(ds)
     execute_task(task)
 
@@ -155,14 +165,16 @@ def pullfromqueue(message_queue, sqs_timeout=None):
     if len(messages) > 0:
         message = messages[0]
         pickled_task = message.message_attributes['pickled_task']['BinaryValue']
-        execute_pickled_task(pickled_task)
+        dataset_id, metadata_path = execute_pickled_task(pickled_task)
 
+        # TODO: see if we can catch failed tasts that return and don't delete the message if they failed
         message.delete()
         _LOG.info("SQS message deleted")
     else:
         _LOG.warning("No messages!")
 
 
+# TODO: don't repeat contents of this function in the above function
 @cli.command()
 @click.option('--message_queue', '-M')
 @click.option('--sqs_timeout', '-S', type=int,
@@ -191,7 +203,9 @@ def processqueue(message_queue, sqs_timeout=None):
         else:
             message = messages[0]
             pickled_task = message.message_attributes['pickled_task']['BinaryValue']
-            execute_pickled_task(pickled_task)
+            dataset_id, metadata_path = execute_pickled_task(pickled_task)
+
+            # TODO: see if we can catch failed tasts that return and don't delete the message if they failed
 
             message.delete()
             _LOG.info("SQS message deleted")
