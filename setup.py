@@ -43,10 +43,6 @@ setup(
         "fsspec>=0.3.3",
         "s3fs",
         "jsonschema>=3",
-        "h5py",
-        "numexpr",
-        "scipy",
-        "ephem",
         "requests"
     ],
     tests_require=tests_require,
