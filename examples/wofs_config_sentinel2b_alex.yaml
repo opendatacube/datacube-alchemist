@@ -1,0 +1,44 @@
+specification:
+  product: ga_s2b_ard_nbar_granule
+  measurements: 
+    - 'nbar_blue'
+    - 'nbar_green'
+    - 'nbar_red'
+    - 'nbar_nir_1'
+    - 'nbar_swir_2'
+    - 'nbar_swir_3'
+  measurement_renames:
+    blue: nbar_blue
+    green: nbar_green
+    red: nbar_red
+    nir: nbar_nir
+    swir_1: nbar_swir_1
+    swir_2: nbar_swir_2
+    quality_l2_aerosol: fmask
+
+  transform: wofs.virtualproduct.WOfSClassifier
+  override_product_family: ard
+
+  transform_args:
+    c2: True
+    dsm_path:  's3://deafrica-data/ancillary/dem/srtm_africa.tif'
+
+output:
+  location: /tmp/alchemist
+  nodata: 1
+  dtype: uint8
+
+  write_data_settings:
+    overview_resampling: mode
+
+  metadata:
+    product_family: wofs
+    producer: ga.gov.au
+    dataset_version: 0.0.1
+  properties:
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 3000
+    y: 3000
