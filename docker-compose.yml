@@ -29,5 +29,4 @@ services:
       - ./examples:/opt/alchemist/examples
       - ./codependency:/opt/alchemist/codependency
       - /tmp/alchemist:/tmp/alchemist
-    command: tail /dev/null
-    tty: true
+    command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]

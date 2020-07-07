@@ -11,12 +11,12 @@ tests_require = [
 
 setup(
     name='datacube-alchemist',
-    description='Batch process Open Data Cube Datasets',
+    description='Batch process Open Data Cube datasets',
     keywords='datacube-alchemist',
     url='https://github.com/opendatacube/datacube-alchemist',
     license='Apache License 2.0',
     long_description=io.open(
-        'README.rst', 'r', encoding='utf-8').read(),
+        'README.md', 'r', encoding='utf-8').read(),
     platforms='any',
     zip_safe=False,
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
