@@ -7,20 +7,22 @@ specification:
     - 'nbar_nir_1'
     - 'nbar_swir_2'
     - 'nbar_swir_3'
+    - 'fmask'
   measurement_renames:
-    blue: nbar_blue
-    green: nbar_green
-    red: nbar_red
-    nir: nbar_nir
-    swir_1: nbar_swir_1
-    swir_2: nbar_swir_2
-    quality_l2_aerosol: fmask
+    nbar_blue: nbart_blue
+    nbar_green: nbart_green
+    nbar_red: nbart_red
+    nbar_nir_1: nbart_nir
+    nbar_swir_2: nbart_swir_1
+    nbar_swir_3: nbart_swir_2
+    fmask: fmask
 
   transform: wofs.virtualproduct.WOfSClassifier
   override_product_family: ard
+  basis: 'nbar_nir_1'
 
   transform_args:
-    c2: True
+    c2: False
     dsm_path:  's3://deafrica-data/ancillary/dem/srtm_africa.tif'
 
 output:
