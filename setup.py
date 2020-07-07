@@ -11,7 +11,7 @@ tests_require = [
 
 setup(
     name='datacube-alchemist',
-    description='Batch process Open Data Cube Datasets',
+    description='Batch process Open Data Cube datasets',
     keywords='datacube-alchemist',
     url='https://github.com/opendatacube/datacube-alchemist',
     license='Apache License 2.0',
