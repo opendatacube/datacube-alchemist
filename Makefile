@@ -40,7 +40,7 @@ metadata:
 	docker-compose exec alchemist \
 		datacube metadata add https://raw.githubusercontent.com/opendatacube/datacube-alchemist/local-dev-env/metadata.eo_plus.yaml
 
-product-sentinel-2:
+product:
 	docker-compose exec alchemist \
 		datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/ga_s2_ard_nbar/ga_s2_ard_nbar_granule.yaml
 
