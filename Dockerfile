@@ -20,9 +20,6 @@ ENV LC_ALL=C.UTF-8 \
     DEBIAN_FRONTEND=noninteractive \
     SHELL=bash
 
-COPY --from=env_builder /env /env
-ENV PATH=/env/bin:$PATH
-
 # Environment can be whatever is supported by setup.py
 # so, either deployment, test
 ARG ENVIRONMENT=deployment
@@ -41,6 +38,9 @@ RUN apt-get update \
     postgresql-11 \
     git \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=env_builder /env /env
+ENV PATH=/env/bin:$PATH
 
 # Set up a nice workdir, and only copy the things we care about in
 ENV APPDIR=/code

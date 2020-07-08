@@ -1,5 +1,5 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
-datacube[s3,performance]
+datacube[s3,performance]==1.8.1
 eodatasets3
 wofs
 fc
