@@ -52,7 +52,7 @@ product:
 		datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/ga_s2_ard_nbar/ga_s2_ard_nbar_granule.yaml
 
 add-africa-scene:
-	docker-compose exec dc-index \
+	docker-compose exec alchemist \
 		s3-to-dc --stac s3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_28PBR_20200429_0_L2A/**/*.json s2_l2a
 
 add-one-scene:
