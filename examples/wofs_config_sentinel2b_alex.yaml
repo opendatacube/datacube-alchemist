@@ -1,25 +1,25 @@
 specification:
   product: ga_s2b_ard_nbar_granule
   measurements: 
-    - 'nbar_blue'
-    - 'nbar_green'
-    - 'nbar_red'
-    - 'nbar_nir_1'
-    - 'nbar_swir_2'
-    - 'nbar_swir_3'
-    - 'fmask'
+    - blue
+    - green
+    - red
+    - nir_1
+    - swir_1
+    - swir_2
+    - SCL
   measurement_renames:
-    nbar_blue: nbart_blue
-    nbar_green: nbart_green
-    nbar_red: nbart_red
-    nbar_nir_1: nbart_nir
-    nbar_swir_2: nbart_swir_1
-    nbar_swir_3: nbart_swir_2
-    fmask: fmask
+    blue: nbart_blue
+    green: nbart_green
+    red: nbart_red
+    nir_1: nbart_nir
+    swir_1: nbart_swir_1
+    swir_2: nbart_swir_2
+    SCL: fmask
 
   transform: wofs.virtualproduct.WOfSClassifier
   override_product_family: ard
-  basis: 'nbar_nir_1'
+  basis: nir_1
 
   transform_args:
     c2: False

@@ -4,3 +4,4 @@ eodatasets3
 wofs
 fc
 odc-index
+odc-apps-cloud

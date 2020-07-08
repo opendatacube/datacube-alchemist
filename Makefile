@@ -32,6 +32,9 @@ build-dev:
 up:
 	docker-compose up
 
+down:
+	docker-compose down
+
 initdb:
 	docker-compose exec alchemist \
 		datacube system init
@@ -40,9 +43,17 @@ metadata:
 	docker-compose exec alchemist \
 		datacube metadata add https://raw.githubusercontent.com/opendatacube/datacube-alchemist/local-dev-env/metadata.eo_plus.yaml
 
+africa-product:
+	docker-compose exec alchemist \
+		datacube product add https://raw.githubusercontent.com/digitalearthafrica/config/master/products/esa_s2_l2a.yaml
+
 product:
 	docker-compose exec alchemist \
 		datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/ga_s2_ard_nbar/ga_s2_ard_nbar_granule.yaml
+
+add-africa-scene:
+	docker-compose exec dc-index \
+		s3-to-dc --stac s3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_28PBR_20200429_0_L2A/**/*.json s2_l2a
 
 add-one-scene:
 	docker-compose exec alchemist \
@@ -56,7 +67,7 @@ run-one-fc:
 run-one-wofs:
 	docker-compose exec alchemist \
 		/code/datacube_alchemist/cli.py run-one \
-		examples/wofs_config_sentinel2b_alex.yaml bfcc7bae-f9db-4876-959a-ec495dddbb3b
+		examples/wofs_config_sentinel2b_alex.yaml ebcad5d5-e53e-5f80-8cea-550b8624f714
 
 shell:
 	docker-compose exec alchemist bash
