@@ -19,7 +19,7 @@ specification:
 
   transform: wofs.virtualproduct.WOfSClassifier
   override_product_family: ard
-  basis: nir_1
+  basis: SCL
 
   transform_args:
     c2: False
@@ -42,5 +42,5 @@ output:
 
 processing:
   dask_chunks:
-    x: 3000
-    y: 3000
+    x: 600
+    y: 600
