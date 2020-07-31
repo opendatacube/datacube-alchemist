@@ -8,7 +8,7 @@ services:
       - POSTGRES_PASSWORD=opendatacubepassword
       - POSTGRES_USER=opendatacube
     ports:
-      - 5432:5432
+      - 5432
     restart: always
 
   alchemist:
@@ -21,12 +21,15 @@ services:
       - DB_USERNAME=opendatacube
       - DB_PASSWORD=opendatacubepassword
       - DB_DATABASE=opendatacube
-      # - AWS_NO_SIGN_REQUEST=true
-      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
-      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
+      - AWS_NO_SIGN_REQUEST=true
+#      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
+#      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
     volumes:
       - .:/code
       - ./examples:/opt/alchemist/examples
       - ./codependency:/opt/alchemist/codependency
       - /tmp/alchemist:/tmp/alchemist
+      - ./fractional-cover:/fractional-cover
+    links:
+      - postgres
     command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]

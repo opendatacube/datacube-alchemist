@@ -28,17 +28,11 @@ ENV PATH=/env/bin:$PATH
 ARG ENVIRONMENT=deployment
 RUN echo "Environment is: $ENVIRONMENT"
 
-# Do the apt install process, including more recent Postgres/PostGIS
-RUN apt-get update && apt-get install -y wget gnupg \
-    && rm -rf /var/lib/apt/lists/*
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
-    apt-key add - \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" \
-    >> /etc/apt/sources.list.d/postgresql.list
 
+# I don't think we need postgresql installed in here!
+# git is necessary for `setuptools-scm` however
 RUN apt-get update \
     && apt-get install -y \
-    postgresql-11 \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -54,6 +48,8 @@ ADD . $APPDIR
 # want to delete the stuff in the /code folder to keep it simple.
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
     else pip install --editable .[$ENVIRONMENT] ; \
+         pip install --editable codependency/fc/; \
+         pip install h5py; \
     fi
 
 CMD ["datacube-alchemist", "--help"]
