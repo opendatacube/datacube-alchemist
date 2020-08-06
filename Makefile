@@ -81,3 +81,13 @@ run-one-wofs:
 
 shell:
 	docker-compose exec alchemist bash
+
+c3-run-one-fc:
+	docker-compose exec alchemist \
+        /code/datacube_alchemist/cli.py run-one \
+        examples/c3_samples_config_fc.yaml 1295725b-10b2-4756-8c62-42c832070133
+
+c3-run-one-wofs:
+	docker-compose exec alchemist \
+		/code/datacube_alchemist/cli.py run-one \
+        examples/c3_samples_config_wofs.yaml 1295725b-10b2-4756-8c62-42c832070133

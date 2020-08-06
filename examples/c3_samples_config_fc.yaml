@@ -1,0 +1,59 @@
+specification:
+  product: ga_ls5t_ard_3
+  measurements: ['nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2']
+  measurement_renames:
+    nbart_green: green
+    nbart_red: red
+    nbart_nir: nir
+    nbart_swir_1: swir1
+    nbart_swir_2: swir2
+
+  transform: fc.virtualproduct.FractionalCover
+  override_product_family: ard
+  basis: nbart_green
+
+  transform_args:
+    regression_coefficients:
+      #  These coefficients are for Sentinel 2
+      #  The coefficients is applied to band values in the 0-10,000 range, before it is scaled to a fraction
+      #  This means the first coefficient has been also scaled when compared to the literature
+      #  This is where I got the coefficients from
+      #  https://github.com/GeoscienceAustralia/fc/blob/s2a-coefficients/config/s2_fc_albers.yaml
+      blue:
+        - -22.0
+        - 0.9551
+      green:
+        - 31.0
+        - 1.0582
+      red:
+        - 64.0
+        - 0.9871
+      nir:
+        - 120.0
+        - 1.0187
+      swir1:
+        - 79.0
+        - 0.9528
+      swir2:
+        - -42.0
+        - 0.9688
+
+output:
+  location: /tmp/alchemist
+  nodata: 1
+  dtype: uint8
+
+  write_data_settings:
+    overview_resampling: mode
+
+  metadata:
+    product_family: fc
+    producer: ga.gov.au
+    dataset_version: 0.0.1
+  properties:
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: 600
+    y: 600
