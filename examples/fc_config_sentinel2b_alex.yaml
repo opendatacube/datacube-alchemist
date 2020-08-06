@@ -41,7 +41,7 @@ specification:
 
 output:
 #  location: 's3://dea-sandbox-data-staging/fractional-cover/fc/v2.2.1'
-  location: '/fractional-cover/fc/v2.2.1'
+  location: '/tmp/alchemist'
   dtype: uint8 # single value for all bands
   nodata: 255 # single value for all bands
   preview_image: [bs, pv, npv]
