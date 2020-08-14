@@ -22,8 +22,8 @@ services:
       - DB_PASSWORD=opendatacubepassword
       - DB_DATABASE=opendatacube
       - AWS_NO_SIGN_REQUEST=true
-#      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
-#      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
+    #      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
+    #      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
     volumes:
       - .:/code
       - ./examples:/opt/alchemist/examples
@@ -32,4 +32,5 @@ services:
       - ./fractional-cover:/fractional-cover
     links:
       - postgres
+    #    command: [ "datacube-alchemist", "processqueue" ]
     command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]
