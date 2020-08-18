@@ -22,6 +22,7 @@ services:
       - DB_PASSWORD=opendatacubepassword
       - DB_DATABASE=opendatacube
       - AWS_NO_SIGN_REQUEST=true
+      - AWS_DEFAULT_REGION=ap-southeast-2
     #      - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
     #      - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
     volumes:
