@@ -20,6 +20,11 @@ ENV LC_ALL=C.UTF-8 \
     DEBIAN_FRONTEND=noninteractive \
     SHELL=bash
 
+RUN apt-get update \
+    && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=env_builder /env /env
 ENV PATH=/env/bin:$PATH
 
@@ -28,19 +33,10 @@ ENV PATH=/env/bin:$PATH
 ARG ENVIRONMENT=deployment
 RUN echo "Environment is: $ENVIRONMENT"
 
-
-# I don't think we need postgresql installed in here!
-# git is necessary for `setuptools-scm` however
-RUN apt-get update \
-    && apt-get install -y \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
 # Set up a nice workdir, and only copy the things we care about in
 ENV APPDIR=/code
 RUN mkdir -p $APPDIR
 WORKDIR $APPDIR
-
 ADD . $APPDIR
 
 # These ENVIRONMENT flags make this a bit complex, but basically, if we are in dev
