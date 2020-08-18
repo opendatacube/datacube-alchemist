@@ -2,6 +2,7 @@
 
 import sys
 import time
+from distutils.dir_util import copy_tree
 from pathlib import Path
 
 import boto3
@@ -12,6 +13,7 @@ from datacube import Datacube
 from datacube.ui import click as ui
 
 from datacube_alchemist._dask import setup_dask_client
+from datacube_alchemist.upload import S3Upload
 from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task, execute_pickled_task
 
 _LOG = structlog.get_logger()
@@ -20,6 +22,14 @@ _LOG = structlog.get_logger()
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
 
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
+
+def s3_upload():
+    location = 's3://dea-public-data-dev/c3-alchemist-output-dev'
+    s3ul = S3Upload(location)
+    location = s3ul.location
+    local = "/tmp/alchemist"
+    copy_tree(local, location)
+    s3ul.upload_if_needed()
 
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
@@ -77,6 +87,7 @@ def run_one(config_file, input_dataset, environment=None):
     # Currently this doesn't work by URL... TODO: fixme!
     task = alchemist.generate_task(ds)
     execute_task(task)
+    s3_upload()  # Upload to S3 if the location appears like an url
 
 @cli.command()
 @environment_option
@@ -172,7 +183,7 @@ def processqueue(message_queue, sqs_timeout=None):
     messages = queue.receive_messages(VisibilityTimeout=int(sqs_timeout), MaxNumberOfMessages=1, MessageAttributeNames=["All"])
     if len(messages) == 0:
         # No messages, exit successfully
-        _LOG.info("No new messages, exiting successfully")
+        _LOG.info("No messages, exiting successfully")
         more_mesages = False
     else:
         message = messages[0]
