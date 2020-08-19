@@ -25,22 +25,6 @@ run-prod:
 test-local:
 	pytest tests
 
-metadata:
-	docker-compose exec jupyter \
-		datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/restore-c3-nbart-product-name/digitalearthau/config/eo3/eo3_landsat_ard.odc-type.yaml
-
-product-c3:
-	docker-compose exec jupyter \
-		bash -c "\
-		datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/restore-c3-nbart-product-name/digitalearthau/config/eo3/products/nbart_ls5.odc-product.yaml;\
-		datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/restore-c3-nbart-product-name/digitalearthau/config/eo3/products/nbart_ls7.odc-product.yaml;\
-		datacube product add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/restore-c3-nbart-product-name/digitalearthau/config/eo3/products/nbart_ls8.odc-product.yaml;\
-		"
-index-c3:
-	docker-compose exec jupyter \
-		bash -c "\
-			s3-find s3://dea-public-data-dev/analysis-ready-data/**/**/**/**/**/**/*.odc-metadata.yaml --no-sign-request \
-			| s3-to-tar --no-sign-request | dc-index-from-tar --ignore-lineage"
 
 run-fc-one:
 	docker-comose exec datacube-alchemist run-one \
@@ -81,6 +65,24 @@ run-one-wofs:
 
 shell:
 	docker-compose exec alchemist bash
+
+# C3 Related
+c3-metadata:
+	docker-compose exec alchemist \
+		datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/eo3_landsat_ard.odc-type.yaml
+
+c3-add:
+	docker-compose exec alchemist \
+		datacube product add \
+        https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls5.odc-product.yaml \
+        https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls7.odc-product.yaml \
+        https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_ls8.odc-product.yaml
+
+c3-index:
+	docker-compose exec alchemist \
+		bash -c "\
+			s3-find s3://dea-public-data-dev/analysis-ready-data/**/*.odc-metadata.yaml --no-sign-request \
+			| s3-to-tar --no-sign-request | dc-index-from-tar --ignore-lineage"
 
 c3-run-one-fc:
 	docker-compose exec alchemist \
