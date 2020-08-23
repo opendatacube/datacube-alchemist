@@ -20,19 +20,23 @@ _LOG = structlog.get_logger()
 
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
-
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
+sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
+limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
+
 
 def s3_upload():
-    location = 's3://dea-public-data-dev/c3-alchemist-output-dev'
+    location = "s3://dea-public-data-dev/c3-alchemist-output-dev" #todo remove the hardcoded paths
     s3ul = S3Upload(location)
     location = s3ul.location
     local = "/tmp/alchemist"
     copy_tree(local, location)
     s3ul.upload_if_needed()
 
+
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
+
 
 @click.group(context_settings=dict(max_content_width=120))
 def cli():
@@ -40,9 +44,9 @@ def cli():
     Transform Open Data Cube Datasets into a new type of Dataset
     """
 
+
 @cli.command()
-@click.option("--environment", "-E", help="Name of the datacube environment to connect to.")
-@click.option("--limit", type=int, help="For testing, specify a small number of tasks to run.")
+@environment_option
 @click.argument("config_file")
 @ui.parsed_search_expressions
 def run_many(config_file, expressions, environment=None, limit=None):
@@ -56,6 +60,7 @@ def run_many(config_file, expressions, environment=None, limit=None):
 
     client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
+
 
 @cli.command()
 @environment_option
@@ -89,9 +94,10 @@ def run_one(config_file, input_dataset, environment=None):
     execute_task(task)
     s3_upload()  # Upload to S3 if the location appears like an url
 
+
 @cli.command()
 @environment_option
-@click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
+@limit_option
 @message_queue_option
 @click.option("--config_file")
 @ui.parsed_search_expressions
@@ -140,9 +146,9 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         _ = _push_messages(queue, messages)
     _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
+
 @cli.command()
 @message_queue_option
-@click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
 def pullfromqueue(message_queue, sqs_timeout=None):
     """
     Process a single task from an AWS SQS Queue
@@ -164,10 +170,11 @@ def pullfromqueue(message_queue, sqs_timeout=None):
     else:
         _LOG.warning("No messages!")
 
+
 # TODO: don't repeat contents of this function in the above function
 @cli.command()
-@click.option("--message_queue", "-M")
-@click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visibility Timeout.", default=400)
+@message_queue_option
+@sqs_timeout
 def processqueue(message_queue, sqs_timeout=None):
     """
     Process all available tasks from an AWS SQS Queue
@@ -196,6 +203,13 @@ def processqueue(message_queue, sqs_timeout=None):
 
         message.delete()
         _LOG.info("SQS message deleted")
+
+
+@cli.command()
+@message_queue_option
+def pushtoqueue():
+    pass
+
 
 if __name__ == "__main__":
     cli_with_envvar_handling()
