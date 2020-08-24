@@ -20,30 +20,29 @@ _LOG = structlog.get_logger()
 
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
+bucket_option = click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
+prefix_option = click.option("--prefix", "-P", help="Prefix of the files to be iterated")
+suffix_option = click.option("--suffix", "-F", help="Suffix of the files to be iterated")
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
 sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
 limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
 
-
 def s3_upload():
-    location = "s3://dea-public-data-dev/c3-alchemist-output-dev" #todo remove the hardcoded paths
+    location = "s3://dea-public-data-dev/c3-alchemist-output-dev"  # todo remove the hardcoded paths
     s3ul = S3Upload(location)
     location = s3ul.location
     local = "/tmp/alchemist"
     copy_tree(local, location)
     s3ul.upload_if_needed()
 
-
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
-
 
 @click.group(context_settings=dict(max_content_width=120))
 def cli():
     """
     Transform Open Data Cube Datasets into a new type of Dataset
     """
-
 
 @cli.command()
 @environment_option
@@ -60,7 +59,6 @@ def run_many(config_file, expressions, environment=None, limit=None):
 
     client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
-
 
 @cli.command()
 @environment_option
@@ -93,7 +91,6 @@ def run_one(config_file, input_dataset, environment=None):
     task = alchemist.generate_task(ds)
     execute_task(task)
     s3_upload()  # Upload to S3 if the location appears like an url
-
 
 @cli.command()
 @environment_option
@@ -146,7 +143,6 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         _ = _push_messages(queue, messages)
     _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
-
 @cli.command()
 @message_queue_option
 def pullfromqueue(message_queue, sqs_timeout=None):
@@ -169,7 +165,6 @@ def pullfromqueue(message_queue, sqs_timeout=None):
         _LOG.info("SQS message deleted")
     else:
         _LOG.warning("No messages!")
-
 
 # TODO: don't repeat contents of this function in the above function
 @cli.command()
@@ -204,12 +199,32 @@ def processqueue(message_queue, sqs_timeout=None):
         message.delete()
         _LOG.info("SQS message deleted")
 
-
 @cli.command()
+@suffix_option
+@prefix_option
+@bucket_option
 @message_queue_option
-def pushtoqueue():
-    pass
+def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
+    """
+    For a given S3 bucket
+    For a given prefix
+    For all the files in the S3 bucket that matches the prefix
+    Pushes a simple message to the given queuename
+    """
+    # Initialise S3 bucket
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
 
+    # Initialise SQS queue
+    sqs = boto3.resource("sqs")
+    queue = sqs.get_queue_by_name(QueueName=message_queue)
+
+    # Iterate files that matches with suffix and prefix, and push to SQS queue
+    for object in bucket.objects.filter(Prefix=prefix):
+        if not object.key.endswith(suffix):
+            continue
+        _LOG.info(f"Sending message to queue: {object.key}")
+        queue.send_message(MessageBody=object.key)
 
 if __name__ == "__main__":
     cli_with_envvar_handling()
