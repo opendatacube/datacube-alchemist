@@ -1,6 +1,7 @@
+h5py
 --extra-index-url="https://packages.dea.ga.gov.au"
 datacube[s3,performance]
 eodatasets3
-wofs
 fc
+wofs
 odc-index

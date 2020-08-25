@@ -44,8 +44,6 @@ ADD . $APPDIR
 # want to delete the stuff in the /code folder to keep it simple.
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
     else pip install --editable .[$ENVIRONMENT] ; \
-         pip install --editable codependency/fc/; \
-         pip install h5py; \
     fi
 
 CMD ["datacube-alchemist", "--help"]
