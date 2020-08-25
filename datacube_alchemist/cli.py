@@ -242,6 +242,9 @@ def process_c3_from_queue(sqs_url):
                     # Process WOFS
                     # Todo
 
+                    # Delete the message once processed.
+                    client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message['ReceiptHandle'])
+
                 except yaml.YAMLError as e:
                     _LOG.exception(e)
 
