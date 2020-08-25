@@ -9,6 +9,7 @@ import boto3
 import click
 import cloudpickle
 import structlog
+import yaml
 from datacube import Datacube
 from datacube.ui import click as ui
 
@@ -18,8 +19,16 @@ from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task
 
 _LOG = structlog.get_logger()
 
+# Todo Remove the hardcoding bucket names and move to config files once releasing.
+S3_BUCKET = "dea-public-data-dev"
+s3 = boto3.resource("s3")
+s3_client = boto3.client('s3')
+bucket = s3.Bucket(S3_BUCKET)
+s3_file_exists = lambda filename: bool(list(bucket.objects.filter(Prefix=filename)))
+
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
+sqs_url = click.option("--sqs-url", "-U", help="Url of an AWS SQS Message Queue")
 bucket_option = click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
 prefix_option = click.option("--prefix", "-P", help="Prefix of the files to be iterated")
 suffix_option = click.option("--suffix", "-F", help="Suffix of the files to be iterated")
@@ -168,8 +177,8 @@ def pullfromqueue(message_queue, sqs_timeout=None):
 
 # TODO: don't repeat contents of this function in the above function
 @cli.command()
-@message_queue_option
-@sqs_timeout
+@click.option("--message_queue", "-M")
+@click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visibility Timeout.", default=400)
 def processqueue(message_queue, sqs_timeout=None):
     """
     Process all available tasks from an AWS SQS Queue
@@ -200,6 +209,47 @@ def processqueue(message_queue, sqs_timeout=None):
         _LOG.info("SQS message deleted")
 
 @cli.command()
+@sqs_url
+def process_c3_from_queue(sqs_url):
+    """
+    Process messages from the given sqs url
+    Currently it processes for all the given filepaths it calculates FC & WOFS
+    """
+    _LOG.info("Start pull from queue.")
+    alchemist = Alchemist(config_file="examples/c3_config_fc.yaml")
+    dc = Datacube()
+
+    client = boto3.client("sqs")
+    while True:
+        messages = client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=10)
+        if "Messages" in messages:
+
+            # Each message contain the S3 path of the metadata file
+            for message in messages["Messages"]:
+                filepath = message["Body"]
+                response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
+                try:
+                    # Load the file content as Yaml object
+                    metadata = yaml.safe_load(response["Body"])
+                    uuid = metadata["id"]
+
+                    # Process FC
+                    _LOG.info(f"Running FC for --> {uuid}")
+                    dataset = dc.index.datasets.get(uuid)
+                    execute_task(alchemist.generate_task(dataset))
+                    s3_upload()
+
+                    # Process WOFS
+                    # Todo
+
+                except yaml.YAMLError as e:
+                    _LOG.exception(e)
+
+        else:
+            print("Queue is now empty")
+            break
+
+@cli.command()
 @suffix_option
 @prefix_option
 @bucket_option
@@ -212,7 +262,7 @@ def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
     Pushes a simple message to the given queuename
     """
     # Initialise S3 bucket
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource("s3")
     bucket = s3.Bucket(bucket_name)
 
     # Initialise SQS queue

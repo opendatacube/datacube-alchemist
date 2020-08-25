@@ -49,7 +49,7 @@ output:
   metadata:
     product_family: fc
     producer: ga.gov.au
-    dataset_version: 0.0.1
+    dataset_version: 3.0.0
   properties:
     dea:dataset_maturity: interim
 
