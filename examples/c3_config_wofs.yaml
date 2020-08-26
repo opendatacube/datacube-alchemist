@@ -1,27 +1,14 @@
 specification:
-  product: ga_s2b_ard_nbar_granule
-  measurements:
-    - 'nbar_blue'
-    - 'nbar_green'
-    - 'nbar_red'
-    - 'nbar_nir_1'
-    - 'nbar_swir_2'
-    - 'nbar_swir_3'
+  product: ga_ls5t_ard_3
+  measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
   measurement_renames:
-    blue: nbar_blue
-    green: nbar_green
-    red: nbar_red
-    nir: nbar_nir
-    swir_1: nbar_swir_1
-    swir_2: nbar_swir_2
-    quality_l2_aerosol: fmask
-
+    oa_fmask: fmask
   transform: wofs.virtualproduct.WOfSClassifier
   override_product_family: ard
+  basis: nbart_green
 
   transform_args:
-    c2: True
-    dsm_path:  's3://deafrica-data/ancillary/dem/srtm_africa.tif'
+    dsm_path:  's3://dea-non-public-data/dsm/dsm1sv1_0_Clean.tiff'
 
 output:
   location: /tmp/alchemist
@@ -34,11 +21,11 @@ output:
   metadata:
     product_family: wofs
     producer: ga.gov.au
-    dataset_version: 0.0.1
+    dataset_version: 3.0.0
   properties:
     dea:dataset_maturity: interim
 
 processing:
   dask_chunks:
-    x: 3000
-    y: 3000
+    x: 600
+    y: 600
