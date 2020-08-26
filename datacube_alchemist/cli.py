@@ -22,7 +22,7 @@ _LOG = structlog.get_logger()
 # Todo Remove the hardcoding bucket names and move to config files once releasing.
 S3_BUCKET = "dea-public-data-dev"
 s3 = boto3.resource("s3")
-s3_client = boto3.client('s3')
+s3_client = boto3.client("s3")
 bucket = s3.Bucket(S3_BUCKET)
 s3_file_exists = lambda filename: bool(list(bucket.objects.filter(Prefix=filename)))
 
@@ -216,7 +216,8 @@ def process_c3_from_queue(sqs_url):
     Currently it processes for all the given filepaths it calculates FC & WOFS
     """
     _LOG.info("Start pull from queue.")
-    alchemist = Alchemist(config_file="examples/c3_config_fc.yaml")
+    fc = Alchemist(config_file="examples/c3_config_fc.yaml")
+    wofs = Alchemist(config_file="examples/c3_config_wofs.yaml")
     dc = Datacube()
 
     client = boto3.client("sqs")
@@ -233,17 +234,17 @@ def process_c3_from_queue(sqs_url):
                     metadata = yaml.safe_load(response["Body"])
                     uuid = metadata["id"]
 
-                    # Process FC
-                    _LOG.info(f"Running FC for --> {uuid}")
                     dataset = dc.index.datasets.get(uuid)
-                    execute_task(alchemist.generate_task(dataset))
+
+                    # Process for FC & WOFS
+                    _LOG.info(f"Running FC for --> {uuid}")
+                    execute_task(fc.generate_task(dataset))
+                    _LOG.info(f"Running FC for --> {uuid}")
+                    execute_task(wofs.generate_task(dataset))
+
+                    # Delete the message once processed once uploaded to S3
                     s3_upload()
-
-                    # Process WOFS
-                    # Todo
-
-                    # Delete the message once processed.
-                    client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message['ReceiptHandle'])
+                    client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
 
                 except yaml.YAMLError as e:
                     _LOG.exception(e)
