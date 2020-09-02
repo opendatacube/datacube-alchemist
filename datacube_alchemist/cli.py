@@ -37,7 +37,7 @@ sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS messag
 limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
 
 def s3_upload():
-    location = "s3://dea-public-data-dev/c3-alchemist-output-dev"  # todo remove the hardcoded paths
+    location = "s3://dea-public-data-dev/derivative"  # todo remove the hardcoded paths
     s3ul = S3Upload(location)
     location = s3ul.location
     local = "/tmp/alchemist"
@@ -222,7 +222,7 @@ def process_c3_from_queue(sqs_url):
 
     client = boto3.client("sqs")
     while True:
-        messages = client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=10)
+        messages = client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=1)
         if "Messages" in messages:
 
             # Each message contain the S3 path of the metadata file
@@ -239,7 +239,7 @@ def process_c3_from_queue(sqs_url):
                     # Process for FC & WOFS
                     _LOG.info(f"Running FC for --> {uuid}")
                     execute_task(fc.generate_task(dataset))
-                    _LOG.info(f"Running FC for --> {uuid}")
+                    _LOG.info(f"Running WOFS for --> {uuid}")
                     execute_task(wofs.generate_task(dataset))
 
                     # Delete the message once processed once uploaded to S3
