@@ -40,7 +40,7 @@ specification:
 
 output:
   location: /tmp/alchemist
-  nodata: 1
+  nodata: 255
   dtype: uint8
 
   write_data_settings:

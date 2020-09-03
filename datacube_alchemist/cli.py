@@ -23,14 +23,17 @@ _LOG = structlog.get_logger()
 S3_BUCKET = "dea-public-data-dev"
 s3 = boto3.resource("s3")
 s3_client = boto3.client("s3")
+sqs_client = boto3.client("sqs")
 bucket = s3.Bucket(S3_BUCKET)
 s3_file_exists = lambda filename: bool(list(bucket.objects.filter(Prefix=filename)))
 
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
 sqs_url = click.option("--sqs-url", "-U", help="Url of an AWS SQS Message Queue")
+algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wofs' or 'both'")
 bucket_option = click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
 prefix_option = click.option("--prefix", "-P", help="Prefix of the files to be iterated")
+s3_filepath_option = click.option("--filepath", "-S3", help="S3 path of the file to be processed")
 suffix_option = click.option("--suffix", "-F", help="Suffix of the files to be iterated")
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
 sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
@@ -208,47 +211,63 @@ def processqueue(message_queue, sqs_timeout=None):
         message.delete()
         _LOG.info("SQS message deleted")
 
+def process_c3(filepath, algorithm):
+    """
+    Accepts a filepath for the metadata and prcesses the fractional cover for that
+
+    """
+    _LOG.info(f"Received filepath --> {filepath}")
+    fc = Alchemist(config_file="examples/c3_config_fc.yaml")
+    wofs = Alchemist(config_file="examples/c3_config_wofs.yaml")
+    dc = Datacube()
+
+    response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
+    try:
+        # Load the file content as Yaml object
+        metadata = yaml.safe_load(response["Body"])
+        uuid = metadata["id"]
+        dataset = dc.index.datasets.get(uuid)
+
+        if algorithm == 'fc':
+            _LOG.info(f"Running FC for --> {uuid}")
+            execute_task(fc.generate_task(dataset))
+        elif algorithm == 'wofs':
+            _LOG.info(f"Running WOFS for --> {uuid}")
+            execute_task(wofs.generate_task(dataset))
+        elif algorithm == 'both':
+            _LOG.info(f"Running Both for --> {uuid}")
+            execute_task(fc.generate_task(dataset))
+            execute_task(wofs.generate_task(dataset))
+
+        s3_upload()
+
+    except yaml.YAMLError as e:
+        _LOG.exception(e)
+
 @cli.command()
+@algorithm
+@s3_filepath_option
+def process_c3_from_s3(filepath, algorithm):
+    process_c3(filepath, algorithm)
+
+@cli.command()
+@algorithm
 @sqs_url
-def process_c3_from_queue(sqs_url):
+def process_c3_from_queue(sqs_url, algorithm):
     """
     Process messages from the given sqs url
     Currently it processes for all the given filepaths it calculates FC & WOFS
     """
     _LOG.info("Start pull from queue.")
-    fc = Alchemist(config_file="examples/c3_config_fc.yaml")
-    wofs = Alchemist(config_file="examples/c3_config_wofs.yaml")
-    dc = Datacube()
-
-    client = boto3.client("sqs")
     while True:
-        messages = client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=1)
+        messages = sqs_client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=1)
         if "Messages" in messages:
 
             # Each message contain the S3 path of the metadata file
+            # For each message process and delete the message from the queue.
             for message in messages["Messages"]:
-                filepath = message["Body"]
-                response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
-                try:
-                    # Load the file content as Yaml object
-                    metadata = yaml.safe_load(response["Body"])
-                    uuid = metadata["id"]
-
-                    dataset = dc.index.datasets.get(uuid)
-
-                    # Process for FC & WOFS
-                    _LOG.info(f"Running FC for --> {uuid}")
-                    execute_task(fc.generate_task(dataset))
-                    _LOG.info(f"Running WOFS for --> {uuid}")
-                    execute_task(wofs.generate_task(dataset))
-
-                    # Delete the message once processed once uploaded to S3
-                    s3_upload()
-                    client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
-
-                except yaml.YAMLError as e:
-                    _LOG.exception(e)
-
+                process_c3(message["Body"], algorithm)
+                sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
         else:
             print("Queue is now empty")
             break
