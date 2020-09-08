@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-
+import json
+import re
 import sys
 import time
 from distutils.dir_util import copy_tree
+from json import JSONDecodeError
 from pathlib import Path
 
 import boto3
@@ -29,12 +31,7 @@ s3_file_exists = lambda filename: bool(list(bucket.objects.filter(Prefix=filenam
 
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
-sqs_url = click.option("--sqs-url", "-U", help="Url of an AWS SQS Message Queue")
 algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wofs' or 'both'")
-bucket_option = click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
-prefix_option = click.option("--prefix", "-P", help="Prefix of the files to be iterated")
-s3_filepath_option = click.option("--filepath", "-S3", help="S3 path of the file to be processed")
-suffix_option = click.option("--suffix", "-F", help="Suffix of the files to be iterated")
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
 sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
 limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
@@ -221,7 +218,8 @@ def process_c3(filepath, algorithm):
     wofs = Alchemist(config_file="examples/c3_config_wofs.yaml")
     dc = Datacube()
 
-    response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
+    bucket, key = re.match(r"s3:\/\/(.+?)\/(.+)", filepath).groups()
+    response = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
     try:
         # Load the file content as Yaml object
         metadata = yaml.safe_load(response["Body"])
@@ -246,13 +244,13 @@ def process_c3(filepath, algorithm):
 
 @cli.command()
 @algorithm
-@s3_filepath_option
+@click.option("--filepath", "-S3", help="S3 path of the file to be processed")
 def process_c3_from_s3(filepath, algorithm):
     process_c3(filepath, algorithm)
 
 @cli.command()
 @algorithm
-@sqs_url
+@click.option("--sqs-url", "-Q", help="Url of an AWS SQS Message Queue")
 def process_c3_from_queue(sqs_url, algorithm):
     """
     Process messages from the given sqs url
@@ -266,16 +264,23 @@ def process_c3_from_queue(sqs_url, algorithm):
             # Each message contain the S3 path of the metadata file
             # For each message process and delete the message from the queue.
             for message in messages["Messages"]:
-                process_c3(message["Body"], algorithm)
-                sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
+                try:
+                    links = json.loads(json.loads(message["Body"])["Message"])["links"]
+                    filepath = next(filter(lambda l: l['rel'] == 'odc_yaml', links))["href"]
+                    _LOG.info(f"Extracted filepath {filepath}")
+                    process_c3(filepath, algorithm)
+                    sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
+                except (JSONDecodeError, TypeError, KeyError, StopIteration):
+                    _LOG.exception("Error during parsing and extracting filepaths from sqs message")
+                    _LOG.info(message)
         else:
             print("Queue is now empty")
             break
 
 @cli.command()
-@suffix_option
-@prefix_option
-@bucket_option
+@click.option("--suffix", "-F", help="Suffix of the files to be iterated")
+@click.option("--prefix", "-P", help="Prefix of the files to be iterated")
+@click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
 @message_queue_option
 def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
     """
@@ -298,6 +303,28 @@ def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
             continue
         _LOG.info(f"Sending message to queue: {object.key}")
         queue.send_message(MessageBody=object.key)
+
+@cli.command()
+@click.option("--from-queue", "-F", help="Url of SQS Queue to move from")
+@click.option("--to-queue", "-T", help="Url of SQS Queue to move to")
+def redrive_sqs(from_queue, to_queue):
+    """
+    Redrives all the messages from the given sqs queue to the destination
+    """
+    while True:
+        messages = sqs_client.receive_message(QueueUrl=from_queue, MaxNumberOfMessages=10)
+        if 'Messages' in messages:
+            for message in messages['Messages']:
+                print(message['Body'])
+                response = sqs_client.send_message(QueueUrl=to_queue, MessageBody=message['Body'])
+                if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                    sqs_client.delete_message(QueueUrl=from_queue, ReceiptHandle=message['ReceiptHandle'])
+                else:
+                    _LOG.info(f"Unable to send to: {message['Body']}")
+
+        else:
+            print('Queue is now empty')
+            break
 
 if __name__ == "__main__":
     cli_with_envvar_handling()
