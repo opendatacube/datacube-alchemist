@@ -1,4 +1,5 @@
 h5py
+ipython
 --extra-index-url="https://packages.dea.ga.gov.au"
 datacube[s3,performance]
 eodatasets3
