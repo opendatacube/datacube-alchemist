@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import re
 import sys
 import time
@@ -31,7 +32,7 @@ s3_file_exists = lambda filename: bool(list(bucket.objects.filter(Prefix=filenam
 
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
-algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wofs' or 'both'")
+algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wo'")
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
 sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
 limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
@@ -215,7 +216,7 @@ def process_c3(filepath, algorithm):
     """
     _LOG.info(f"Received filepath --> {filepath}")
     fc = Alchemist(config_file="examples/c3_config_fc.yaml")
-    wofs = Alchemist(config_file="examples/c3_config_wofs.yaml")
+    wo = Alchemist(config_file="examples/c3_config_wo.yaml")
     dc = Datacube()
 
     bucket, key = re.match(r"s3:\/\/(.+?)\/(.+)", filepath).groups()
@@ -226,16 +227,14 @@ def process_c3(filepath, algorithm):
         uuid = metadata["id"]
         dataset = dc.index.datasets.get(uuid)
 
-        if algorithm == 'fc':
+        if algorithm == "fc":
             _LOG.info(f"Running FC for --> {uuid}")
             execute_task(fc.generate_task(dataset))
-        elif algorithm == 'wofs':
-            _LOG.info(f"Running WOFS for --> {uuid}")
-            execute_task(wofs.generate_task(dataset))
-        elif algorithm == 'both':
-            _LOG.info(f"Running Both for --> {uuid}")
-            execute_task(fc.generate_task(dataset))
-            execute_task(wofs.generate_task(dataset))
+        elif algorithm == "wo":
+            _LOG.info(f"Running WO for --> {uuid}")
+            execute_task(wo.generate_task(dataset))
+        else:
+            _LOG.info(f"Invalid algorithm --> {uuid}. Algorithm must be either fc/wo")
 
         s3_upload()
 
@@ -250,13 +249,13 @@ def process_c3_from_s3(filepath, algorithm):
 
 @cli.command()
 @algorithm
-@click.option("--sqs-url", "-Q", help="Url of an AWS SQS Message Queue")
-def process_c3_from_queue(sqs_url, algorithm):
+def process_c3_from_queue(algorithm):
     """
     Process messages from the given sqs url
-    Currently it processes for all the given filepaths it calculates FC & WOFS
+    Currently it processes for all the given filepaths it calculates FC & WO
     """
     _LOG.info("Start pull from queue.")
+    sqs_url = os.environ.get("SQS_URL")
     while True:
         messages = sqs_client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=1)
         if "Messages" in messages:
@@ -266,7 +265,7 @@ def process_c3_from_queue(sqs_url, algorithm):
             for message in messages["Messages"]:
                 try:
                     links = json.loads(json.loads(message["Body"])["Message"])["links"]
-                    filepath = next(filter(lambda l: l['rel'] == 'odc_yaml', links))["href"]
+                    filepath = next(filter(lambda l: l["rel"] == "odc_yaml", links))["href"]
                     _LOG.info(f"Extracted filepath {filepath}")
                     process_c3(filepath, algorithm)
                     sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
@@ -313,17 +312,17 @@ def redrive_sqs(from_queue, to_queue):
     """
     while True:
         messages = sqs_client.receive_message(QueueUrl=from_queue, MaxNumberOfMessages=10)
-        if 'Messages' in messages:
-            for message in messages['Messages']:
-                print(message['Body'])
-                response = sqs_client.send_message(QueueUrl=to_queue, MessageBody=message['Body'])
-                if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                    sqs_client.delete_message(QueueUrl=from_queue, ReceiptHandle=message['ReceiptHandle'])
+        if "Messages" in messages:
+            for message in messages["Messages"]:
+                print(message["Body"])
+                response = sqs_client.send_message(QueueUrl=to_queue, MessageBody=message["Body"])
+                if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+                    sqs_client.delete_message(QueueUrl=from_queue, ReceiptHandle=message["ReceiptHandle"])
                 else:
                     _LOG.info(f"Unable to send to: {message['Body']}")
 
         else:
-            print('Queue is now empty')
+            print("Queue is now empty")
             break
 
 if __name__ == "__main__":
