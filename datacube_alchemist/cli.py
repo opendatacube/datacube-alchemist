@@ -209,24 +209,18 @@ def processqueue(message_queue, sqs_timeout=None):
         message.delete()
         _LOG.info("SQS message deleted")
 
-def process_c3(filepath, algorithm):
+def process_c3(uuid, algorithm):
     """
     Accepts a filepath for the metadata and prcesses the fractional cover for that
 
     """
-    _LOG.info(f"Received filepath --> {filepath}")
+    _LOG.info(f"Received uuid --> {uuid}")
     fc = Alchemist(config_file="examples/c3_config_fc.yaml")
     wo = Alchemist(config_file="examples/c3_config_wo.yaml")
     dc = Datacube()
 
-    bucket, key = re.match(r"s3:\/\/(.+?)\/(.+)", filepath).groups()
-    response = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
     try:
-        # Load the file content as Yaml object
-        metadata = yaml.safe_load(response["Body"])
-        uuid = metadata["id"]
         dataset = dc.index.datasets.get(uuid)
-
         if algorithm == "fc":
             _LOG.info(f"Running FC for --> {uuid}")
             execute_task(fc.generate_task(dataset))
@@ -245,7 +239,11 @@ def process_c3(filepath, algorithm):
 @algorithm
 @click.option("--filepath", "-S3", help="S3 path of the file to be processed")
 def process_c3_from_s3(filepath, algorithm):
-    process_c3(filepath, algorithm)
+    bucket, key = re.match(r"s3:\/\/(.+?)\/(.+)", filepath).groups()
+    response = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
+    metadata = yaml.safe_load(response["Body"])
+    uuid = metadata["id"]
+    process_c3(uuid, algorithm)
 
 @cli.command()
 @algorithm
@@ -264,10 +262,9 @@ def process_c3_from_queue(algorithm):
             # For each message process and delete the message from the queue.
             for message in messages["Messages"]:
                 try:
-                    links = json.loads(json.loads(message["Body"])["Message"])["links"]
-                    filepath = next(filter(lambda l: l["rel"] == "odc_yaml", links))["href"]
-                    _LOG.info(f"Extracted filepath {filepath}")
-                    process_c3(filepath, algorithm)
+                    uuid = json.loads(json.loads(message["Body"])["Message"])["id"]
+                    _LOG.info(f"Extracted uuid {uuid}")
+                    process_c3(uuid, algorithm)
                     sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
                 except (JSONDecodeError, TypeError, KeyError, StopIteration):
                     _LOG.exception("Error during parsing and extracting filepaths from sqs message")
