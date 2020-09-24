@@ -22,6 +22,8 @@ output:
     product_family: wofs
     producer: ga.gov.au
     dataset_version: 1.6.0
+    collection_number: 3
+
   properties:
     dea:dataset_maturity: interim
 

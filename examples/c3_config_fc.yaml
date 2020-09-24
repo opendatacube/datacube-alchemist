@@ -13,7 +13,7 @@ specification:
   basis: nbart_green
 
   transform_args:
-    sensor_regression_coefficients:
+    regression_coefficients:
       blue:
         - 4.1
         - 0.97470
@@ -45,6 +45,7 @@ output:
     product_family: fc
     producer: ga.gov.au
     dataset_version: 2.5.0
+    collection_number: 3
   properties:
     dea:dataset_maturity: interim
 
