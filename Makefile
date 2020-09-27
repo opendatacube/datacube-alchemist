@@ -100,11 +100,11 @@ c3-process-from-queue:
         -Q https://sqs.ap-southeast-2.amazonaws.com/451924316694/alchemist-nehem-backup-fc \
         -A both
 
-c3-populate-queue:
+c3-populate-queue-from-ard:
 	docker-compose exec alchemist \
 		/code/datacube_alchemist/cli.py \
 		push-to-queue-from-s3 \
-		-M alchemist-c3-dev \
+		-M alchemist-nehem-backup-wofs \
 		-B dea-public-data-dev \
 		-P "analysis-ready-data" \
 		-F "final.odc-metadata.yaml"

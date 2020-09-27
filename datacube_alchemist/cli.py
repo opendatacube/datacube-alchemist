@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-import json
 import os
-import re
 import sys
 import time
 from distutils.dir_util import copy_tree
@@ -235,15 +233,11 @@ def process_c3(uuid, algorithm):
     except yaml.YAMLError as e:
         _LOG.exception(e)
 
-@cli.command()
-@algorithm
-@click.option("--filepath", "-S3", help="S3 path of the file to be processed")
-def process_c3_from_s3(filepath, algorithm):
-    bucket, key = re.match(r"s3:\/\/(.+?)\/(.+)", filepath).groups()
-    response = s3_client.get_object(Bucket=S3_BUCKET, Key=key)
+# Helper method for one time data fix, not part of actual delivery
+def grab_uuid_from_s3_path(filepath):
+    response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
     metadata = yaml.safe_load(response["Body"])
-    uuid = metadata["id"]
-    process_c3(uuid, algorithm)
+    return metadata["id"]
 
 @cli.command()
 @algorithm
@@ -262,7 +256,8 @@ def process_c3_from_queue(algorithm):
             # For each message process and delete the message from the queue.
             for message in messages["Messages"]:
                 try:
-                    uuid = json.loads(json.loads(message["Body"])["Message"])["id"]
+                    uuid = grab_uuid_from_s3_path(message["Body"])
+                    # uuid = json.loads(json.loads(message["Body"])["Message"])["id"]
                     _LOG.info(f"Extracted uuid {uuid}")
                     process_c3(uuid, algorithm)
                     sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
@@ -297,6 +292,11 @@ def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
     for object in bucket.objects.filter(Prefix=prefix):
         if not object.key.endswith(suffix):
             continue
+
+        # Don't push if it's already processed
+        if s3_file_exists('derivative/ga_ls_wofs_3/' + '/'.join(object.key.split('/')[2:-1])):
+            continue
+
         _LOG.info(f"Sending message to queue: {object.key}")
         queue.send_message(MessageBody=object.key)
 
