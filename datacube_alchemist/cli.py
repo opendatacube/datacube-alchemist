@@ -317,10 +317,18 @@ def redrive_sqs(from_queue, to_queue):
                     sqs_client.delete_message(QueueUrl=from_queue, ReceiptHandle=message["ReceiptHandle"])
                 else:
                     _LOG.info(f"Unable to send to: {message['Body']}")
-
         else:
             print("Queue is now empty")
             break
+
+@cli.command()
+def test_single_wo():
+    try:
+        uuid = "dcfb8ea0-956a-4654-8748-f1a4c7f50d48"
+        process_c3(uuid, "wo")
+    except:
+        import traceback
+        print(traceback.format_exc())
 
 if __name__ == "__main__":
     cli_with_envvar_handling()
