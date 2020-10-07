@@ -1,20 +1,6 @@
 name: Lint, Test Code and Push Image
 
-on:
-  pull_request:
-    paths:
-      - '**'
-
-  push:
-    paths:
-      - '**'
-
-  release:
-    types:
-      - created
-
-env:
-  IMAGE_NAME: opendatacube/datacube-alchemist
+on: [push]
 
 jobs:
   main:
@@ -25,23 +11,17 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Build image with cache
-      uses: whoan/docker-build-with-cache-action@v4
-      with:
-        image_name: ${{ env.IMAGE_NAME }}
-        username: "${{ secrets.DOCKER_USER }}"
-        password: "${{ secrets.DOCKER_PASS }}"
-        image_tag: test
-        push_image_and_stages: false
-        build_extra_args: "--build-arg=ENVIRONMENT=test"
-
-    - name: Run linting
+    - name: Build the docker container
       run: |
-        make lint
+        docker-compose build
+
+    - name: Bring up the docker container
+      run: |
+        docker-compose up -d
 
     - name: Run tests
       run: |
-        make test
+        docker-compose exec -T alchemist pytest tests
 
     - name: Get the git tag
       run: |
