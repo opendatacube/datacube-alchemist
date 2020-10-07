@@ -1,5 +1,4 @@
-h5py
-ipdb
+h5py==2.10.0
 --extra-index-url="https://packages.dea.ga.gov.au"
 datacube[s3,performance]
 eodatasets3
