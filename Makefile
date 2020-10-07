@@ -9,14 +9,10 @@ build-prod:
 		--build-arg ENVIRONMENT=deployment
 
 test:
-	docker run --rm \
-		opendatacube/datacube-alchemist:test \
-			pytest tests
+	docker-compose exec alchemist pytest tests
 
 lint:
-	docker run --rm \
-		opendatacube/datacube-alchemist:test \
-			flake8
+	docker-compose exec alchemist flake8
 
 run-prod:
 	docker run --rm \
@@ -28,7 +24,6 @@ test-local:
 
 run-fc-one:
 	docker-comose exec datacube-alchemist run-one \
-
 
 # Docker Compose environment
 build-dev:
@@ -94,12 +89,6 @@ c3-run-one-wofs:
 		/code/datacube_alchemist/cli.py run-one \
         examples/c3_samples_config_wofs.yaml 1295725b-10b2-4756-8c62-42c832070133
 
-c3-process-from-queue:
-	docker-compose exec alchemist \
-		/code/datacube_alchemist/cli.py process-c3-from-queue \
-        -Q https://sqs.ap-southeast-2.amazonaws.com/451924316694/alchemist-nehem-backup-fc \
-        -A both
-
 c3-populate-queue-from-ard:
 	docker-compose exec alchemist \
 		/code/datacube_alchemist/cli.py \
@@ -108,10 +97,3 @@ c3-populate-queue-from-ard:
 		-B dea-public-data-dev \
 		-P "analysis-ready-data" \
 		-F "final.odc-metadata.yaml"
-
-c3-redrive-sqs:
-	docker-compose exec alchemist \
-		/code/datacube_alchemist/cli.py \
-		redrive-sqs \
-		-F https://sqs.ap-southeast-2.amazonaws.com/451924316694/dea-dev-eks-alchemist-c3-processing-fc \
-		-T https://sqs.ap-southeast-2.amazonaws.com/451924316694/alchemist-nehem-backup-fc
