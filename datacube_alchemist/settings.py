@@ -8,9 +8,9 @@ from datacube.model import Dataset
 
 
 def _convert_write_data_settings(settings):
-    if 'overview_resampling' in settings:
-        strval = settings['overview_resampling']
-        settings['overview_resampling'] = Resampling[strval]
+    if "overview_resampling" in settings:
+        strval = settings["overview_resampling"]
+        settings["overview_resampling"] = Resampling[strval]
     return settings
 
 
