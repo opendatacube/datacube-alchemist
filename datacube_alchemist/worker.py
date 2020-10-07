@@ -114,7 +114,9 @@ def execute_task(task: AlchemistTask):
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
     uuid, _ = deterministic_uuid(task)
-    if task.dataset.metadata.platform.lower().startswith("sentinel"):
+    if task.settings.output.metadata.get("naming_conventions", "") == "dea_c3":
+        name = "dea_c3"
+    elif task.dataset.metadata.platform.lower().startswith("sentinel"):
         name = "dea_s2"
     else:
         name = "dea"
