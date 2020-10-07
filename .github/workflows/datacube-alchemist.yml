@@ -1,6 +1,20 @@
 name: Lint, Test Code and Push Image
 
-on: [push]
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+  push:
+    paths:
+      - '**'
+
+  release:
+    types: [created]
+
+env:
+  IMAGE_NAME: opendatacube/datacube-alchemist
 
 jobs:
   main:
@@ -11,30 +25,46 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Build the docker container
-      run: |
-        docker-compose build
+#    - name: Build the docker container
+#      run: |
+#        docker-compose build
+#
+#    - name: Bring up the docker container
+#      run: |
+#        docker-compose up -d
+#
+#    - name: Run linting
+#      run: |
+#        docker-compose exec -T alchemist flake8
+#
+#    - name: Run tests
+#      run: |
+#        docker-compose exec -T alchemist pytest tests
 
-    - name: Bring up the docker container
+    - name: Get tag for this build if it exists
+      if: github.event_name == 'release'
       run: |
-        docker-compose up -d
-
-    - name: Run tests
+        echo ::set-env name=RELEASE::${GITHUB_REF/refs\/tags\/}
+        echo $RELEASE
+    - name: Get git commit hash for merged PR's / Push to master
       run: |
-        docker-compose exec -T alchemist pytest tests
-
-    - name: Get the git tag
-      run: |
-        git fetch --tags
-        echo ::set-env name=GITTAG::$(git describe --tag)
-        echo $GITTAG
-
-    - name: Build and Push unstable Docker Image from PR
+        git fetch --all --tags
+        echo ::set-env name=GITHASH::$(git describe --tags)
+        echo $GITHASH
+    - name: Build and Push semver tagged Docker Image for Release
       uses: whoan/docker-build-with-cache-action@v4
-      if: github.ref == 'refs/heads/master'
+      if: github.event_name == 'release'
       with:
         image_name: ${{ env.IMAGE_NAME }}
-        username: "${{ secrets.DOCKER_USER }}"
-        password: "${{ secrets.DOCKER_PASS }}"
-        image_tag: latest,${{ env.GITTAG }}
-        build_extra_args: "--build-arg=ENVIRONMENT=deployment"
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASS }}
+        image_tag: ${{ env.RELEASE }}
+
+    - name: Build and Push unstable Docker Image from PR / Push to Master
+      uses: whoan/docker-build-with-cache-action@v4
+      if: github.event_name != 'release'
+      with:
+        image_name: ${{ env.IMAGE_NAME }}
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASS }}
+        image_tag: latest,${{ env.GITHASH }}
