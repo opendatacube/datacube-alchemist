@@ -16,7 +16,12 @@ from datacube.ui import click as ui
 
 from datacube_alchemist._dask import setup_dask_client
 from datacube_alchemist.upload import S3Upload
-from datacube_alchemist.worker import Alchemist, execute_with_dask, execute_task, execute_pickled_task
+from datacube_alchemist.worker import (
+    Alchemist,
+    execute_with_dask,
+    execute_task,
+    execute_pickled_task,
+)
 
 _LOG = structlog.get_logger()
 
@@ -26,14 +31,18 @@ s3 = boto3.resource("s3")
 s3_client = boto3.client("s3")
 sqs_client = boto3.client("sqs")
 bucket = s3.Bucket(S3_BUCKET)
-s3_file_exists = lambda filename: bool(list(bucket.objects.filter(Prefix=filename)))
 
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
 algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wo'")
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
-sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400)
+sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400,)
 limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
+
+
+def s3_file_exists(filename):
+    return bool(list(bucket.objects.filter(Prefix=filename)))
+
 
 def s3_upload():
     location = "s3://dea-public-data-dev/derivative"  # todo remove the hardcoded paths
@@ -43,14 +52,17 @@ def s3_upload():
     copy_tree(local, location)
     s3ul.upload_if_needed()
 
+
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
+
 
 @click.group(context_settings=dict(max_content_width=120))
 def cli():
     """
     Transform Open Data Cube Datasets into a new type of Dataset
     """
+
 
 @cli.command()
 @environment_option
@@ -67,6 +79,7 @@ def run_many(config_file, expressions, environment=None, limit=None):
 
     client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
+
 
 @cli.command()
 @environment_option
@@ -99,6 +112,7 @@ def run_one(config_file, input_dataset, environment=None):
     task = alchemist.generate_task(ds)
     execute_task(task)
     s3_upload()  # Upload to S3 if the location appears like an url
+
 
 @cli.command()
 @environment_option
@@ -151,6 +165,7 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
         _ = _push_messages(queue, messages)
     _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
+
 @cli.command()
 @message_queue_option
 def pullfromqueue(message_queue, sqs_timeout=None):
@@ -162,7 +177,9 @@ def pullfromqueue(message_queue, sqs_timeout=None):
     sqs = boto3.resource("sqs")
     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
-    messages = queue.receive_messages(VisibilityTimeout=sqs_timeout, MaxNumberOfMessages=1, MessageAttributeNames=["All"])
+    messages = queue.receive_messages(
+        VisibilityTimeout=sqs_timeout, MaxNumberOfMessages=1, MessageAttributeNames=["All"],
+    )
     if len(messages) > 0:
         message = messages[0]
         pickled_task = message.message_attributes["pickled_task"]["BinaryValue"]
@@ -174,10 +191,13 @@ def pullfromqueue(message_queue, sqs_timeout=None):
     else:
         _LOG.warning("No messages!")
 
+
 # TODO: don't repeat contents of this function in the above function
 @cli.command()
 @click.option("--message_queue", "-M")
-@click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visibility Timeout.", default=400)
+@click.option(
+    "--sqs_timeout", "-S", type=int, help="The SQS message Visibility Timeout.", default=400,
+)
 def processqueue(message_queue, sqs_timeout=None):
     """
     Process all available tasks from an AWS SQS Queue
@@ -190,11 +210,12 @@ def processqueue(message_queue, sqs_timeout=None):
     # more_mesages = True
     # while more_mesages:
     #     time.sleep(1)  # Todo remove once debugged
-    messages = queue.receive_messages(VisibilityTimeout=int(sqs_timeout), MaxNumberOfMessages=1, MessageAttributeNames=["All"])
+    messages = queue.receive_messages(
+        VisibilityTimeout=int(sqs_timeout), MaxNumberOfMessages=1, MessageAttributeNames=["All"],
+    )
     if len(messages) == 0:
         # No messages, exit successfully
         _LOG.info("No messages, exiting successfully")
-        more_mesages = False
     else:
         message = messages[0]
         _LOG.info(f"Message received: {message}")
@@ -206,6 +227,7 @@ def processqueue(message_queue, sqs_timeout=None):
 
         message.delete()
         _LOG.info("SQS message deleted")
+
 
 def process_c3(uuid, algorithm):
     """
@@ -233,11 +255,13 @@ def process_c3(uuid, algorithm):
     except yaml.YAMLError as e:
         _LOG.exception(e)
 
+
 # Helper method for one time data fix, not part of actual delivery
 def grab_uuid_from_s3_path(filepath):
     response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
     metadata = yaml.safe_load(response["Body"])
     return metadata["id"]
+
 
 @cli.command()
 @algorithm
@@ -268,6 +292,7 @@ def process_c3_from_queue(algorithm):
             print("Queue is now empty")
             break
 
+
 @cli.command()
 @click.option("--suffix", "-F", help="Suffix of the files to be iterated")
 @click.option("--prefix", "-P", help="Prefix of the files to be iterated")
@@ -294,11 +319,12 @@ def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
             continue
 
         # Don't push if it's already processed
-        if s3_file_exists('derivative/ga_ls_wofs_3/' + '/'.join(object.key.split('/')[2:-1])):
+        if s3_file_exists("derivative/ga_ls_wofs_3/" + "/".join(object.key.split("/")[2:-1])):
             continue
 
         _LOG.info(f"Sending message to queue: {object.key}")
         queue.send_message(MessageBody=object.key)
+
 
 @cli.command()
 @click.option("--from-queue", "-F", help="Url of SQS Queue to move from")
@@ -320,6 +346,7 @@ def redrive_sqs(from_queue, to_queue):
         else:
             print("Queue is now empty")
             break
+
 
 if __name__ == "__main__":
     cli_with_envvar_handling()
