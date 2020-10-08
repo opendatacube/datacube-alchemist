@@ -35,6 +35,7 @@ bucket = s3.Bucket(S3_BUCKET)
 # Define common options for all the commands
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
 algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wo'")
+uuid = click.option("--uuid", "-U", help="Uuid of the scene to be processed")
 environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
 sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400,)
 limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
@@ -346,6 +347,15 @@ def redrive_sqs(from_queue, to_queue):
         else:
             print("Queue is now empty")
             break
+
+@cli.command()
+@algorithm
+@uuid
+def test_single(uuid, algorithm):
+    try:
+        process_c3(uuid, algorithm)
+    except:
+        _LOG.exception("Someting went wronf in test_single(), check the traceback.")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ test-local:
 
 
 run-fc-one:
-	docker-comose exec datacube-alchemist run-one \
+	docker-comose exec alchemist run-one \
 
 # Docker Compose environment
 build-dev:
@@ -78,16 +78,6 @@ c3-index:
 		bash -c "\
 			s3-find s3://dea-public-data-dev/analysis-ready-data/**/*.odc-metadata.yaml --no-sign-request \
 			| s3-to-tar --no-sign-request | dc-index-from-tar --ignore-lineage"
-
-c3-run-one-fc:
-	docker-compose exec alchemist \
-        /code/datacube_alchemist/cli.py run-one \
-        examples/c3_samples_config_fc.yaml 1295725b-10b2-4756-8c62-42c832070133
-
-c3-run-one-wofs:
-	docker-compose exec alchemist \
-		/code/datacube_alchemist/cli.py run-one \
-        examples/c3_samples_config_wofs.yaml 1295725b-10b2-4756-8c62-42c832070133
 
 c3-populate-queue-from-ard:
 	docker-compose exec alchemist \
