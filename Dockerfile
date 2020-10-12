@@ -11,7 +11,10 @@ RUN mkdir -p /code
 WORKDIR /code
 ADD . /code
 
-RUN pip install  .
+RUN pip install --use-feature=2020-resolver --extra-index-url="https://packages.dea.ga.gov.au" .
+
+# Make sure it's working first
+RUN datacube-alchemist --help
 
 # Build the production runner stage from here
 FROM opendatacube/geobase:runner
@@ -45,5 +48,7 @@ ADD . $APPDIR
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
     else pip install --extra-index-url="https://packages.dea.ga.gov.au" --editable .[$ENVIRONMENT] ; \
     fi
+
+RUN datacube-alchemist --help
 
 CMD ["datacube-alchemist", "--help"]

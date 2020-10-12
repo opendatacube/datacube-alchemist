@@ -6,7 +6,6 @@ dev_requirements = [
     "flake8",
     "pytest",
     "pytest-cov",
-    "odc-index",
     "odc-apps-cloud",
     "odc-apps-dc-tools",
     "datacube-index @ git+https://github.com/opendatacube/datacube-index.git",
@@ -46,9 +45,9 @@ setup(
         "s3fs",
         "jsonschema>=3",
         "requests",
+        "odc-index"
     ],
     extras_require={"dev": dev_requirements},
-    dependency_links=["https://packages.dea.ga.gov.au/"],
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
     entry_points={

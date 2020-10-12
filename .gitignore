@@ -110,3 +110,4 @@ venv.bak/
 # Othis stuff
 .vscode/
 datacube-index/
+output

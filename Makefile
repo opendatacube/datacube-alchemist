@@ -59,11 +59,13 @@ index:
 # LS5 example: 76223191-e942-4e26-b116-8c072e87d843
 
 wofs-one:
-	docker-compose exec alchemist \ 
-		
+	docker-compose exec alchemist \
+		datacube-alchemist run-one ./examples/c3_config_wo.yaml 7b9553d4-3367-43fe-8e6f-b45999c5ada6
+
 
 fc-one:
-	echo "go"
+	docker-compose exec alchemist \
+		datacube-alchemist run-one ./examples/c3_config_fc.yaml 7b9553d4-3367-43fe-8e6f-b45999c5ada6
 
 wofs-one-of-each:
 	echo "go"

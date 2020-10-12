@@ -26,7 +26,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
     volumes:
       - .:/code
-      - /tmp/alchemist:/tmp/alchemist
+      - ./output:/tmp/alchemist
     depends_on:
       - postgres
     command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 60 ; done"]
