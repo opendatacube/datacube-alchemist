@@ -114,6 +114,7 @@ def execute_task(task: AlchemistTask):
         output_data.attrs["crs"] = crs
 
     # Ensure output path exists
+    # TODO: handle S3 path appropriately using tempfiles and some kind of clever upload
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
 
@@ -147,7 +148,6 @@ def execute_task(task: AlchemistTask):
             name=task.settings.specification.transform, url=version_url["url"], version=version_url["version"]
         )
 
-        tempfile.gettemdir()
         dataset_assembler.write_measurements_odc_xarray(
             output_data, nodata=task.settings.output.nodata, **task.settings.output.write_data_settings
         )
