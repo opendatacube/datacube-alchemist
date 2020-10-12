@@ -11,7 +11,7 @@ RUN mkdir -p /code
 WORKDIR /code
 ADD . /code
 
-RUN pip install .
+RUN pip install  .
 
 # Build the production runner stage from here
 FROM opendatacube/geobase:runner
@@ -43,7 +43,7 @@ ADD . $APPDIR
 # then we want to link the source (with the -e flag) and if we're in prod, we
 # want to delete the stuff in the /code folder to keep it simple.
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
-    else pip install --editable .[$ENVIRONMENT] ; \
+    else pip install --extra-index-url="https://packages.dea.ga.gov.au" --editable .[$ENVIRONMENT] ; \
     fi
 
 CMD ["datacube-alchemist", "--help"]

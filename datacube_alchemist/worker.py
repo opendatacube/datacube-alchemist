@@ -5,7 +5,6 @@
 
 import importlib
 import sys
-
 # pylint: disable=map-builtin-not-iterating
 from datetime import datetime
 from pathlib import Path
@@ -13,22 +12,23 @@ from typing import Iterable, Type
 
 import cattr
 import cloudpickle
+import datacube
 import fsspec
 import numpy as np
 import structlog
 import yaml
-
-import datacube
 from datacube.model import Dataset
 from datacube.testutils.io import native_load
 from datacube.virtual import Transformation
-from datacube_alchemist import __version__
-from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
-from datacube_alchemist.upload import S3Upload
 from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from odc.index import odc_uuid
+
+from datacube_alchemist import __version__
+from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
+from datacube_alchemist.upload import S3Upload
+
 from ._dask import dask_compute_stream
 
 _LOG = structlog.get_logger()
@@ -233,7 +233,7 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
         try:
             other_tags["dataset_version"] = task.settings.output.metadata["dataset_version"]
         except KeyError:
-            _LOG.info("dataset_version not set and " "not used to generate deterministic uuid")
+            _LOG.info("dataset_version not set and not used to generate deterministic uuid")
     uuid = odc_uuid(
         algorithm=task.settings.specification.transform,
         algorithm_version=algorithm_version,

@@ -46,11 +46,13 @@ jobs:
       run: |
         echo ::set-env name=RELEASE::${GITHUB_REF/refs\/tags\/}
         echo $RELEASE
+
     - name: Get git commit hash for merged PR's / Push to master
       run: |
         git fetch --all --tags
         echo ::set-env name=GITHASH::$(git describe --tags)
         echo $GITHASH
+
     - name: Build and Push semver tagged Docker Image for Release
       uses: whoan/docker-build-with-cache-action@v4
       if: github.event_name == 'release'

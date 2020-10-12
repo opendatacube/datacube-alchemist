@@ -1,9 +1,16 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 import io
 from setuptools import setup, find_packages
 
-tests_require = ["flake8", "pytest", "pytest-cov"]
+dev_requirements = [
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "odc-index",
+    "odc-apps-cloud",
+    "odc-apps-dc-tools",
+    "datacube-index @ git+https://github.com/opendatacube/datacube-index.git",
+]
 
 setup(
     name="datacube-alchemist",
@@ -40,9 +47,13 @@ setup(
         "jsonschema>=3",
         "requests",
     ],
-    tests_require=tests_require,
-    extras_require={"test": tests_require},
+    extras_require={"dev": dev_requirements},
+    dependency_links=["https://packages.dea.ga.gov.au/"],
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
-    entry_points={"console_scripts": ["datacube-alchemist = datacube_alchemist.cli:cli_with_envvar_handling", ]},
+    entry_points={
+        "console_scripts": [
+            "datacube-alchemist = datacube_alchemist.cli:cli_with_envvar_handling",
+        ]
+    },
 )

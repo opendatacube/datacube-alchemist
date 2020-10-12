@@ -2,7 +2,6 @@
 import os
 import sys
 import time
-from distutils.dir_util import copy_tree
 from json import JSONDecodeError
 from pathlib import Path
 
@@ -50,7 +49,7 @@ def s3_upload():
     s3ul = S3Upload(location)
     location = s3ul.location
     local = "/tmp/alchemist"
-    copy_tree(local, location)
+    # copy_tree(local, location)
     s3ul.upload_if_needed()
 
 
