@@ -2,9 +2,7 @@
 import os
 import sys
 import time
-from distutils.dir_util import copy_tree
 from json import JSONDecodeError
-from pathlib import Path
 
 import boto3
 import click
@@ -20,19 +18,19 @@ from datacube_alchemist.worker import (
     Alchemist,
     execute_with_dask,
     execute_task,
-    execute_pickled_task,
 )
 
 _LOG = structlog.get_logger()
 
 # Todo Remove the hardcoding bucket names and move to config files once releasing.
-S3_BUCKET = "dea-public-data-dev"
-s3 = boto3.resource("s3")
-s3_client = boto3.client("s3")
-sqs_client = boto3.client("sqs")
-bucket = s3.Bucket(S3_BUCKET)
+# S3_BUCKET = "dea-public-data-dev"
+# s3 = boto3.resource("s3")
+# s3_client = boto3.client("s3")
+# sqs_client = boto3.client("sqs")
+# bucket = s3.Bucket(S3_BUCKET)
 
 # Define common options for all the commands
+# TODO: make sure all this makes sense
 message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
 algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wo'")
 uuid = click.option("--uuid", "-U", help="Uuid of the scene to be processed")
@@ -50,7 +48,7 @@ def s3_upload():
     s3ul = S3Upload(location)
     location = s3ul.location
     local = "/tmp/alchemist"
-    copy_tree(local, location)
+    # copy_tree(local, location)
     s3ul.upload_if_needed()
 
 
@@ -65,6 +63,7 @@ def cli():
     """
 
 
+## TODO: Does this work?
 @cli.command()
 @environment_option
 @click.argument("config_file")
@@ -97,22 +96,10 @@ def run_one(config_file, input_dataset, environment=None):
     dc = Datacube(env=environment)
     try:
         ds = dc.index.datasets.get(input_dataset)
+        task = alchemist.generate_task(ds)
+        execute_task(task)
     except ValueError as e:
-        _LOG.info("Couldn't find dataset with ID={} with exception {} trying by URL".format(input_dataset, e))
-        # Couldn't find a dataset by ID, try something
-        if "://" in input_dataset:
-            # Smells like a url
-            input_url = input_dataset
-        else:
-            # Treat the input as a local file path
-            input_url = Path(input_dataset).as_uri()
-
-        ds = dc.index.datasets.get_datasets_for_location(input_url)
-
-    # Currently this doesn't work by URL... TODO: fixme!
-    task = alchemist.generate_task(ds)
-    execute_task(task)
-    s3_upload()  # Upload to S3 if the location appears like an url
+        _LOG.error("Couldn't find dataset with ID={} with exception {} trying by URL".format(input_dataset, e))
 
 
 @cli.command()
@@ -143,6 +130,8 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     sum_size = 0
     count = -1
     for count, task in enumerate(tasks):
+        ## TODO: Replace 'pickled task' with a simple JSON chunk that looks like the
+        ## STAC metadata, perhaps converted, perhaps not. It could just be {'id': uuid}
         pickled_task = cloudpickle.dumps(task)
         msize = sys.getsizeof(pickled_task)
         sum_size += msize
@@ -167,69 +156,73 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
 
-@cli.command()
-@message_queue_option
-def pullfromqueue(message_queue, sqs_timeout=None):
-    """
-    Process a single task from an AWS SQS Queue
-    """
-    _LOG.info("Start pull from queue.")
-    # Set up the queue
-    sqs = boto3.resource("sqs")
-    queue = sqs.get_queue_by_name(QueueName=message_queue)
 
-    messages = queue.receive_messages(
-        VisibilityTimeout=sqs_timeout, MaxNumberOfMessages=1, MessageAttributeNames=["All"],
-    )
-    if len(messages) > 0:
-        message = messages[0]
-        pickled_task = message.message_attributes["pickled_task"]["BinaryValue"]
-        dataset_id, metadata_path = execute_pickled_task(pickled_task)
+## TODO: Delete these two functions, we don't want to work this way
+# @cli.command()
+# @message_queue_option
+# def pullfromqueue(message_queue, sqs_timeout=None):
+#     """
+#     Process a single task from an AWS SQS Queue
+#     """
+#     _LOG.info("Start pull from queue.")
+#     # Set up the queue
+#     sqs = boto3.resource("sqs")
+#     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
-        # TODO: see if we can catch failed tasts that return and don't delete the message if they failed
-        message.delete()
-        _LOG.info("SQS message deleted")
-    else:
-        _LOG.warning("No messages!")
+#     messages = queue.receive_messages(
+#         VisibilityTimeout=sqs_timeout, MaxNumberOfMessages=1, MessageAttributeNames=["All"],
+#     )
+#     if len(messages) > 0:
+#         message = messages[0]
+#         pickled_task = message.message_attributes["pickled_task"]["BinaryValue"]
+#         dataset_id, metadata_path = execute_pickled_task(pickled_task)
 
-
-# TODO: don't repeat contents of this function in the above function
-@cli.command()
-@click.option("--message_queue", "-M")
-@click.option(
-    "--sqs_timeout", "-S", type=int, help="The SQS message Visibility Timeout.", default=400,
-)
-def processqueue(message_queue, sqs_timeout=None):
-    """
-    Process all available tasks from an AWS SQS Queue
-    """
-    _LOG.info("Start pull from queue.")
-    # Set up the queue
-    sqs = boto3.resource("sqs")
-    queue = sqs.get_queue_by_name(QueueName=message_queue)
-
-    # more_mesages = True
-    # while more_mesages:
-    #     time.sleep(1)  # Todo remove once debugged
-    messages = queue.receive_messages(
-        VisibilityTimeout=int(sqs_timeout), MaxNumberOfMessages=1, MessageAttributeNames=["All"],
-    )
-    if len(messages) == 0:
-        # No messages, exit successfully
-        _LOG.info("No messages, exiting successfully")
-    else:
-        message = messages[0]
-        _LOG.info(f"Message received: {message}")
-
-        pickled_task = message.message_attributes["pickled_task"]["BinaryValue"]
-        dataset_id, metadata_path = execute_pickled_task(pickled_task)
-
-        # TODO: see if we can catch failed tasts that return and don't delete the message if they failed
-
-        message.delete()
-        _LOG.info("SQS message deleted")
+#         # TODO: see if we can catch failed tasts that return and don't delete the message if they failed
+#         message.delete()
+#         _LOG.info("SQS message deleted")
+#     else:
+#         _LOG.warning("No messages!")
 
 
+# # TODO: don't repeat contents of this function in the above function
+# @cli.command()
+# @click.option("--message_queue", "-M")
+# @click.option(
+#     "--sqs_timeout", "-S", type=int, help="The SQS message Visibility Timeout.", default=400,
+# )
+# def processqueue(message_queue, sqs_timeout=None):
+#     """
+#     Process all available tasks from an AWS SQS Queue
+#     """
+#     _LOG.info("Start pull from queue.")
+#     # Set up the queue
+#     sqs = boto3.resource("sqs")
+#     queue = sqs.get_queue_by_name(QueueName=message_queue)
+
+#     # more_mesages = True
+#     # while more_mesages:
+#     #     time.sleep(1)  # Todo remove once debugged
+#     messages = queue.receive_messages(
+#         VisibilityTimeout=int(sqs_timeout), MaxNumberOfMessages=1, MessageAttributeNames=["All"],
+#     )
+#     if len(messages) == 0:
+#         # No messages, exit successfully
+#         _LOG.info("No messages, exiting successfully")
+#     else:
+#         message = messages[0]
+#         _LOG.info(f"Message received: {message}")
+
+#         pickled_task = message.message_attributes["pickled_task"]["BinaryValue"]
+#         dataset_id, metadata_path = execute_pickled_task(pickled_task)
+
+#         # TODO: see if we can catch failed tasts that return and don't delete the message if they failed
+
+#         message.delete()
+#         _LOG.info("SQS message deleted")
+
+
+
+## TODO: Remove the need for this function
 def process_c3(uuid, algorithm):
     """
     Accepts a filepath for the metadata and prcesses the fractional cover for that
@@ -257,13 +250,16 @@ def process_c3(uuid, algorithm):
         _LOG.exception(e)
 
 
-# Helper method for one time data fix, not part of actual delivery
-def grab_uuid_from_s3_path(filepath):
-    response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
-    metadata = yaml.safe_load(response["Body"])
-    return metadata["id"]
+## TODO: KILL IT!
+# # Helper method for one time data fix, not part of actual delivery
+# def grab_uuid_from_s3_path(filepath):
+#     response = s3_client.get_object(Bucket=S3_BUCKET, Key=filepath)
+#     metadata = yaml.safe_load(response["Body"])
+#     return metadata["id"]
 
 
+
+## TODO: THIS SHOULD ALL BE DRIVEN BY CLI ARGUMENTS
 @cli.command()
 @algorithm
 def process_c3_from_queue(algorithm):
@@ -275,17 +271,23 @@ def process_c3_from_queue(algorithm):
     sqs_url = os.environ.get("SQS_URL")
     while True:
         messages = sqs_client.receive_message(QueueUrl=sqs_url, MaxNumberOfMessages=1)
+        ## TODO: THIS is not clean
         if "Messages" in messages:
 
             # Each message contain the S3 path of the metadata file
             # For each message process and delete the message from the queue.
             for message in messages["Messages"]:
                 try:
+                    ## TODO: WHAT HAPPENED HERE? WE do NOT need to go to S3 to get the UUID...
+                    ## This should have been implemented properly...
                     uuid = grab_uuid_from_s3_path(message["Body"])
                     # uuid = json.loads(json.loads(message["Body"])["Message"])["id"]
                     _LOG.info(f"Extracted uuid {uuid}")
+                    ## TODO: THIS FUNCTION SHOULD NOT EXIST
                     process_c3(uuid, algorithm)
-                    sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
+                    # sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
+                    ## TODO: pretty sure you can just do this
+                    message.delete()
                 except (JSONDecodeError, TypeError, KeyError, StopIteration):
                     _LOG.exception("Error during parsing and extracting filepaths from sqs message")
                     _LOG.info(message)
@@ -294,37 +296,42 @@ def process_c3_from_queue(algorithm):
             break
 
 
-@cli.command()
-@click.option("--suffix", "-F", help="Suffix of the files to be iterated")
-@click.option("--prefix", "-P", help="Prefix of the files to be iterated")
-@click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
-@message_queue_option
-def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
-    """
-    For a given S3 bucket
-    For a given prefix
-    For all the files in the S3 bucket that matches the prefix
-    Pushes a simple message to the given queuename
-    """
-    # Initialise S3 bucket
-    s3 = boto3.resource("s3")
-    bucket = s3.Bucket(bucket_name)
 
-    # Initialise SQS queue
-    sqs = boto3.resource("sqs")
-    queue = sqs.get_queue_by_name(QueueName=message_queue)
+## TODO: THIS IS NOT THE RIGHT WAY TO DRIVE THINGS
+## THIS SHOULD BE DONE USING THE DATACUBE
+## Something like dc.find_datasets(product='xxx')
 
-    # Iterate files that matches with suffix and prefix, and push to SQS queue
-    for object in bucket.objects.filter(Prefix=prefix):
-        if not object.key.endswith(suffix):
-            continue
+# @cli.command()
+# @click.option("--suffix", "-F", help="Suffix of the files to be iterated")
+# @click.option("--prefix", "-P", help="Prefix of the files to be iterated")
+# @click.option("--bucket_name", "-B", help="Name of the S3 Bucket")
+# @message_queue_option
+# def push_to_queue_from_s3(message_queue, bucket_name, prefix, suffix):
+#     """
+#     For a given S3 bucket
+#     For a given prefix
+#     For all the files in the S3 bucket that matches the prefix
+#     Pushes a simple message to the given queuename
+#     """
+#     # Initialise S3 bucket
+#     s3 = boto3.resource("s3")
+#     bucket = s3.Bucket(bucket_name)
 
-        # Don't push if it's already processed
-        if s3_file_exists("derivative/ga_ls_wofs_3/" + "/".join(object.key.split("/")[2:-1])):
-            continue
+#     # Initialise SQS queue
+#     sqs = boto3.resource("sqs")
+#     queue = sqs.get_queue_by_name(QueueName=message_queue)
 
-        _LOG.info(f"Sending message to queue: {object.key}")
-        queue.send_message(MessageBody=object.key)
+#     # Iterate files that matches with suffix and prefix, and push to SQS queue
+#     for object in bucket.objects.filter(Prefix=prefix):
+#         if not object.key.endswith(suffix):
+#             continue
+
+#         # Don't push if it's already processed
+#         if s3_file_exists("derivative/ga_ls_wofs_3/" + "/".join(object.key.split("/")[2:-1])):
+#             continue
+
+#         _LOG.info(f"Sending message to queue: {object.key}")
+#         queue.send_message(MessageBody=object.key)
 
 
 @cli.command()
@@ -348,14 +355,16 @@ def redrive_sqs(from_queue, to_queue):
             print("Queue is now empty")
             break
 
-@cli.command()
-@algorithm
-@uuid
-def test_single(uuid, algorithm):
-    try:
-        process_c3(uuid, algorithm)
-    except:
-        _LOG.exception("Someting went wronf in test_single(), check the traceback.")
+
+## TODO: This is lazy and hardcoded, use a Makefile
+# @cli.command()
+# @algorithm
+# @uuid
+# def test_single(uuid, algorithm):
+#     try:
+#         process_c3(uuid, algorithm)
+#     except:
+#         _LOG.exception("Someting went wronf in test_single(), check the traceback.")
 
 
 if __name__ == "__main__":

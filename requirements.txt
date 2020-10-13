@@ -1,7 +1,7 @@
-h5py==2.10.0
 --extra-index-url="https://packages.dea.ga.gov.au"
-datacube[s3,performance]
-eodatasets3
+h5py
 fc
 wofs
-odc-index
+aiobotocore==1.1.2
+botocore==1.17.44
+boto3==1.14.44

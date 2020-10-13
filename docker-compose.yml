@@ -15,7 +15,7 @@ services:
     build:
       context: .
       args:
-        - ENVIRONMENT=test
+        - ENVIRONMENT=dev
     environment:
       - DB_HOSTNAME=postgres
       - DB_USERNAME=opendatacube
@@ -26,11 +26,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
     volumes:
       - .:/code
-      - ./examples:/opt/alchemist/examples
-      - ./codependency:/opt/alchemist/codependency
-      - /tmp/alchemist:/tmp/alchemist
-      - ./fractional-cover:/fractional-cover
-    links:
+      - ./output:/tmp/alchemist
+    depends_on:
       - postgres
-    #    command: [ "datacube-alchemist", "processqueue" ]
-    command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]
+    command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 60 ; done"]

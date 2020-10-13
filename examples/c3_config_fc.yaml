@@ -1,5 +1,5 @@
 specification:
-  product: ga_ls5t_ard_3
+  products: ga_ls8c_ard_3
   measurements: ['nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2']
   measurement_renames:
     nbart_green: green
@@ -37,7 +37,7 @@ output:
   location: /tmp/alchemist
   nodata: 255
   dtype: uint8
-
+  preview_image: [bs, pv, npv]
   write_data_settings:
     overview_resampling: mode
 

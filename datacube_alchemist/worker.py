@@ -5,7 +5,6 @@
 
 import importlib
 import sys
-
 # pylint: disable=map-builtin-not-iterating
 from datetime import datetime
 from pathlib import Path
@@ -13,22 +12,23 @@ from typing import Iterable, Type
 
 import cattr
 import cloudpickle
+import datacube
 import fsspec
 import numpy as np
 import structlog
 import yaml
-
-import datacube
 from datacube.model import Dataset
 from datacube.testutils.io import native_load
 from datacube.virtual import Transformation
-from datacube_alchemist import __version__
-from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
-from datacube_alchemist.upload import S3Upload
 from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from odc.index import odc_uuid
+
+from datacube_alchemist import __version__
+from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
+from datacube_alchemist.upload import S3Upload
+
 from ._dask import dask_compute_stream
 
 _LOG = structlog.get_logger()
@@ -76,6 +76,9 @@ def execute_with_dask(client, tasks: Iterable[AlchemistTask]):
 
 def execute_task(task: AlchemistTask):
     log = _LOG.bind(task=task)
+
+    # TODO: check that the input product for the dataset matches expectations?
+
     transform = _import_transform(task.settings.specification.transform)
     transform = transform(**task.settings.specification.transform_args)
 
@@ -111,50 +114,57 @@ def execute_task(task: AlchemistTask):
         output_data.attrs["crs"] = crs
 
     # Ensure output path exists
+    # TODO: handle S3 path appropriately using tempfiles and some kind of clever upload
     output_location = Path(task.settings.output.location)
     output_location.mkdir(parents=True, exist_ok=True)
+
     uuid, _ = deterministic_uuid(task)
-    if task.settings.output.metadata.get("naming_conventions", "") == "dea_c3":
-        name = "dea_c3"
-    elif task.dataset.metadata.platform.lower().startswith("sentinel"):
-        name = "dea_s2"
-    else:
-        name = "dea"
-    with DatasetAssembler(output_location, naming_conventions=name, dataset_id=uuid) as p:
+
+    naming_conventions = task.settings.output.metadata.get('naming_conventions', None)
+    if not naming_conventions:
+        # Default to basic naming conventions
+        naming_conventions = "default"
+
+    with DatasetAssembler(output_location, naming_conventions=naming_conventions, dataset_id=uuid) as dataset_assembler:
         if task.settings.output.reference_source_dataset:
             source_doc = _munge_dataset_to_eo3(task.dataset)
-            p.add_source_dataset(
+            dataset_assembler.add_source_dataset(
                 source_doc, auto_inherit_properties=True, classifier=task.settings.specification.override_product_family
             )
 
         # Copy in metadata and properties
         for k, v in task.settings.output.metadata.items():
-            setattr(p, k, v)
+            setattr(dataset_assembler, k, v)
         for k, v in task.settings.output.properties.items():
-            p.properties[k] = v
+            dataset_assembler.properties[k] = v
 
-        p.processed = datetime.utcnow()
+        dataset_assembler.processed = datetime.utcnow()
 
-        p.note_software_version("datacube-alchemist", "https://github.com/opendatacube/datacube-alchemist", __version__)
+        dataset_assembler.note_software_version("datacube-alchemist", "https://github.com/opendatacube/datacube-alchemist", __version__)
 
         # Software Version of Transformer
         version_url = get_transform_info(task.settings.specification.transform)
-        p.note_software_version(
+        dataset_assembler.note_software_version(
             name=task.settings.specification.transform, url=version_url["url"], version=version_url["version"]
         )
 
-        # TODO Note configuration settings of this Task
-        # p.extend_user_metadata()
-
-        # TODO Check whether output already exists
-
-        p.write_measurements_odc_xarray(
+        dataset_assembler.write_measurements_odc_xarray(
             output_data, nodata=task.settings.output.nodata, **task.settings.output.write_data_settings
         )
 
+        # TODO: We need to implement a configurable lookup table for a singleband
+        # image and use this tool to write it out in the correct place:
+        # from eodatasets3.images import FileWrite
         if task.settings.output.preview_image is not None:
-            p.write_thumbnail(*task.settings.output.preview_image)
-        dataset_id, metadata_path = p.done()
+            dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
+
+        # TODO: Use from eodatasets3.scripts import tostac to convert the YAML to JSON
+        
+        # TODO: Ensure that the singleband thumbnail and the STAC metadata are
+        # captured in the sha1 file.
+
+        dataset_id, metadata_path = dataset_assembler.done()
+
 
     return dataset_id, metadata_path
 
@@ -233,7 +243,7 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
         try:
             other_tags["dataset_version"] = task.settings.output.metadata["dataset_version"]
         except KeyError:
-            _LOG.info("dataset_version not set and " "not used to generate deterministic uuid")
+            _LOG.info("dataset_version not set and not used to generate deterministic uuid")
     uuid = odc_uuid(
         algorithm=task.settings.specification.transform,
         algorithm_version=algorithm_version,
