@@ -16,6 +16,7 @@ from datacube.ui import click as ui
 
 from datacube_alchemist._dask import setup_dask_client
 from datacube_alchemist.upload import S3Upload
+from datacube_alchemist.utils import get_config
 from datacube_alchemist.worker import (
     Alchemist,
     execute_with_dask,
@@ -27,26 +28,13 @@ _LOG = structlog.get_logger()
 sqs_client = boto3.client("sqs")
 s3 = boto3.resource("s3")
 
-
 # Define common options for all the commands
-message_queue_option = click.option(
-    "--message_queue", "-M", help="Name of an AWS SQS Message Queue"
-)
+message_queue_option = click.option("--message_queue", "-M", help="Name of an AWS SQS Message Queue")
 algorithm = click.option("--algorithm", "-A", help="Algorithm, either 'fc', 'wo'")
 uuid = click.option("--uuid", "-U", help="Uuid of the scene to be processed")
-environment_option = click.option(
-    "--environment", "-E", help="Name of the Datacube environment to connect to."
-)
-sqs_timeout = click.option(
-    "--sqs_timeout",
-    "-S",
-    type=int,
-    help="The SQS message Visability Timeout.",
-    default=400,
-)
-limit_option = click.option(
-    "--limit", type=int, help="For testing, limit the number of tasks to create."
-)
+environment_option = click.option("--environment", "-E", help="Name of the Datacube environment to connect to.")
+sqs_timeout = click.option("--sqs_timeout", "-S", type=int, help="The SQS message Visability Timeout.", default=400,)
+limit_option = click.option("--limit", type=int, help="For testing, limit the number of tasks to create.")
 
 
 def s3_file_exists(bucket_name, filename):
@@ -71,7 +59,7 @@ def cli():
     """
 
 
-## TODO: Does this work?
+# TODO: Does this work?
 @cli.command()
 @environment_option
 @click.argument("config_file")
@@ -107,11 +95,7 @@ def run_one(config_file, input_dataset, environment=None):
         task = alchemist.generate_task(ds)
         execute_task(task)
     except ValueError as e:
-        _LOG.error(
-            "Couldn't find dataset with ID={} with exception {} trying by URL".format(
-                input_dataset, e
-            )
-        )
+        _LOG.error("Couldn't find dataset with ID={} with exception {} trying by URL".format(input_dataset, e))
 
 
 @cli.command()
@@ -142,8 +126,8 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
     sum_size = 0
     count = -1
     for count, task in enumerate(tasks):
-        ## TODO: Replace 'pickled task' with a simple JSON chunk that looks like the
-        ## STAC metadata, perhaps converted, perhaps not. It could just be {'id': uuid}
+        # TODO: Replace 'pickled task' with a simple JSON chunk that looks like the
+        # STAC metadata, perhaps converted, perhaps not. It could just be {'id': uuid}
         pickled_task = cloudpickle.dumps(task)
         msize = sys.getsizeof(pickled_task)
         sum_size += msize
@@ -151,33 +135,21 @@ def addtoqueue(config_file, message_queue, expressions, environment=None, limit=
 
         # The information is in the pickled_task message attribute
         # The message body is not used by the s/w
-        body = (
-            task.dataset.uris[0]
-            if task.dataset.uris is not None
-            else "location not known."
-        )
-        messages.append(
-            {"MessageBody": body, "Id": str(count), "MessageAttributes": atts}
-        )
+        body = task.dataset.uris[0] if task.dataset.uris is not None else "location not known."
+        messages.append({"MessageBody": body, "Id": str(count), "MessageAttributes": atts})
 
         # Call can't exceed 262,144 bytes.  I'm only measuring the config file size though.
         # And I'm adding messages until it's over a limit.
         # So I am conservative.
         if sum_size > 180000:
             _ = _push_messages(queue, messages)
-            _LOG.info(
-                "Pushed {} items. Total Att byte size of {}".format(count, sum_size)
-            )
+            _LOG.info("Pushed {} items. Total Att byte size of {}".format(count, sum_size))
             sum_size = 0
             messages = []
     # Push the final batch of messages
     if len(messages) >= 1:
         _ = _push_messages(queue, messages)
-    _LOG.info(
-        "Ending. Pushed {} items in {:.2f}s.".format(
-            count + 1, time.time() - start_time
-        )
-    )
+    _LOG.info("Ending. Pushed {} items in {:.2f}s.".format(count + 1, time.time() - start_time))
 
 
 # Done
@@ -203,9 +175,7 @@ def process_c3(uuid, algorithm):
             execute_task(wo.generate_task(dataset))
         else:
             _LOG.info(f"Invalid algorithm --> {uuid}. Algorithm must be either fc/wo")
-            raise RuntimeError(
-                f"Invalid algorithm --> {uuid}. Algorithm must be either fc/wo"
-            )
+            raise RuntimeError(f"Invalid algorithm --> {uuid}. Algorithm must be either fc/wo")
 
         local_location = get_config(config_file, "output.local_location")
         s3_location = get_config(config_file, "output.s3_location")
@@ -235,13 +205,9 @@ def process_c3_from_queue(algorithm):
                     uuid = json.loads(json.loads(message["Body"])["Message"])["id"]
                     _LOG.info(f"Extracted uuid {uuid}")
                     process_c3(uuid, algorithm)
-                    sqs_client.delete_message(
-                        QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"]
-                    )
+                    sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
                 except (JSONDecodeError, TypeError, KeyError, StopIteration):
-                    _LOG.exception(
-                        "Error during parsing and extracting filepaths from sqs message"
-                    )
+                    _LOG.exception("Error during parsing and extracting filepaths from sqs message")
                     _LOG.info(message)
         else:
             print("Queue is now empty")
@@ -254,22 +220,17 @@ def process_c3_from_queue(algorithm):
 @click.option("--to-queue", "-T", help="Url of SQS Queue to move to")
 def redrive_sqs(from_queue, to_queue):
     """
-    Redrives all the messages from the given sqs queue to the destination, Ideally used in reprocessing the dead letter scenario
+    Redrives all the messages from the given sqs queue to the destination,
+    Ideally used in reprocessing the dead letter scenario
     """
     while True:
-        messages = sqs_client.receive_message(
-            QueueUrl=from_queue, MaxNumberOfMessages=10
-        )
+        messages = sqs_client.receive_message(QueueUrl=from_queue, MaxNumberOfMessages=10)
         if "Messages" in messages:
             for message in messages["Messages"]:
                 print(message["Body"])
-                response = sqs_client.send_message(
-                    QueueUrl=to_queue, MessageBody=message["Body"]
-                )
+                response = sqs_client.send_message(QueueUrl=to_queue, MessageBody=message["Body"])
                 if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-                    sqs_client.delete_message(
-                        QueueUrl=from_queue, ReceiptHandle=message["ReceiptHandle"]
-                    )
+                    sqs_client.delete_message(QueueUrl=from_queue, ReceiptHandle=message["ReceiptHandle"])
                 else:
                     _LOG.info(f"Unable to send to: {message['Body']}")
         else:

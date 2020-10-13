@@ -2,6 +2,7 @@ h5py
 aiobotocore==1.1.2
 botocore==1.17.44
 boto3==1.14.44
+mock==4.0.2
 --extra-index-url="https://packages.dea.ga.gov.au"
 fc
 wofs

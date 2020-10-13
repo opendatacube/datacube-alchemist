@@ -37,21 +37,15 @@ def get_config(config_file, properties):
     else:
         p = pathlib.Path(config_file)
         if not p.is_file():
-            raise RuntimeError(
-                "config_file must be either a vaid http|https url or a valid filepath"
-            )
+            raise RuntimeError("config_file must be either a vaid http|https url or a valid filepath")
         file_content = open(config_file, "r").read()
 
     try:
         structure = yaml.safe_load(file_content)
         _LOG.info(f"Loaded configuration {structure}")
     except ScannerError:
-        _LOG.exception(
-            f"Config lookup failed for {properties} with {config_file}, Unable to proceed"
-        )
-        raise RuntimeError(
-            f"Config lookup failed for {properties} with {config_file}, Unable to proceed"
-        )
+        _LOG.exception(f"Config lookup failed for {properties} with {config_file}, Unable to proceed")
+        raise RuntimeError(f"Config lookup failed for {properties} with {config_file}, Unable to proceed")
 
     if type(properties) == str:
         properties = properties.split(".")
