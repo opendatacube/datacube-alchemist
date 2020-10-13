@@ -1,0 +1,33 @@
+name: Upon every commit to any branch, do the linting, run tests
+
+on:
+  push:
+    paths:
+      - '**'
+env:
+  IMAGE_NAME: opendatacube/datacube-alchemist
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build the docker container
+      run: |
+        docker-compose build
+
+    - name: Bring up the docker container
+      run: |
+        docker-compose up -d
+
+    - name: Run linting
+      run: |
+        docker-compose exec -T alchemist flake8
+
+    - name: Run tests
+      run: |
+        docker-compose exec -T alchemist pytest tests

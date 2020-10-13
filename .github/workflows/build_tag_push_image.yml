@@ -1,0 +1,53 @@
+name: When a pull request is merged to main, build the container, tag and push to the docker hub.
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+  release:
+    types: [created]
+
+env:
+  IMAGE_NAME: opendatacube/datacube-alchemist
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Get tag for this build if it exists
+        if: github.event_name == 'release'
+        run: |
+          echo ::set-env name=RELEASE::${GITHUB_REF/refs\/tags\/}
+          echo $RELEASE
+
+      - name: Get git commit hash for merged PR's / Push to main
+        run: |
+          git fetch --all --tags
+          echo ::set-env name=GITHASH::$(git describe --tags)
+          echo $GITHASH
+
+      - name: Build and Push semver tagged Docker Image for Release
+        uses: whoan/docker-build-with-cache-action@v4
+        if: github.event_name == 'release'
+        with:
+          image_name: ${{ env.IMAGE_NAME }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+          image_tag: ${{ env.RELEASE }}
+
+      - name: Build and Push unstable Docker Image from PR / Push to main
+        uses: whoan/docker-build-with-cache-action@v4
+        if: github.event_name != 'release'
+        with:
+          image_name: ${{ env.IMAGE_NAME }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+          image_tag: latest,${{ env.GITHASH }}
