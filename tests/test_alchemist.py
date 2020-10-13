@@ -7,7 +7,6 @@ from datacube_alchemist._dask import setup_dask_client
 from datacube_alchemist.cli import get_config
 from datacube_alchemist.worker import Alchemist, execute_with_dask
 
-
 def test_help_message(run_alchemist):
     result = run_alchemist("--help")
     print(result)
@@ -23,7 +22,6 @@ def test_help_message(run_alchemist):
 
     # Todo: Extend this test case to cover all possible commands
 
-
 @pytest.mark.skip(reason="Example doesn't exist yet")
 def test_api():
     alchemist = Alchemist(
@@ -34,7 +32,6 @@ def test_api():
 
     client = setup_dask_client(alchemist.config)
     execute_with_dask(client, tasks)
-
 
 def test_get_config():
     """
@@ -55,6 +52,7 @@ specification:
     with patch("requests.get") as mock_request:
         mock_request.return_value.status_code = 200
         mock_request.return_value.text = sample_yaml_content
+
         # Test for http based config files
         config_file = "http://fake.url/"
 
@@ -82,8 +80,9 @@ specification:
             ["specification", "transform_args", "regression_coefficients", "blue"],
         ) == [1, 2, 3]
 
-        # Test a lookup for non existing key and expect None
-        assert get_config(config_file, ["random", "lookup", "key"]) == None
+        # Test a lookup for non existing key and expect KeyError
+        with pytest.raises(KeyError):
+            get_config(config_file, ["random", "lookup", "key"])
 
     # Do all the above assertions for filebased yaml
     mock_open = mock.mock_open(read_data=sample_yaml_content)
@@ -94,10 +93,10 @@ specification:
 
             assert get_config(config_file, "hello") == "world"
             assert (
-                get_config(config_file, ["specification", "product"]) == "ga_ls8c_ard_3"
+                    get_config(config_file, ["specification", "product"]) == "ga_ls8c_ard_3"
             )
             assert (
-                get_config(config_file, ("specification", "product")) == "ga_ls8c_ard_3"
+                    get_config(config_file, ("specification", "product")) == "ga_ls8c_ard_3"
             )
             assert get_config(config_file, ["specification", "measurements"]) == [
                 "nbart_green",
@@ -110,4 +109,5 @@ specification:
                 config_file,
                 ["specification", "transform_args", "regression_coefficients", "blue"],
             ) == [1, 2, 3]
-            assert get_config(config_file, ["random", "lookup", "key"]) == None
+            with pytest.raises(KeyError):
+                get_config(config_file, ["random", "lookup", "key"])
