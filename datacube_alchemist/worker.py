@@ -5,6 +5,7 @@
 
 import importlib
 import sys
+
 # pylint: disable=map-builtin-not-iterating
 from datetime import datetime
 from pathlib import Path
@@ -28,7 +29,6 @@ from odc.index import odc_uuid
 from datacube_alchemist import __version__
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 from datacube_alchemist.upload import S3Upload
-
 from ._dask import dask_compute_stream
 
 _LOG = structlog.get_logger()
@@ -46,11 +46,15 @@ class Alchemist:
 
         # Connect to the ODC Index
         self.dc = datacube.Datacube(env=dc_env)
-        self.input_product = self.dc.index.products.get_by_name(self.config.specification.product)
+        self.input_product = self.dc.index.products.get_by_name(
+            self.config.specification.product
+        )
 
     def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
         # Find which datasets needs to be processed
-        datasets = self.dc.index.datasets.search(limit=limit, product=self.config.specification.product, **query)
+        datasets = self.dc.index.datasets.search(
+            limit=limit, product=self.config.specification.product, **query
+        )
 
         tasks = (self.generate_task(ds) for ds in datasets)
 
@@ -114,22 +118,25 @@ def execute_task(task: AlchemistTask):
         output_data.attrs["crs"] = crs
 
     # Ensure output path exists
-    # TODO: handle S3 path appropriately using tempfiles and some kind of clever upload
-    output_location = Path(task.settings.output.location)
+    output_location = Path(task.settings.output.local_location)
     output_location.mkdir(parents=True, exist_ok=True)
 
     uuid, _ = deterministic_uuid(task)
 
-    naming_conventions = task.settings.output.metadata.get('naming_conventions', None)
+    naming_conventions = task.settings.output.metadata.get("naming_conventions", None)
     if not naming_conventions:
         # Default to basic naming conventions
         naming_conventions = "default"
 
-    with DatasetAssembler(output_location, naming_conventions=naming_conventions, dataset_id=uuid) as dataset_assembler:
+    with DatasetAssembler(
+        output_location, naming_conventions=naming_conventions, dataset_id=uuid
+    ) as dataset_assembler:
         if task.settings.output.reference_source_dataset:
             source_doc = _munge_dataset_to_eo3(task.dataset)
             dataset_assembler.add_source_dataset(
-                source_doc, auto_inherit_properties=True, classifier=task.settings.specification.override_product_family
+                source_doc,
+                auto_inherit_properties=True,
+                classifier=task.settings.specification.override_product_family,
             )
 
         # Copy in metadata and properties
@@ -140,16 +147,24 @@ def execute_task(task: AlchemistTask):
 
         dataset_assembler.processed = datetime.utcnow()
 
-        dataset_assembler.note_software_version("datacube-alchemist", "https://github.com/opendatacube/datacube-alchemist", __version__)
+        dataset_assembler.note_software_version(
+            "datacube-alchemist",
+            "https://github.com/opendatacube/datacube-alchemist",
+            __version__,
+        )
 
         # Software Version of Transformer
         version_url = get_transform_info(task.settings.specification.transform)
         dataset_assembler.note_software_version(
-            name=task.settings.specification.transform, url=version_url["url"], version=version_url["version"]
+            name=task.settings.specification.transform,
+            url=version_url["url"],
+            version=version_url["version"],
         )
 
         dataset_assembler.write_measurements_odc_xarray(
-            output_data, nodata=task.settings.output.nodata, **task.settings.output.write_data_settings
+            output_data,
+            nodata=task.settings.output.nodata,
+            **task.settings.output.write_data_settings
         )
 
         # TODO: We need to implement a configurable lookup table for a singleband
@@ -159,12 +174,11 @@ def execute_task(task: AlchemistTask):
             dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
 
         # TODO: Use from eodatasets3.scripts import tostac to convert the YAML to JSON
-        
+
         # TODO: Ensure that the singleband thumbnail and the STAC metadata are
         # captured in the sha1 file.
 
         dataset_id, metadata_path = dataset_assembler.done()
-
 
     return dataset_id, metadata_path
 
@@ -183,7 +197,9 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
     product = ProductDoc(name=ds.type.name)
     # Wrap properties to avoid typos and the like
     properties = StacPropertyView(ds.metadata_doc.get("properties", {}))
-    return DatasetDoc(id=ds.id, product=product, crs=ds.crs.crs_str, properties=properties)
+    return DatasetDoc(
+        id=ds.id, product=product, crs=ds.crs.crs_str, properties=properties
+    )
 
 
 def convert_eo_plus(ds) -> DatasetDoc:
@@ -194,12 +210,16 @@ def convert_eo_plus(ds) -> DatasetDoc:
             "datetime": ds.center_time,
             "eo:instrument": ds.metadata.instrument,
             "eo:platform": ds.metadata.platform,
-            "landsat:landsat_scene_id": ds.metadata_doc.get("tile_id", "??"),  # Used to find abbreviated instrument id
+            "landsat:landsat_scene_id": ds.metadata_doc.get(
+                "tile_id", "??"
+            ),  # Used to find abbreviated instrument id
             "sentinel:sentinel_tile_id": ds.metadata_doc.get("tile_id", "??"),
         }
     )
     product = ProductDoc(name=ds.type.name)
-    return DatasetDoc(id=ds.id, product=product, crs=ds.crs.crs_str, properties=properties)
+    return DatasetDoc(
+        id=ds.id, product=product, crs=ds.crs.crs_str, properties=properties
+    )
 
 
 def convert_eo(ds) -> DatasetDoc:
@@ -214,7 +234,9 @@ def convert_eo(ds) -> DatasetDoc:
         }
     )
     product = ProductDoc(name=ds.type.name)
-    return DatasetDoc(id=ds.id, product=product, crs=ds.crs.crs_str, properties=properties)
+    return DatasetDoc(
+        id=ds.id, product=product, crs=ds.crs.crs_str, properties=properties
+    )
 
 
 def _import_transform(transform_name: str) -> Type[Transformation]:
@@ -241,9 +263,13 @@ def deterministic_uuid(task, algorithm_version=None, **other_tags):
         algorithm_version = transform_info["version_major_minor"]
     if "dataset_version" not in other_tags:
         try:
-            other_tags["dataset_version"] = task.settings.output.metadata["dataset_version"]
+            other_tags["dataset_version"] = task.settings.output.metadata[
+                "dataset_version"
+            ]
         except KeyError:
-            _LOG.info("dataset_version not set and not used to generate deterministic uuid")
+            _LOG.info(
+                "dataset_version not set and not used to generate deterministic uuid"
+            )
     uuid = odc_uuid(
         algorithm=task.settings.specification.transform,
         algorithm_version=algorithm_version,
@@ -272,5 +298,7 @@ def get_transform_info(transform):
         version = base_module.__version__
         version_major_minor = ".".join(version.split(".")[0:2])
     except (AttributeError, ModuleNotFoundError):
-        _LOG.info("algorithm_version not set and " "not used to generate deterministic uuid")
+        _LOG.info(
+            "algorithm_version not set and " "not used to generate deterministic uuid"
+        )
     return {"version": version, "version_major_minor": version_major_minor, "url": ""}

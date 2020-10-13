@@ -16,10 +16,12 @@ def _convert_write_data_settings(settings):
 
 @attr.s(auto_attribs=True)
 class OutputSettings:
-    location: str
+    local_location: str
     dtype: np.dtype
     nodata: int  # type depends on dtype
-    write_data_settings: Optional[Mapping[str, str]] = attr.ib(converter=_convert_write_data_settings)
+    write_data_settings: Optional[Mapping[str, str]] = attr.ib(
+        converter=_convert_write_data_settings
+    )
     preview_image: Optional[List[str]] = None
     metadata: Optional[Mapping[str, str]] = None
     properties: Optional[Mapping[str, str]] = None

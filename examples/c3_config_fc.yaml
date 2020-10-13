@@ -34,7 +34,8 @@ specification:
         - 1.02551
 
 output:
-  location: /tmp/alchemist
+  local_location: /tmp/alchemist
+  s3_location: s3://dea-public-data-dev/derivative
   nodata: 255
   dtype: uint8
   preview_image: [bs, pv, npv]
