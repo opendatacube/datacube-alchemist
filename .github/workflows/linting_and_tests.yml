@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - '**'
-env:
-  IMAGE_NAME: opendatacube/datacube-alchemist
 
 jobs:
   main:
@@ -16,11 +14,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Build the docker container
-      run: |
-        docker-compose build
-
-    - name: Bring up the docker container
+    - name: Build & Bring up the docker container
       run: |
         docker-compose up -d
 

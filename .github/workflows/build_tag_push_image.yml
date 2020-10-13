@@ -9,8 +9,11 @@ on:
   release:
     types: [created]
 
-env:
-  IMAGE_NAME: opendatacube/datacube-alchemist
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
 
 jobs:
   push:
@@ -38,7 +41,7 @@ jobs:
         uses: whoan/docker-build-with-cache-action@v4
         if: github.event_name == 'release'
         with:
-          image_name: ${{ env.IMAGE_NAME }}
+          image_name: opendatacube/datacube-alchemist
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
           image_tag: ${{ env.RELEASE }}
@@ -47,7 +50,7 @@ jobs:
         uses: whoan/docker-build-with-cache-action@v4
         if: github.event_name != 'release'
         with:
-          image_name: ${{ env.IMAGE_NAME }}
+          image_name: opendatacube/datacube-alchemist
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
           image_tag: latest,${{ env.GITHASH }}
