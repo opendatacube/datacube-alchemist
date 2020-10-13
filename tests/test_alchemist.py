@@ -16,16 +16,14 @@ def test_help_message(run_alchemist):
     result = run_alchemist("addtoqueue", "--help")
     print(result)
 
-    result = run_alchemist("pullfromqueue", "--help")
-    print(result)
-
-    result = run_alchemist("processqueue", "--help")
-    print(result)
+    # Todo: Extend this test case to cover all possible commands
 
 
 @pytest.mark.skip(reason="Example doesn't exist yet")
 def test_api():
-    alchemist = Alchemist(config_file="test_config_file.yaml", dc_env="test_environment")
+    alchemist = Alchemist(
+        config_file="test_config_file.yaml", dc_env="test_environment"
+    )
 
     tasks = alchemist.generate_tasks([], limit=3)
 
