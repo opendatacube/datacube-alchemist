@@ -8,25 +8,25 @@ services:
       - POSTGRES_PASSWORD=opendatacubepassword
       - POSTGRES_USER=opendatacube
     ports:
-      - 5432:5432
+      - 5432
     restart: always
 
   alchemist:
     build:
       context: .
       args:
-        - ENVIRONMENT=test
+        - ENVIRONMENT=dev
     environment:
       - DB_HOSTNAME=postgres
       - DB_USERNAME=opendatacube
       - DB_PASSWORD=opendatacubepassword
       - DB_DATABASE=opendatacube
-      # - AWS_NO_SIGN_REQUEST=true
+      - AWS_DEFAULT_REGION=ap-southeast-2
       - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
     volumes:
       - .:/code
-      - ./examples:/opt/alchemist/examples
-      - ./codependency:/opt/alchemist/codependency
-      - /tmp/alchemist:/tmp/alchemist
-    command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 5 ; done"]
+      - ./output:/tmp/alchemist
+    depends_on:
+      - postgres
+    command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 60 ; done"]
