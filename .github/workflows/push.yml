@@ -1,14 +1,12 @@
-name: Lint, Test Code and Push Image
+name: Alchemist
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
-
-  push:
     paths:
-      - '**'
+      - 'datacube_alchrmist/**'
+      - '.github/workflows/push.yml'
 
   release:
     types: [created]
@@ -17,7 +15,7 @@ env:
   IMAGE_NAME: opendatacube/datacube-alchemist
 
 jobs:
-  main:
+  push:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,33 +23,15 @@ jobs:
       with:
         fetch-depth: 0
 
-#    - name: Build the docker container
-#      run: |
-#        docker-compose build
-#
-#    - name: Bring up the docker container
-#      run: |
-#        docker-compose up -d
-#
-#    - name: Run linting
-#      run: |
-#        docker-compose exec -T alchemist flake8
-#
-#    - name: Run tests
-#      run: |
-#        docker-compose exec -T alchemist pytest tests
-
     - name: Get tag for this build if it exists
       if: github.event_name == 'release'
       run: |
-        echo ::set-env name=RELEASE::${GITHUB_REF/refs\/tags\/}
-        echo $RELEASE
+        echo "RELEASE=${GITHUB_REF/refs\/tags\/}" >> $GITHUB_ENV
 
     - name: Get git commit hash for merged PR's / Push to master
       run: |
         git fetch --all --tags
-        echo ::set-env name=GITHASH::$(git describe --tags)
-        echo $GITHASH
+        echo "RELEASE=$(git describe --tags)" >> $GITHUB_ENV
 
     - name: Build and Push semver tagged Docker Image for Release
       uses: whoan/docker-build-with-cache-action@v4
