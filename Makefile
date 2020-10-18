@@ -58,20 +58,30 @@ index:
 # LS7 example: b03ab26f-dcb3-408f-9f78-f4bf4b84cb4b
 # LS5 example: 76223191-e942-4e26-b116-8c072e87d843
 
+THREE_SCENES=7b9553d4-3367-43fe-8e6f-b45999c5ada6 b03ab26f-dcb3-408f-9f78-f4bf4b84cb4b 76223191-e942-4e26-b116-8c072e87d843
+
 wofs-one:
 	docker-compose exec alchemist \
-		datacube-alchemist run-one ./examples/c3_config_wo.yaml 7b9553d4-3367-43fe-8e6f-b45999c5ada6
+		datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml --uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6
 
+wofs-many:
+	docker-compose exec alchemist \
+		datacube-alchemist run-many --config-file ./examples/c3_config_wo.yaml --limit=2 \
+		time in 2020-01
 
 fc-one:
 	docker-compose exec alchemist \
-		datacube-alchemist run-one ./examples/c3_config_fc.yaml 7b9553d4-3367-43fe-8e6f-b45999c5ada6
+		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml --uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6
 
 wofs-one-of-each:
-	echo "go"
+	docker-compose exec alchemist \
+		bash -c \
+			"echo '${THREE_SCENES}' | xargs -n1 datacube-alchemist run-one ./examples/c3_config_wo.yaml"
 
 fc-one-of-each:
-	echo "go"
+	docker-compose exec alchemist \
+		bash -c \
+			"echo '${THREE_SCENES}' | xargs -n1 datacube-alchemist run-one ./examples/c3_config_fc.yaml"
 
 c3-populate-queue-from-ard:
 	docker-compose exec alchemist \

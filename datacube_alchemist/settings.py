@@ -28,9 +28,10 @@ class OutputSettings:
 
 @attr.s(auto_attribs=True)
 class Specification:
-    product: str
     measurements: Sequence[str]
     transform: str
+    product: Optional[str] = None
+    products: Optional[Sequence[str]] = None
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
     override_product_family: Optional[str] = attr.ib(default=None)
