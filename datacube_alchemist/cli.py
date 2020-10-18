@@ -2,7 +2,7 @@
 
 import time
 
-from odc.aws.queue import get_messages
+# from odc.aws.queue import get_messages
 
 import boto3
 import click
@@ -30,12 +30,31 @@ sqs_timeout = click.option(
     default=600,
 )
 limit_option = click.option(
-    "--limit", type=int, help="For testing, limit the number of tasks to create."
+    "--limit", type=int, help="For testing, limit the number of tasks to create or process."
 )
 config_file_option = click.option(
-    "--config", '-c',
+    "--config-file", '-c',
     help="The path (URI or file) to a config file to use for the job"
 )
+
+
+# TODO: replace with odc tools function when it's merged
+def get_messages(queue, limit):
+    count = 0
+    while True:
+        messages = queue.receive_messages(
+            VisibilityTimeout=60,
+            MaxNumberOfMessages=1,
+            WaitTimeSeconds=10,
+            MessageAttributeNames=["All"],
+        )
+
+        if len(messages) == 0 or (limit and count >= limit):
+            break
+        else:
+            for message in messages:
+                count += 1
+                yield message 
 
 
 def cli_with_envvar_handling():
@@ -45,8 +64,23 @@ def cli_with_envvar_handling():
 @click.group(context_settings=dict(max_content_width=120))
 def cli():
     """
-    Transform Datasets from the Open Data Cube into a new type of Dataset for the Open Data Cube
+    Transform Datasets from the Open Data Cube into a new type of Dataset
     """
+
+
+@cli.command()
+@config_file_option
+@uuid_option
+def run_one(config_file, uuid):
+    """
+    Run with the config file for one input_dataset (by UUID)
+    """
+    alchemist = Alchemist(config_file=config_file)
+    task = alchemist.generate_task_by_uuid(uuid)
+    if task:
+        execute_task(task)
+    else:
+        _LOG.error(f"Failed to generate a task for UUID {uuid}")
 
 
 @cli.command()
@@ -62,26 +96,11 @@ def run_many(config_file, expressions, limit=None):
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
 
-    for task in tasks:
-        execute_task(task)
-
-
-@cli.command()
-@config_file_option
-@uuid_option
-def run_one(config_file, input_dataset):
-    """
-    Run with the config file for one input_dataset (by UUID)
-    """
-    alchemist = Alchemist(config_file=config_file)
-
-    dc = Datacube()
-    try:
-        ds = dc.index.datasets.get(input_dataset)
-        task = alchemist.generate_task(ds)
-        execute_task(task)
-    except ValueError as e:
-        _LOG.error(f"Couldn't find dataset with ID={input_dataset} with exception{e}")
+    if len(tasks) > 0:
+        for task in tasks:
+            execute_task(task)
+    else:
+        _LOG.error(f"Failed to generate any tasks")
 
 
 @cli.command()
@@ -141,7 +160,7 @@ def addtoqueue(config_file, queue, expressions, limit=None):
 @queue_option
 def process_from_queue(config_file, queue):
     """
-    Process messages from the given sqs url
+    Process messages from the given queue
     Currently it processes for all the given filepaths it calculates FC & WO
     """
     _LOG.info("Start pull from queue.")
@@ -162,8 +181,8 @@ def redrive_sqs(from_queue, to_queue):
     Redrives all the messages from the given sqs queue to the destination
     """
 
-    dead_queue = 'some-queue'
-    alive_queue = "some-queue"
+    dead_queue = from_queue
+    alive_queue = to_queue
 
     messages = get_messages(dead_queue)
 
