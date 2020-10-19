@@ -473,7 +473,7 @@ class Alchemist:
                         log.warning("PRETENDING to sync files to S3", s3_location=s3_destination)
                     else:
                         log.info(f"Syncing files to {s3_location}")
-                    
+
                     log.info("S3 command: ", command=s3_command)
                     subprocess.run(' '.join(s3_command), shell=True, check=True)
                 else:
