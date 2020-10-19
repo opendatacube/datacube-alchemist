@@ -92,7 +92,7 @@ def run_many(config_file, expressions, limit=None):
         for task in tasks:
             alchemist.execute_task(task)
     else:
-        _LOG.error(f"Failed to generate any tasks")
+        _LOG.error("Failed to generate any tasks")
 
 
 @cli.command()

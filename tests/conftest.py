@@ -1,6 +1,8 @@
 import pytest
 from click.testing import CliRunner
 
+from datacube_alchemist.settings import AlchemistTask
+from pathlib import Path
 import datacube_alchemist.cli
 
 
@@ -21,3 +23,8 @@ def run_alchemist():
         return result
 
     return _run_cli
+
+
+@pytest.fixture
+def config_file():
+    return Path(__file__).absolute().parent.parent / 'examples/c3_config_wo.yaml'

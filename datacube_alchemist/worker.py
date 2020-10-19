@@ -1,12 +1,14 @@
 import importlib
 import json
+import shutil
 import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Type
 
-import shutil
+# TODO: replace with odc tools function when it's merged
+import boto3
 
 import cattr
 import datacube
@@ -21,10 +23,9 @@ from eodatasets3 import serialise
 from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.images import FileWrite
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
+from eodatasets3.verify import PackageChecksum
 from odc.aws import s3_url_parse
 from odc.index import odc_uuid
-
-from eodatasets3.verify import PackageChecksum
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import _munge_dataset_to_eo3
@@ -33,10 +34,6 @@ from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 _LOG = structlog.get_logger()
 
 cattr.register_structure_hook(np.dtype, np.dtype)
-
-
-# TODO: replace with odc tools function when it's merged
-import boto3
 
 
 def get_queue(queue_name):
@@ -476,21 +473,21 @@ class Alchemist:
                     log.info("S3 command: ", command=s3_command)
                     if dryrun:
                         s3_command.append('--dryrun')
-                        log.info(f"Pretending to sync files to S3", s3_location=s3_destination)
+                        log.warning("PRETENDING to sync files to S3", s3_location=s3_destination)
                     else:
                         log.info(f"Syncing files to {s3_location}")
                     subprocess.run(' '.join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
                     if not dryrun:
-                        log.info(f"Writing files to disk", location=dest_directory)
+                        log.info("Writing files to disk", location=dest_directory)
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
                         shutil.copytree(
                             dataset_assembler._dataset_location, dest_directory
                         )
                     else:
-                        log.info(f"Would have moved {temp_dir} to {dest_directory}")
+                        log.warning(f"NOT moving data from {temp_dir} to {dest_directory}")
                 log.info("Task complete")
 
         return dataset_id, metadata_path
