@@ -7,7 +7,7 @@ services:
       - POSTGRES_DB=opendatacube
       - POSTGRES_PASSWORD=opendatacubepassword
       - POSTGRES_USER=opendatacube
-    ports:
+    expose:
       - 5432
     restart: always
 

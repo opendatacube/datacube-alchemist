@@ -21,9 +21,13 @@ class OutputSettings:
     nodata: int  # type depends on dtype
     write_data_settings: Optional[Mapping[str, str]] = attr.ib(converter=_convert_write_data_settings)
     preview_image: Optional[List[str]] = None
+    preview_image_lookuptable_band: Optional[str] = None
+    preview_image_lookuptable: Optional[Mapping[int, Any]] = None
     metadata: Optional[Mapping[str, str]] = None
     properties: Optional[Mapping[str, str]] = None
     reference_source_dataset: bool = attr.ib(default=True)
+    write_stac: Optional[bool] = False
+    explorer_url: Optional[str] = None
 
 
 @attr.s(auto_attribs=True)
@@ -34,6 +38,7 @@ class Specification:
     products: Optional[Sequence[str]] = None
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
+    transform_args_per_product: Mapping[str, Any] = None
     override_product_family: Optional[str] = attr.ib(default=None)
     basis: Optional[str] = attr.ib(default=None)
 

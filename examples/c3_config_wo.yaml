@@ -12,19 +12,31 @@ specification:
 
   transform_args:
     # This works for local dev without credentials
-    dsm_path:  'https://dea-public-data.s3-ap-southeast-2.amazonaws.com/projects/elevation/ga_srtm_dem1sv1_0/dem1sv1_0.tif'
-    # dsm_path:  's3://dea-non-public-data/dsm/dsm1sv1_0_Clean.tiff'
+    # dsm_path:  'https://dea-public-data.s3-ap-southeast-2.amazonaws.com/projects/elevation/ga_srtm_dem1sv1_0/dem1sv1_0.tif'
+    dsm_path:  's3://dea-non-public-data/dsm/dsm1sv1_0_Clean.tiff'
 
 output:
-  location: /tmp/alchemist
+  location: s3://dea-public-data-dev/alchemist/alex-2020-10-19/
+  # location: /tmp/alchemist
   nodata: 1
   dtype: uint8
-
+  explorer_url: https://explorer.dev.dea.ga.gov.au
+  preview_image_lookuptable_band: water
+  preview_image_lookuptable: 
+    '0': [150, 150, 110]   # dry
+    '1': [255, 255, 255]   # nodata,
+    '16': [119, 104, 87]   # terrain
+    '32': [89, 88, 86]     # cloud_shadow
+    '64': [216, 215, 214]  # cloud
+    '80': [242, 220, 180]  # cloudy terrain
+    '128': [79, 129, 189]   # water
+    '160': [51, 82, 119]   # shady water
+    '192': [186, 211, 242] # cloudy water
   write_data_settings:
     overview_resampling: mode
+  write_stac: True
 
   metadata:
-    product_family: wo
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3

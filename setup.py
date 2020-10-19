@@ -8,7 +8,6 @@ dev_requirements = [
     "pytest-cov",
     "odc-apps-cloud",
     "odc-apps-dc-tools",
-    "datacube-index @ git+https://github.com/opendatacube/datacube-index.git",
 ]
 
 setup(
@@ -45,7 +44,10 @@ setup(
         "s3fs",
         "jsonschema>=3",
         "requests",
-        "odc-index"
+        "odc-aws",
+        "odc-index",
+        "h5py",
+        "awscli"
     ],
     extras_require={"dev": dev_requirements},
     use_scm_version=True,
