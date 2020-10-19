@@ -37,6 +37,7 @@ output:
   write_stac: True
 
   metadata:
+    product_family: wo
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3

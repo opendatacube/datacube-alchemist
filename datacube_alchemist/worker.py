@@ -262,10 +262,7 @@ class Alchemist:
         # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
         # Need a new checksummer because EODatasets is insane
         checksummer = PackageChecksum()
-        checksum_file_name = str(dataset_assembler._accessories["checksum:sha1"])
-        checksum_file = dataset_assembler._dataset_location / checksum_file_name.lstrip(
-            str(dataset_assembler._work_path)
-        )
+        checksum_file = dataset_assembler._dataset_location / dataset_assembler._accessories["checksum:sha1"].name
         checksummer.read(checksum_file)
         checksummer.add_file(stac_path)
         checksummer.write(checksum_file)
@@ -470,12 +467,14 @@ class Alchemist:
                         str(dataset_assembler._dataset_location),
                         s3_location,
                     ]
-                    log.info("S3 command: ", command=s3_command)
+
                     if dryrun:
                         s3_command.append('--dryrun')
                         log.warning("PRETENDING to sync files to S3", s3_location=s3_destination)
                     else:
                         log.info(f"Syncing files to {s3_location}")
+                    
+                    log.info("S3 command: ", command=s3_command)
                     subprocess.run(' '.join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
@@ -488,6 +487,7 @@ class Alchemist:
                         )
                     else:
                         log.warning(f"NOT moving data from {temp_dir} to {dest_directory}")
+
                 log.info("Task complete")
 
         return dataset_id, metadata_path

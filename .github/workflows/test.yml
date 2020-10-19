@@ -34,3 +34,7 @@ jobs:
     - name: Run tests
       run: |
         docker-compose exec -T alchemist pytest tests
+
+    - name: Integration tests
+      run: |
+        docker-compose exec -T alchrmist bash ./tests/integration_tests.sh

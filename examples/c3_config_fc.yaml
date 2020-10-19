@@ -46,6 +46,7 @@ output:
   write_stac: True
 
   metadata:
+    product_family: fc
     producer: ga.gov.au
     dataset_version: 2.5.0
     collection_number: 3
