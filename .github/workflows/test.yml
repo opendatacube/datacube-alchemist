@@ -25,6 +25,7 @@ jobs:
     - name: Bring up the docker container
       run: |
         docker-compose up -d
+        docker-compose exec -T alchemist datacube system init
 
     - name: Run linting
       run: |
