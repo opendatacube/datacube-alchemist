@@ -38,4 +38,4 @@ jobs:
 
     - name: Integration tests
       run: |
-        docker-compose exec -T alchrmist bash ./tests/integration_tests.sh
+        docker-compose exec -T alchemist bash ./tests/integration_tests.sh
