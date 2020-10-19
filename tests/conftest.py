@@ -1,7 +1,6 @@
 import pytest
 from click.testing import CliRunner
 
-from datacube_alchemist.settings import AlchemistTask
 from pathlib import Path
 import datacube_alchemist.cli
 
