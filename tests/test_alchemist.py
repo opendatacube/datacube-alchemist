@@ -13,13 +13,13 @@ def test_help_message(run_alchemist):
     result = run_alchemist("run-many", "--help")
     print(result)
 
-    result = run_alchemist("addtoqueue", "--help")
+    result = run_alchemist("add-to-queue", "--help")
     print(result)
 
-    result = run_alchemist("pullfromqueue", "--help")
+    result = run_alchemist("run-from-quueue", "--help")
     print(result)
 
-    result = run_alchemist("processqueue", "--help")
+    result = run_alchemist("redrive-to-queue", "--help")
     print(result)
 
 
