@@ -46,6 +46,7 @@ setup(
         "odc-aws",
         "odc-index",
         "awscli",
+        "h5py",  # Needed for eodatasets3 (confirm fixed before removing)
     ],
     extras_require={"dev": dev_requirements},
     use_scm_version=True,
