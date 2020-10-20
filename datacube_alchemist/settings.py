@@ -19,7 +19,9 @@ class OutputSettings:
     location: str
     dtype: np.dtype
     nodata: int  # type depends on dtype
-    write_data_settings: Optional[Mapping[str, str]] = attr.ib(converter=_convert_write_data_settings)
+    write_data_settings: Optional[Mapping[str, str]] = attr.ib(
+        converter=_convert_write_data_settings
+    )
     preview_image: Optional[List[str]] = None
     preview_image_lookuptable_band: Optional[str] = None
     preview_image_lookuptable: Optional[Mapping[int, Any]] = None

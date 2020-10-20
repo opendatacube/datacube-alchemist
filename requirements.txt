@@ -1,6 +1,8 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
-fc
-wofs
 aiobotocore[awscli]==1.1.2
-botocore==1.17.44
 boto3==1.14.44
+botocore==1.17.44
+fc
+odc-aws
+odc-index
+wofs

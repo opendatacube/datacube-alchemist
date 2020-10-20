@@ -21,8 +21,8 @@ def _randomize(prefix):
 
 
 def seq_to_bags(its: Iterable[Any], chunk_sz: int, name: str = "data"):
-    """ Take a stream of data items and return a stream of dask.bag.Bag
-        each bag (except last) containing ``chunk_sz`` elements in 1 partition.
+    """Take a stream of data items and return a stream of dask.bag.Bag
+    each bag (except last) containing ``chunk_sz`` elements in 1 partition.
     """
     for chunk in toolz.partition_all(chunk_sz, its):
         prefix = _randomize(name)
@@ -31,9 +31,14 @@ def seq_to_bags(its: Iterable[Any], chunk_sz: int, name: str = "data"):
 
 
 def dask_compute_stream(
-    client: Client, func: Any, its: Iterable[Any], lump: int = 10, max_in_flight: int = 1000, name: str = "compute"
+    client: Client,
+    func: Any,
+    its: Iterable[Any],
+    lump: int = 10,
+    max_in_flight: int = 1000,
+    name: str = "compute",
 ) -> Iterable[Any]:
-    """ Parallel map with back pressure.
+    """Parallel map with back pressure.
     Equivalent to this:
        (func(x) for x in its)
     Except that ``func(x)`` runs concurrently on dask cluster.
@@ -61,7 +66,12 @@ def dask_compute_stream(
         for i, x in enumerate(toolz.partition_all(lump, its)):
             key = name + str(i)
             data_key = data_name + str(i)
-            task = client.get({key: (lump_proc, data_key), data_key: x}, key, priority=priority - i, sync=False)
+            task = client.get(
+                {key: (lump_proc, data_key), data_key: x},
+                key,
+                priority=priority - i,
+                sync=False,
+            )
             q.put(task)  # maybe blocking
 
         q.put(None)  # EOS marker

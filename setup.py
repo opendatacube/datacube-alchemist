@@ -36,7 +36,6 @@ setup(
         "attrs>=18.1",
         "cattrs",
         "structlog",
-        "cloudpickle",
         "boto3",
         "dask>=2",
         "distributed",
@@ -46,8 +45,8 @@ setup(
         "requests",
         "odc-aws",
         "odc-index",
-        "h5py",
-        "awscli"
+        "awscli",
+        "h5py",  # Needed for eodatasets3 (confirm fixed before removing)
     ],
     extras_require={"dev": dev_requirements},
     use_scm_version=True,

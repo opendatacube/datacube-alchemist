@@ -1,3 +1,4 @@
+import sys
 import time
 
 import click
@@ -13,16 +14,13 @@ _LOG = structlog.get_logger()
 # Define common options for all the commands
 queue_option = click.option("--queue", "-q", help="Name of an AWS SQS Message Queue")
 uuid_option = click.option(
-    "--uuid",
-    "-u",
-    required=True,
-    help="UUID of the scene to be processed"
+    "--uuid", "-u", required=True, help="UUID of the scene to be processed"
 )
 queue_timeout = click.option(
     "--queue-timeout",
     "-s",
     type=int,
-    help="The SQS message Visability Timeout, default is 10 minutes.",
+    help="The SQS message Visibility Timeout, default is 10 minutes.",
     default=600,
 )
 limit_option = click.option(
@@ -79,6 +77,7 @@ def run_one(config_file, uuid, dryrun):
         alchemist.execute_task(task, dryrun)
     else:
         _LOG.error(f"Failed to generate a task for UUID {uuid}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -95,11 +94,15 @@ def run_many(config_file, expressions, limit, dryrun):
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
 
-    if len(tasks) > 0:
-        for task in tasks:
-            alchemist.execute_task(task, dryrun)
-    else:
+    executed = 0
+
+    for task in tasks:
+        alchemist.execute_task(task, dryrun)
+        executed += 1
+
+    if executed == 0:
         _LOG.error("Failed to generate any tasks")
+        sys.exit(1)
 
 
 @cli.command()
@@ -133,15 +136,24 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
     """
     alchemist = Alchemist(config_file=config_file)
 
-    tasks = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
+    tasks_and_messages = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
 
-    for task in tasks:
+    errors = 0
+
+    for task, message in tasks_and_messages:
         try:
             alchemist.execute_task(task, dryrun)
+            message.delete()
+
         except Exception as e:
+            errors += 1
             _LOG.error(
                 f"Failed to run transform {alchemist.transform_name} on dataset {task.dataset.id} with error {e}"
             )
+
+    if errors > 0:
+        _LOG.error(f"There were {errors} tasks that failed to execute.")
+        sys.exit(errors)
 
 
 @cli.command()
