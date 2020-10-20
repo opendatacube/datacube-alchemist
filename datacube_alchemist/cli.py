@@ -140,7 +140,7 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
 
     errors = 0
 
-    for task, message in tasks_and_message:
+    for task, message in tasks_and_messages:
         try:
             alchemist.execute_task(task, dryrun)
             message.delete()
