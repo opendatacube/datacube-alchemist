@@ -130,7 +130,7 @@ class Alchemist:
                 # Dataset is in the wrong product
                 dataset = None
                 _LOG.error(
-                    f"Dataset {uuid} is not one of {', '.join([key for key in self.input_products.keys()])}"
+                    f"Dataset {uuid} is not one of {', '.join(key for key in self.input_products.keys())}"
                 )
         else:
             # Dataset doesn't exist
