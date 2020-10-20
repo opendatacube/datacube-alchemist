@@ -73,7 +73,7 @@ class Alchemist:
         return imported_class
 
     def _transform_with_args(self, task: AlchemistTask) -> Transformation:
-        transform_args = {}
+        transform_args = None
         if task.settings.specification.transform_args:
             transform_args = task.settings.specification.transform_args
         elif task.settings.specification.transform_args_per_product:
@@ -81,8 +81,10 @@ class Alchemist:
             transform_args = task.settings.specification.transform_args_per_product.get(
                 task.dataset.type.name
             )
-
-        return self._transform(**transform_args)
+        if transform_args is not None:
+            return self._transform(**transform_args)
+        else:
+            return self._transform()
 
     def _find_dataset(self, uuid: str) -> Dataset:
         # Find a dataset for a given UUID from within the available
