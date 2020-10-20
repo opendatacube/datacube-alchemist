@@ -2,6 +2,9 @@
 # Bail on the first error
 set -ex
 
+# Init the DB
+datacube system init
+
 # Add product definitions
 # Custom metadata
 datacube metadata add https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/eo3_landsat_ard.odc-type.yaml
@@ -21,8 +24,8 @@ s3-to-dc "s3://dea-public-data/baseline/ga_ls8c_ard_3/094/084/2020/09/09/*.json"
 # Run sample wofs and fc on each of the three scenes
 TEST_SCENES='642e14bd-9ebb-48f0-ac6c-543aebc538c8 7e96b76a-6b02-4427-9a1d-3c9104f2db96 3b671f51-eaa0-49dc-b4f0-311c96862666'
 
-echo ${TEST_SCENES} | xargs -n1 datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml --dryrun --uuid
-echo ${TEST_SCENES} | xargs -n1 datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml --dryrun --uuid
+echo ${TEST_SCENES} | AWS_NO_SIGN_REQUEST=YES xargs -n1 datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml --dryrun --uuid
+echo ${TEST_SCENES} | AWS_NO_SIGN_REQUEST=YES xargs -n1 datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml --dryrun --uuid
 
 # Index and test loading data from both? This needs a way to
 # run decimated process, so it's fast, and that doesn't delete
