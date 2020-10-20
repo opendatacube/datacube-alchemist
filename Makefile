@@ -39,9 +39,11 @@ lint:
 	${DOCKER_COMMAND} exec alchemist flake8
 
 integration-test:
+	# Careful, this will drop your postgres
 	docker-compose build
 	docker-compose up -d
 	docker-compose exec -T alchemist bash ./tests/integration_tests.sh
+	docker-compose down
 
 # C3 Related
 initdb:
