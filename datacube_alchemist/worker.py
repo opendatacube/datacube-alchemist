@@ -125,10 +125,17 @@ class Alchemist:
     def _find_dataset(self, uuid: str) -> Dataset:
         # Find a dataset for a given UUID from within the available
         dataset = self.dc.index.datasets.get(uuid)
-        if dataset.type in self.input_products:
-            return dataset
+        if dataset is not None:
+            if dataset.type not in self.input_products:
+                # Dataset is in the wrong product
+                dataset = None
+                _LOG.error(
+                    f"Dataset {uuid} is not one of {', '.join(key for key in self.input_products.keys())}"
+                )
         else:
-            return None
+            # Dataset doesn't exist
+            _LOG.error(f"Couldn't find dataset {uuid}")
+        return dataset
 
     def _find_datasets(
         self, query, limit=None, product_limit=None
@@ -262,9 +269,9 @@ class Alchemist:
         # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
         # Need a new checksummer because EODatasets is insane
         checksummer = PackageChecksum()
-        checksum_file_name = str(dataset_assembler._accessories["checksum:sha1"])
-        checksum_file = dataset_assembler._dataset_location / checksum_file_name.lstrip(
-            str(dataset_assembler._work_path)
+        checksum_file = (
+            dataset_assembler._dataset_location
+            / dataset_assembler._accessories["checksum:sha1"].name
         )
         checksummer.read(checksum_file)
         checksummer.add_file(stac_path)
@@ -461,7 +468,9 @@ class Alchemist:
                     temp_dir
                 )
                 if s3_destination:
-                    s3_location = f"s3://{s3_bucket}/{s3_path.rstrip('/')}/{relative_path}"
+                    s3_location = (
+                        f"s3://{s3_bucket}/{s3_path.rstrip('/')}/{relative_path}"
+                    )
                     s3_command = [
                         "aws",
                         "s3",
@@ -470,13 +479,17 @@ class Alchemist:
                         str(dataset_assembler._dataset_location),
                         s3_location,
                     ]
-                    log.info("S3 command: ", command=s3_command)
+
                     if dryrun:
-                        s3_command.append('--dryrun')
-                        log.warning("PRETENDING to sync files to S3", s3_location=s3_destination)
+                        s3_command.append("--dryrun")
+                        log.warning(
+                            "PRETENDING to sync files to S3", s3_location=s3_destination
+                        )
                     else:
                         log.info(f"Syncing files to {s3_location}")
-                    subprocess.run(' '.join(s3_command), shell=True, check=True)
+
+                    log.info("S3 command: ", command=s3_command)
+                    subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
                     if not dryrun:
@@ -487,7 +500,10 @@ class Alchemist:
                             dataset_assembler._dataset_location, dest_directory
                         )
                     else:
-                        log.warning(f"NOT moving data from {temp_dir} to {dest_directory}")
+                        log.warning(
+                            f"NOT moving data from {temp_dir} to {dest_directory}"
+                        )
+
                 log.info("Task complete")
 
         return dataset_id, metadata_path

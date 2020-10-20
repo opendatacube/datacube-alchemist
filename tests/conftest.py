@@ -27,3 +27,8 @@ def run_alchemist():
 @pytest.fixture
 def config_file():
     return Path(__file__).absolute().parent.parent / 'examples/c3_config_wo.yaml'
+
+
+@pytest.fixture
+def remote_config_file():
+    return "https://raw.githubusercontent.com/opendatacube/datacube-alchemist/main/examples/c3_config_wo.yaml"

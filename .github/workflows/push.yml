@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'datacube_alchrmist/**'
+      - 'datacube_alchemist/**'
       - '.github/workflows/push.yml'
 
   release:

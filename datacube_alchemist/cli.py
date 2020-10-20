@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-
 import time
 
 import click
 import structlog
 from datacube.ui import click as ui
+
+from odc.aws.queue import get_queue
 
 from datacube_alchemist.worker import Alchemist, get_messages
 
@@ -12,7 +12,12 @@ _LOG = structlog.get_logger()
 
 # Define common options for all the commands
 queue_option = click.option("--queue", "-q", help="Name of an AWS SQS Message Queue")
-uuid_option = click.option("--uuid", "-u", help="UUID of the scene to be processed")
+uuid_option = click.option(
+    "--uuid",
+    "-u",
+    required=True,
+    help="UUID of the scene to be processed"
+)
 queue_timeout = click.option(
     "--queue-timeout",
     "-s",
@@ -37,6 +42,7 @@ product_limit_option = click.option(
 config_file_option = click.option(
     "--config-file",
     "-c",
+    required=True,
     help="The path (URI or file) to a config file to use for the job",
 )
 dryrun_option = click.option(
@@ -138,8 +144,8 @@ def redrive_to_queue(from_queue, to_queue):
     Redrives all the messages from the given sqs queue to the destination
     """
 
-    dead_queue = from_queue
-    alive_queue = to_queue
+    dead_queue = get_queue(from_queue)
+    alive_queue = get_queue(to_queue)
 
     messages = get_messages(dead_queue)
 
@@ -150,7 +156,7 @@ def redrive_to_queue(from_queue, to_queue):
         if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
             message.delete()
         else:
-            _LOG.info(f"Unable to send to: {message['Body']}")
+            _LOG.error(f"Unable to send to: {message['Body']}")
 
 
 if __name__ == "__main__":

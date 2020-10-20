@@ -23,6 +23,9 @@ build:
 up:
 	docker-compose up
 
+down:
+	docker-compose down
+
 shell:
 	docker-compose exec alchemist bash
 
@@ -32,6 +35,9 @@ test:
 lint:
 	docker-compose exec alchemist flake8
 
+integration-test:
+	docker-compose up -d
+	docker-compose exec -T alchemist bash ./tests/integration_tests.sh
 
 # C3 Related
 initdb:
