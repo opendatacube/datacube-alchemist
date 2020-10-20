@@ -356,9 +356,7 @@ class Alchemist:
                     _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
-                relative_path = str(dataset_assembler._dataset_location).lstrip(
-                    temp_dir
-                )
+                relative_path = dataset_assembler._dataset_location.relative_to(temp_dir)
                 if s3_destination:
                     s3_location = (
                         f"s3://{s3_bucket}/{s3_path.rstrip('/')}/{relative_path}"
