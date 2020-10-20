@@ -72,7 +72,7 @@ class Alchemist:
         assert issubclass(imported_class, Transformation)
         return imported_class
 
-    def _transform_with_args(self, task: AlchemistTask) -> Type[Transformation]:
+    def _transform_with_args(self, task: AlchemistTask) -> Transformation:
         transform_args = {}
         if task.settings.specification.transform_args:
             transform_args = task.settings.specification.transform_args
@@ -92,7 +92,7 @@ class Alchemist:
                 # Dataset is in the wrong product
                 dataset = None
                 _LOG.error(
-                    f"Dataset {uuid} is not one of {', '.join(key for key in self.input_products.keys())}"
+                    f"Dataset {uuid} is not one of {', '.join(product.name for product in self.input_products)}"
                 )
         else:
             # Dataset doesn't exist
@@ -249,8 +249,8 @@ class Alchemist:
         if dataset:
             return AlchemistTask(dataset=dataset, settings=self.config)
         else:
-            return None
             _LOG.error(f"Couldn't find dataset with UUID {uuid}")
+            return None
 
     def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
         # Find which datasets needs to be processed

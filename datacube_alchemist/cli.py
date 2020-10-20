@@ -1,3 +1,4 @@
+import sys
 import time
 
 import click
@@ -22,7 +23,7 @@ queue_timeout = click.option(
     "--queue-timeout",
     "-s",
     type=int,
-    help="The SQS message Visability Timeout, default is 10 minutes.",
+    help="The SQS message Visibility Timeout, default is 10 minutes.",
     default=600,
 )
 limit_option = click.option(
@@ -79,6 +80,7 @@ def run_one(config_file, uuid, dryrun):
         alchemist.execute_task(task, dryrun)
     else:
         _LOG.error(f"Failed to generate a task for UUID {uuid}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -135,13 +137,21 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
 
     tasks = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
 
+    errors = 0
+
     for task in tasks:
         try:
             alchemist.execute_task(task, dryrun)
+
         except Exception as e:
+            errors += 1
             _LOG.error(
                 f"Failed to run transform {alchemist.transform_name} on dataset {task.dataset.id} with error {e}"
             )
+
+    if errors > 0:
+        _LOG.error(f"There were {errors} tasks failed to execute.")
+        sys.exit(errors)
 
 
 @cli.command()
