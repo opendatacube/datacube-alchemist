@@ -27,7 +27,6 @@ jobs:
         docker-compose up -d
         sleep 5
         docker-compose exec -T alchemist datacube system init
-        docker-compose exect -T alchemist datacube-alchemist --help
 
     - name: Run linting
       run: |
