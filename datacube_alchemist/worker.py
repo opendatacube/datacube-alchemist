@@ -21,13 +21,13 @@ from eodatasets3.assemble import DatasetAssembler
 from eodatasets3.images import FileWrite
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 from eodatasets3.verify import PackageChecksum
-from odc.aws import s3_url_parse
-from odc.aws.queue import get_messages, get_queue, publish_message
-from odc.index import odc_uuid
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import _munge_dataset_to_eo3
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
+from odc.aws import s3_url_parse
+from odc.aws.queue import get_messages, get_queue, publish_message
+from odc.index import odc_uuid
 
 _LOG = structlog.get_logger()
 cattr.register_structure_hook(np.dtype, np.dtype)
@@ -166,78 +166,6 @@ class Alchemist:
             "version_major_minor": version_major_minor,
             "url": "",
         }
-
-    def _write_thumbnail(
-        self, task: AlchemistTask, dataset_assembler: DatasetAssembler
-    ):
-        if (
-            task.settings.output.preview_image
-            and task.settings.output.preview_image_lookuptable
-        ):
-            _LOG.warning(
-                "preview_image and preview_imag_lookuptable options both set, defaulting to preview_image"
-            )
-        if task.settings.output.preview_image is not None:
-            dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
-        elif task.settings.output.preview_image_lookuptable is not None:
-            writer = FileWrite()
-
-            measurements = dict(
-                (name, (grid, path))
-                for grid, name, path in dataset_assembler._measurements.iter_paths()
-            )
-
-            if task.settings.output.preview_image_lookuptable_band not in measurements:
-                _LOG.error(
-                    f"Can't find band {task.settings.output.preview_image_lookuptable_band} to write thumbnail with"
-                )
-            else:
-                image_in = measurements[
-                    task.settings.output.preview_image_lookuptable_band
-                ][1]
-                thumb_path = dataset_assembler.names.thumbnail_name(
-                    dataset_assembler._work_path
-                )
-                thumb_out = Path(thumb_path)
-                writer.create_thumbnail_singleband(
-                    image_in,
-                    thumb_out,
-                    lookup_table=task.settings.output.preview_image_lookuptable,
-                )
-                dataset_assembler.add_accessory_file("thumbnail:jpg", thumb_out)
-
-    def _write_stac(
-        self,
-        metadata_path: Path,
-        task: AlchemistTask,
-        dataset_assembler: DatasetAssembler,
-    ):
-        out_dataset = serialise.from_path(metadata_path)
-        stac_path = Path(
-            str(metadata_path).replace("odc-metadata.yaml", "stac-item.json")
-        )
-        stac = dc_to_stac(
-            out_dataset,
-            metadata_path,
-            stac_path,
-            stac_path.root,
-            task.settings.output.explorer_url,
-            False,
-        )
-        with stac_path.open("w") as f:
-            json.dump(stac, f, default=json_fallback)
-        dataset_assembler.add_accessory_file("metadata:stac", stac_path)
-
-        # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
-        # Need a new checksummer because EODatasets is insane
-        checksummer = PackageChecksum()
-        checksum_file = (
-            dataset_assembler._dataset_location
-            / dataset_assembler._accessories["checksum:sha1"].name
-        )
-        checksummer.read(checksum_file)
-        checksummer.add_file(stac_path)
-        checksummer.write(checksum_file)
 
     # Task related functions
     def generate_task(self, dataset) -> AlchemistTask:
@@ -414,7 +342,7 @@ class Alchemist:
                 log.info("Finished writing measurements")
 
                 # Write out the thumbnail
-                self._write_thumbnail(task, dataset_assembler)
+                _write_thumbnail(task, dataset_assembler)
                 log.info("Wrote thumbnail")
 
                 # Do all the deferred work from above
@@ -424,7 +352,7 @@ class Alchemist:
                 # Write STAC, because it depends on this being .done()
                 # Conveniently, this also checks that files are there!
                 if task.settings.output.write_stac:
-                    self._write_stac(metadata_path, task, dataset_assembler)
+                    _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
                 relative_path = str(dataset_assembler._dataset_location).lstrip(
@@ -470,3 +398,72 @@ class Alchemist:
                 log.info("Task complete")
 
         return dataset_id, metadata_path
+
+
+def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
+    if (
+        task.settings.output.preview_image
+        and task.settings.output.preview_image_lookuptable
+    ):
+        _LOG.warning(
+            "preview_image and preview_imag_lookuptable options both set, defaulting to preview_image"
+        )
+    if task.settings.output.preview_image is not None:
+        dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
+    elif task.settings.output.preview_image_lookuptable is not None:
+        writer = FileWrite()
+
+        measurements = {
+            name: (grid, path)
+            for grid, name, path in dataset_assembler._measurements.iter_paths()
+        }
+
+        if task.settings.output.preview_image_lookuptable_band not in measurements:
+            _LOG.error(
+                f"Can't find band {task.settings.output.preview_image_lookuptable_band} to write thumbnail with"
+            )
+        else:
+            image_in = measurements[
+                task.settings.output.preview_image_lookuptable_band
+            ][1]
+            thumb_path = dataset_assembler.names.thumbnail_name(
+                dataset_assembler._work_path
+            )
+            thumb_out = Path(thumb_path)
+            writer.create_thumbnail_singleband(
+                image_in,
+                thumb_out,
+                lookup_table=task.settings.output.preview_image_lookuptable,
+            )
+            dataset_assembler.add_accessory_file("thumbnail:jpg", thumb_out)
+
+
+def _write_stac(
+    metadata_path: Path,
+    task: AlchemistTask,
+    dataset_assembler: DatasetAssembler,
+):
+    out_dataset = serialise.from_path(metadata_path)
+    stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
+    stac = dc_to_stac(
+        out_dataset,
+        metadata_path,
+        stac_path,
+        stac_path.root,
+        task.settings.output.explorer_url,
+        False,
+    )
+    with stac_path.open("w") as f:
+        json.dump(stac, f, default=json_fallback)
+    dataset_assembler.add_accessory_file("metadata:stac", stac_path)
+
+    # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
+    # Need a new checksummer because EODatasets is insane
+    checksummer = PackageChecksum()
+    checksum_file = (
+        dataset_assembler._dataset_location
+        / dataset_assembler._accessories["checksum:sha1"].name
+    )
+    checksummer.read(checksum_file)
+    checksummer.add_file(stac_path)
+    checksummer.write(checksum_file)
