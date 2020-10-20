@@ -31,4 +31,3 @@ def test_help_message(run_alchemist):
 
     result = run_alchemist("redrive-to-queue", "--help")
     print(result)
-

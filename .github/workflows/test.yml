@@ -20,22 +20,28 @@ jobs:
 
     - name: Build the docker container
       run: |
-        docker-compose build
+        docker-compose -f docker-compose.yml -f docker-compose-dev.yml build
 
     - name: Bring up the docker container
       run: |
-        docker-compose up -d
+        docker-compose -f docker-compose.yml -f docker-compose-dev.yml up -d
         sleep 5
-        docker-compose exec -T alchemist datacube system init
+        docker-compose -f docker-compose.yml -f docker-compose-dev.yml  exec -T alchemist datacube system init
 
     - name: Run linting
       run: |
-        docker-compose exec -T alchemist flake8
+        docker-compose -f docker-compose.yml -f docker-compose-dev.yml  exec -T alchemist flake8
 
     - name: Run tests
       run: |
-        docker-compose exec -T alchemist pytest tests
-
+        docker-compose -f docker-compose.yml -f docker-compose-dev.yml  exec -T alchemist pytest tests
+  
+    # This is different, because we want to test production code
+    # down will delete the existing DB, build to make a clean, prod build
+    # up and then run integration tests on the fresh DB
     - name: Integration tests
       run: |
+        docker-compose down
+        docker-compoe build
+        docker-compose up
         docker-compose exec -T alchemist bash ./tests/integration_tests.sh
