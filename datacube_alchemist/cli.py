@@ -152,7 +152,7 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
             )
 
     if errors > 0:
-        _LOG.error(f"There were {errors} tasks failed to execute.")
+        _LOG.error(f"There were {errors} tasks that failed to execute.")
         sys.exit(errors)
 
 
