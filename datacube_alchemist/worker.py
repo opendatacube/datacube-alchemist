@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Type, Any
+from typing import Iterable, Type
 
 import cattr
 import datacube
@@ -201,9 +201,7 @@ class Alchemist:
 
         return count
 
-    def get_tasks_from_queue(
-        self, queue, limit, queue_timeout
-    ) -> Iterable[AlchemistTask, Any]:
+    def get_tasks_from_queue(self, queue, limit, queue_timeout):
         """Retrieve messages from the named queue, returning an iterable of (AlchemistTasks, SQS Messages)"""
         alive_queue = get_queue(queue)
         messages = get_messages(alive_queue, limit, visibility_timeout=queue_timeout)
