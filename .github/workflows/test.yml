@@ -42,6 +42,6 @@ jobs:
     - name: Integration tests
       run: |
         docker-compose down
-        docker-compoe build
+        docker-compose build
         docker-compose up
         docker-compose exec -T alchemist bash ./tests/integration_tests.sh
