@@ -94,11 +94,15 @@ def run_many(config_file, expressions, limit, dryrun):
 
     tasks = alchemist.generate_tasks(expressions, limit=limit)
 
-    if len(tasks) > 0:
-        for task in tasks:
-            alchemist.execute_task(task, dryrun)
-    else:
+    executed = 0
+
+    for task in tasks:
+        alchemist.execute_task(task, dryrun)
+        executed += 1
+
+    if executed == 0:
         _LOG.error("Failed to generate any tasks")
+        sys.exit(1)
 
 
 @cli.command()
