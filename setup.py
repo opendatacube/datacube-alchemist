@@ -47,6 +47,7 @@ setup(
         "odc-index",
         "awscli",
         "h5py",  # Needed for eodatasets3 (confirm fixed before removing)
+        "importlib_metadata;python_version<'3.8'",
     ],
     extras_require={"dev": dev_requirements},
     use_scm_version=True,

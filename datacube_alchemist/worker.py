@@ -1,4 +1,11 @@
 import importlib
+
+try:
+    # Only available in Python 3.8+
+    from importlib import metadata
+except ImportError:
+    # Backport installed from PyPI
+    from importlib_metadata import metadata, PackageNotFoundError
 import json
 import shutil
 import subprocess
@@ -154,11 +161,15 @@ class Alchemist:
         """
         version = ""
         version_major_minor = ""
+        url = ""
         try:
-            base_module = importlib.import_module(self.transform_name.split(".")[0])
-            version = base_module.__version__
+            transform_package = self.transform_name.split(".")[0]
+
+            m = metadata(transform_package)
+            version = m["Version"]
             version_major_minor = ".".join(version.split(".")[0:2])
-        except (AttributeError, ModuleNotFoundError):
+            url = m.get("Home-page", "")
+        except (AttributeError, PackageNotFoundError):
             _LOG.info(
                 "algorithm_version not set and "
                 "not used to generate deterministic uuid"
@@ -166,7 +177,7 @@ class Alchemist:
         return {
             "version": version,
             "version_major_minor": version_major_minor,
-            "url": "",
+            "url": url,
         }
 
     # Task related functions
@@ -358,7 +369,9 @@ class Alchemist:
                     _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
-                relative_path = dataset_assembler._dataset_location.relative_to(temp_dir)
+                relative_path = dataset_assembler._dataset_location.relative_to(
+                    temp_dir
+                )
                 if s3_destination:
                     s3_location = (
                         f"s3://{s3_bucket}/{s3_path.rstrip('/')}/{relative_path}"
