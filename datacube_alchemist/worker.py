@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Type
+from typing import Iterable, Type, Any
 
 import cattr
 import datacube
@@ -201,7 +201,10 @@ class Alchemist:
 
         return count
 
-    def get_tasks_from_queue(self, queue, limit, queue_timeout):
+    def get_tasks_from_queue(
+        self, queue, limit, queue_timeout
+    ) -> Iterable[AlchemistTask, Any]:
+        """Retrieve messages from the named queue, returning an iterable of (AlchemistTasks, SQS Messages)"""
         alive_queue = get_queue(queue)
         messages = get_messages(alive_queue, limit, visibility_timeout=queue_timeout)
 
@@ -212,7 +215,7 @@ class Alchemist:
                 raise ValueError(
                     "Your transform doesn't match the transform in the message."
                 )
-            yield self.generate_task_by_uuid(message_body["id"])
+            yield self.generate_task_by_uuid(message_body["id"]), message
 
     # Task execution
     def execute_task(self, task: AlchemistTask, dryrun: bool = False):

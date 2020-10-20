@@ -132,13 +132,14 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
     """
     alchemist = Alchemist(config_file=config_file)
 
-    tasks = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
+    tasks_and_message = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
 
     errors = 0
 
-    for task in tasks:
+    for task, message in tasks_and_message:
         try:
             alchemist.execute_task(task, dryrun)
+            message.delete()
 
         except Exception as e:
             errors += 1
