@@ -136,7 +136,7 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
     """
     alchemist = Alchemist(config_file=config_file)
 
-    tasks_and_message = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
+    tasks_and_messages = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
 
     errors = 0
 
