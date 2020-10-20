@@ -85,7 +85,8 @@ def run_one(config_file, uuid, dryrun):
 @config_file_option
 @ui.parsed_search_expressions
 @limit_option
-def run_many(config_file, expressions, limit=None):
+@dryrun_option
+def run_many(config_file, expressions, limit, dryrun):
     """
     Run Alchemist with the config file on all the Datasets matching an ODC query expression
     """
@@ -96,7 +97,7 @@ def run_many(config_file, expressions, limit=None):
 
     if len(tasks) > 0:
         for task in tasks:
-            alchemist.execute_task(task)
+            alchemist.execute_task(task, dryrun)
     else:
         _LOG.error("Failed to generate any tasks")
 
@@ -125,15 +126,22 @@ def add_to_queue(config_file, queue, expressions, limit, product_limit):
 @queue_option
 @limit_option
 @queue_timeout
-def run_from_queue(config_file, queue, limit, queue_timeout):
+@dryrun_option
+def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
     """
     Process messages from the given queue
     """
     alchemist = Alchemist(config_file=config_file)
+
     tasks = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
 
     for task in tasks:
-        alchemist.execute_task(task)
+        try:
+            alchemist.execute_task(task, dryrun)
+        except Exception as e:
+            _LOG.error(
+                f"Failed to run transform {alchemist.transform_name} on dataset {task.dataset.id} with error {e}"
+            )
 
 
 @cli.command()
