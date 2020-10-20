@@ -43,5 +43,5 @@ jobs:
       run: |
         docker-compose down
         docker-compose build
-        docker-compose up
+        docker-compose up -d
         docker-compose exec -T alchemist bash ./tests/integration_tests.sh
