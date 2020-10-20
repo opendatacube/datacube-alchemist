@@ -9,7 +9,7 @@ on:
       - '.github/workflows/push.yml'
 
   release:
-    types: [created]
+    types: [created, edited]
 
 env:
   IMAGE_NAME: opendatacube/datacube-alchemist
