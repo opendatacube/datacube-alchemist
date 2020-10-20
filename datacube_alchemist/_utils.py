@@ -11,6 +11,7 @@ class FakeTransformation(Transformation):
     """
     Only writes input to output
     """
+
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
         return input_measurements
 

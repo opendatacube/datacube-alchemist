@@ -14,10 +14,7 @@ _LOG = structlog.get_logger()
 # Define common options for all the commands
 queue_option = click.option("--queue", "-q", help="Name of an AWS SQS Message Queue")
 uuid_option = click.option(
-    "--uuid",
-    "-u",
-    required=True,
-    help="UUID of the scene to be processed"
+    "--uuid", "-u", required=True, help="UUID of the scene to be processed"
 )
 queue_timeout = click.option(
     "--queue-timeout",
