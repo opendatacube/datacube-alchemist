@@ -35,8 +35,7 @@ specification:
           - 1.02551
 
 output:
-  # location: /tmp/alchemist
-  location: s3://dea-public-data-dev/alchemist/alex-2020-10-19/
+  location: /tmp/alchemist
   nodata: 255
   dtype: uint8
   preview_image: [bs, pv, npv]

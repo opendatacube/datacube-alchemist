@@ -16,8 +16,7 @@ specification:
     # dsm_path:  's3://dea-non-public-data/dsm/dsm1sv1_0_Clean.tiff'
 
 output:
-  location: s3://dea-public-data-dev/alchemist/alex-2020-10-19/
-  # location: /tmp/alchemist
+  location: /tmp/alchemist
   nodata: 1
   dtype: uint8
   explorer_url: https://explorer.dev.dea.ga.gov.au
