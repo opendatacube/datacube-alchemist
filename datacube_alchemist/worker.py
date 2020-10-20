@@ -7,9 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Type
 
-# TODO: replace with odc tools function when it's merged
-import boto3
-
 import cattr
 import datacube
 import fsspec
@@ -25,6 +22,7 @@ from eodatasets3.images import FileWrite
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 from eodatasets3.verify import PackageChecksum
 from odc.aws import s3_url_parse
+from odc.aws.queue import get_messages, get_queue, publish_message
 from odc.index import odc_uuid
 
 from datacube_alchemist import __version__
@@ -32,43 +30,7 @@ from datacube_alchemist._utils import _munge_dataset_to_eo3
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()
-
 cattr.register_structure_hook(np.dtype, np.dtype)
-
-
-def get_queue(queue_name):
-    sqs = boto3.resource("sqs")
-    queue = sqs.get_queue_by_name(QueueName=queue_name)
-    return queue
-
-
-def publish_message(queue, msg):
-    resp = queue.send_message(QueueUrl=queue.url, MessageBody=msg)
-
-    assert (
-        resp["ResponseMetadata"]["HTTPStatusCode"] == 200
-    ), "Failed to publish the message"
-
-
-def get_messages(queue, limit, visibility_timeout=60):
-    count = 0
-    while True:
-        messages = queue.receive_messages(
-            VisibilityTimeout=visibility_timeout,
-            MaxNumberOfMessages=1,
-            WaitTimeSeconds=10,
-            MessageAttributeNames=["All"],
-        )
-
-        if len(messages) == 0 or (limit and count >= limit):
-            break
-        else:
-            for message in messages:
-                count += 1
-                yield message
-
-
-# TODO: End bit that needs replaced
 
 
 class Alchemist:
@@ -317,19 +279,20 @@ class Alchemist:
 
         for message in messages:
             message_body = json.loads(message.body)
-            if message_body["transform"] != self.config.specification.transform:
+            transform = message_body.get("transform", None)
+            if transform and transform != self.transform_name:
                 raise ValueError(
                     "Your transform doesn't match the transform in the message."
                 )
             yield self.generate_task_by_uuid(message_body["id"])
 
     # Task execution
-    def execute_task(self, task: AlchemistTask, dryrun: bool):
+    def execute_task(self, task: AlchemistTask, dryrun: bool = False):
         log = _LOG.bind(task=task.dataset.id)
         log.info("Task commencing", task=task)
 
         # Make sure our task makes sense and store it
-        if task.settings.specification.transform != self.config.specification.transform:
+        if task.settings.specification.transform != self.transform_name:
             raise ValueError("Task transform is different to the Alchemist transform")
         transform = self._transform_with_args(task)
 
