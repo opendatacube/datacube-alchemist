@@ -128,7 +128,7 @@ class Alchemist:
 
     def _deterministic_uuid(self, task, algorithm_version=None, **other_tags):
         if algorithm_version is None:
-            transform_info = self._get_transform_info()
+            transform_info = get_transform_info(self.transform_name)
             algorithm_version = transform_info["version_major_minor"]
         if "dataset_version" not in other_tags:
             try:
@@ -152,33 +152,6 @@ class Alchemist:
         uuid_values["algorithm"] = task.settings.specification.transform
 
         return uuid, uuid_values
-
-    def _get_transform_info(self):
-        """
-        Given a transform return version and url info of the transform.
-        :param transform:
-        :return:
-        """
-        version = ""
-        version_major_minor = ""
-        url = ""
-        try:
-            transform_package = self.transform_name.split(".")[0]
-
-            m = metadata(transform_package)
-            version = m["Version"]
-            version_major_minor = ".".join(version.split(".")[0:2])
-            url = m.get("Home-page", "")
-        except (AttributeError, PackageNotFoundError):
-            _LOG.info(
-                "algorithm_version not set and "
-                "not used to generate deterministic uuid"
-            )
-        return {
-            "version": version,
-            "version_major_minor": version_major_minor,
-            "url": url,
-        }
 
     # Task related functions
     def generate_task(self, dataset) -> AlchemistTask:
@@ -333,7 +306,7 @@ class Alchemist:
             )
 
             # Software Version of Transformer
-            version_url = self._get_transform_info()
+            version_url = get_transform_info(self.transform_name)
             dataset_assembler.note_software_version(
                 name=task.settings.specification.transform,
                 url=version_url["url"],
@@ -481,3 +454,30 @@ def _write_stac(
     checksummer.read(checksum_file)
     checksummer.add_file(stac_path)
     checksummer.write(checksum_file)
+
+
+def get_transform_info(transform_name):
+    """
+    Given a transform return version and url info of the transform.
+    :param transform:
+    :return:
+    """
+    version = ""
+    version_major_minor = ""
+    url = ""
+    try:
+        transform_package = transform_name.split(".")[0]
+
+        m = metadata(transform_package)
+        version = m["Version"]
+        version_major_minor = ".".join(version.split(".")[0:2])
+        url = m.get("Home-page", "")
+    except (AttributeError, PackageNotFoundError):
+        _LOG.info(
+            "algorithm_version not set and " "not used to generate deterministic uuid"
+        )
+    return {
+        "version": version,
+        "version_major_minor": version_major_minor,
+        "url": url,
+    }
