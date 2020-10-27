@@ -160,7 +160,6 @@ class Alchemist:
         if dataset:
             return AlchemistTask(dataset=dataset, settings=self.config)
         else:
-            _LOG.error(f"Couldn't find dataset with UUID {uuid}")
             return None
 
     def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
@@ -191,12 +190,20 @@ class Alchemist:
 
         for message in messages:
             message_body = json.loads(message.body)
+            uuid = message_body.get('id', None)
+            if uuid is None:
+                # This is probably a message created from an SNS, so it's double
+                # JSON dumped
+                message_body = json.loads(message_body['Message'])
             transform = message_body.get("transform", None)
+
             if transform and transform != self.transform_name:
                 raise ValueError(
                     "Your transform doesn't match the transform in the message."
                 )
-            yield self.generate_task_by_uuid(message_body["id"]), message
+            task = self.generate_task_by_uuid(message_body["id"])
+            if task:
+                yield task, message
 
     # Task execution
     def execute_task(self, task: AlchemistTask, dryrun: bool = False, sns_arn: str = None):
