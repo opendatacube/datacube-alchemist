@@ -6,3 +6,5 @@ fc
 odc-aws
 odc-index
 wofs
+odc-apps-cloud
+odc-apps-dc-tools
