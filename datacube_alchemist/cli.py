@@ -200,5 +200,6 @@ def redrive_to_queue(queue, to_queue, limit):
             _LOG.error(f"Unable to send message {message} to queue")
     _LOG.info(f"Completed sending {count} messages to the queue")
 
+
 if __name__ == "__main__":
     cli_with_envvar_handling()
