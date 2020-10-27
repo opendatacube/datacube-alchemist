@@ -16,18 +16,15 @@ import yaml
 from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
 from datacube.virtual import Transformation
-from eodatasets3 import serialise
 from eodatasets3.assemble import DatasetAssembler
-from eodatasets3.images import FileWrite
-from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
-from eodatasets3.verify import PackageChecksum
-
-from datacube_alchemist import __version__
-from datacube_alchemist._utils import _munge_dataset_to_eo3
-from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue, publish_message
 from odc.index import odc_uuid
+
+from datacube_alchemist import __version__
+from datacube_alchemist._utils import (_munge_dataset_to_eo3, _write_stac,
+                                       _write_thumbnail)
+from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()
 cattr.register_structure_hook(np.dtype, np.dtype)
@@ -304,6 +301,7 @@ class Alchemist:
                 dataset_assembler.add_source_dataset(
                     source_doc,
                     auto_inherit_properties=True,
+                    inherit_geometry=task.settings.output.inherit_geometry,
                     classifier=task.settings.specification.override_product_family,
                 )
 
@@ -358,7 +356,9 @@ class Alchemist:
                     _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
-                relative_path = dataset_assembler._dataset_location.relative_to(temp_dir)
+                relative_path = dataset_assembler._dataset_location.relative_to(
+                    temp_dir
+                )
                 if s3_destination:
                     s3_location = (
                         f"s3://{s3_bucket}/{s3_path.rstrip('/')}/{relative_path}"
@@ -384,7 +384,7 @@ class Alchemist:
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
-                    if not dryrun:
+                    if True:
                         log.info("Writing files to disk", location=dest_directory)
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
@@ -399,72 +399,3 @@ class Alchemist:
                 log.info("Task complete")
 
         return dataset_id, metadata_path
-
-
-def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
-    if (
-        task.settings.output.preview_image
-        and task.settings.output.preview_image_lookuptable
-    ):
-        _LOG.warning(
-            "preview_image and preview_imag_lookuptable options both set, defaulting to preview_image"
-        )
-    if task.settings.output.preview_image is not None:
-        dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
-    elif task.settings.output.preview_image_lookuptable is not None:
-        writer = FileWrite()
-
-        measurements = {
-            name: (grid, path)
-            for grid, name, path in dataset_assembler._measurements.iter_paths()
-        }
-
-        if task.settings.output.preview_image_lookuptable_band not in measurements:
-            _LOG.error(
-                f"Can't find band {task.settings.output.preview_image_lookuptable_band} to write thumbnail with"
-            )
-        else:
-            image_in = measurements[
-                task.settings.output.preview_image_lookuptable_band
-            ][1]
-            thumb_path = dataset_assembler.names.thumbnail_name(
-                dataset_assembler._work_path
-            )
-            thumb_out = Path(thumb_path)
-            writer.create_thumbnail_singleband(
-                image_in,
-                thumb_out,
-                lookup_table=task.settings.output.preview_image_lookuptable,
-            )
-            dataset_assembler.add_accessory_file("thumbnail:jpg", thumb_out)
-
-
-def _write_stac(
-    metadata_path: Path,
-    task: AlchemistTask,
-    dataset_assembler: DatasetAssembler,
-):
-    out_dataset = serialise.from_path(metadata_path)
-    stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
-    stac = dc_to_stac(
-        out_dataset,
-        metadata_path,
-        stac_path,
-        stac_path.root,
-        task.settings.output.explorer_url,
-        False,
-    )
-    with stac_path.open("w") as f:
-        json.dump(stac, f, default=json_fallback)
-    dataset_assembler.add_accessory_file("metadata:stac", stac_path)
-
-    # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
-    # Need a new checksummer because EODatasets is insane
-    checksummer = PackageChecksum()
-    checksum_file = (
-        dataset_assembler._dataset_location
-        / dataset_assembler._accessories["checksum:sha1"].name
-    )
-    checksummer.read(checksum_file)
-    checksummer.add_file(stac_path)
-    checksummer.write(checksum_file)

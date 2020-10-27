@@ -20,7 +20,7 @@ queue_timeout = click.option(
     "--queue-timeout",
     "-s",
     type=int,
-    help="The SQS message Visibility Timeout, default is 10 minutes.",
+    help="The SQS message Visibility Timeout in seconds, default is 600, or 10 minutes.",
     default=600,
 )
 limit_option = click.option(

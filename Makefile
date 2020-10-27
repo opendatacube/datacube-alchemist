@@ -66,6 +66,17 @@ index:
 
 THREE_SCENES=7b9553d4-3367-43fe-8e6f-b45999c5ada6 b03ab26f-dcb3-408f-9f78-f4bf4b84cb4b 76223191-e942-4e26-b116-8c072e87d843
 
+
+fc-broken:
+	docker-compose exec alchemist \
+		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
+		--uuid c12fdb9e-892e-4b33-ae39-7edbbf01eb85
+
+fc-broken-dry:
+	docker-compose exec alchemist \
+		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
+		--uuid c12fdb9e-892e-4b33-ae39-7edbbf01eb85 --dryrun
+
 wofs-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml \
