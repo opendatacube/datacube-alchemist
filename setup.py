@@ -5,9 +5,7 @@ from setuptools import setup, find_packages
 dev_requirements = [
     "flake8",
     "pytest",
-    "pytest-cov",
-    "odc-apps-cloud",
-    "odc-apps-dc-tools",
+    "pytest-cov"
 ]
 
 setup(
