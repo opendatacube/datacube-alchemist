@@ -372,19 +372,19 @@ class Alchemist:
                         s3_location,
                     ]
 
-                    if dryrun:
+                    if not dryrun:
+                        log.info(f"Syncing files to {s3_location}")
+                    else:
                         s3_command.append("--dryrun")
                         log.warning(
                             "PRETENDING to sync files to S3", s3_location=s3_destination
                         )
-                    else:
-                        log.info(f"Syncing files to {s3_location}")
 
                     log.info("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
-                    if True:
+                    if not dryrun:
                         log.info("Writing files to disk", location=dest_directory)
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
