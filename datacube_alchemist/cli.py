@@ -175,26 +175,30 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
 
 @cli.command()
 @queue_option
+@limit_option
 @click.option("--to-queue", "-t", help="Url of SQS Queue to move to", required=True)
-def redrive_to_queue(from_queue, to_queue):
+def redrive_to_queue(queue, to_queue, limit):
     """
     Redrives all the messages from the given sqs queue to the destination
     """
 
-    dead_queue = get_queue(from_queue)
+    dead_queue = get_queue(queue)
     alive_queue = get_queue(to_queue)
 
     messages = get_messages(dead_queue)
 
+    count = 0
+
     for message in messages:
-        response = alive_queue.send_message(
-            QueueUrl=to_queue, MessageBody=message["Body"]
-        )
+        response = alive_queue.send_message(MessageBody=message.body)
         if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
             message.delete()
+            count += 1
+            if limit and count >= limit:
+                break
         else:
-            _LOG.error(f"Unable to send to: {message['Body']}")
-
+            _LOG.error(f"Unable to send message {message} to queue")
+    _LOG.info(f"Completed sending {count} messages to the queue")
 
 if __name__ == "__main__":
     cli_with_envvar_handling()
