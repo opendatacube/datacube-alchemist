@@ -148,12 +148,14 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
     tasks_and_messages = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
 
     errors = 0
+    successes = 0
 
     for task, message in tasks_and_messages:
         alchemist.execute_task(task, dryrun, sns_arn)
         try:
             alchemist.execute_task(task, dryrun, sns_arn)
             message.delete()
+            successes += 1
 
         except Exception as e:
             errors += 1
@@ -164,6 +166,11 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
     if errors > 0:
         _LOG.error(f"There were {errors} tasks that failed to execute.")
         sys.exit(errors)
+    if limit and (errors + successes) < limit:
+        _LOG.warning(
+            f"There were {errors} tasks that failed and {successes} successful tasks"
+            ", which is less than the limit specified"
+        )
 
 
 @cli.command()
