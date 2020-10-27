@@ -406,7 +406,8 @@ class Alchemist:
 
                 log.info("Task complete")
                 if stac is not None and sns_arn:
-                    _stac_to_sns(sns_arn, stac)
+                    if not dryrun:
+                        _stac_to_sns(sns_arn, stac)
                 elif sns_arn:
                     _LOG.error("Not posting to SNS because there's no STAC to post")
 
