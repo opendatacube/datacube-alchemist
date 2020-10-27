@@ -151,7 +151,6 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
     successes = 0
 
     for task, message in tasks_and_messages:
-        alchemist.execute_task(task, dryrun, sns_arn)
         try:
             alchemist.execute_task(task, dryrun, sns_arn)
             message.delete()
