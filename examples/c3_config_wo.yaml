@@ -20,20 +20,23 @@ output:
   nodata: 1
   dtype: uint8
   explorer_url: https://explorer.dev.dea.ga.gov.au
-  preview_image_lookuptable_band: water
-  preview_image_lookuptable: 
-    '0': [150, 150, 110]   # dry
-    '1': [255, 255, 255]   # nodata,
-    '16': [119, 104, 87]   # terrain
-    '32': [89, 88, 86]     # cloud_shadow
-    '64': [216, 215, 214]  # cloud
-    '80': [242, 220, 180]  # cloudy terrain
-    '128': [79, 129, 189]   # water
-    '160': [51, 82, 119]   # shady water
-    '192': [186, 211, 242] # cloudy water
+  preview_image_singleband:
+    measurement: water
+    lookuptable:
+      '0': [150, 150, 110]   # dry
+      '1': [255, 255, 255]   # nodata,
+      '16': [119, 104, 87]   # terrain
+      '32': [89, 88, 86]     # cloud_shadow
+      '64': [216, 215, 214]  # cloud
+      '80': [242, 220, 180]  # cloudy terrain
+      '128': [79, 129, 189]   # water
+      '160': [51, 82, 119]   # shady water
+      '192': [186, 211, 242] # cloudy water
   write_data_settings:
     overview_resampling: mode
+  reference_source_dataset: True
   write_stac: True
+  inherit_geometry: True
 
   metadata:
     product_family: wo

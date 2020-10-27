@@ -23,18 +23,15 @@ import yaml
 from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
 from datacube.virtual import Transformation
-from eodatasets3 import serialise
 from eodatasets3.assemble import DatasetAssembler
-from eodatasets3.images import FileWrite
-from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
-from eodatasets3.verify import PackageChecksum
-
-from datacube_alchemist import __version__
-from datacube_alchemist._utils import _munge_dataset_to_eo3
-from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue, publish_message
 from odc.index import odc_uuid
+
+from datacube_alchemist import __version__
+from datacube_alchemist._utils import (_munge_dataset_to_eo3, _write_stac,
+                                       _write_thumbnail)
+from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()
 cattr.register_structure_hook(np.dtype, np.dtype)
@@ -288,6 +285,7 @@ class Alchemist:
                 dataset_assembler.add_source_dataset(
                     source_doc,
                     auto_inherit_properties=True,
+                    inherit_geometry=task.settings.output.inherit_geometry,
                     classifier=task.settings.specification.override_product_family,
                 )
 
@@ -370,7 +368,7 @@ class Alchemist:
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
-                    if not dryrun:
+                    if True:
                         log.info("Writing files to disk", location=dest_directory)
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
