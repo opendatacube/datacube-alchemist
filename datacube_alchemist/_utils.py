@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Dict
 
+import boto3
 from datacube.model import Dataset
 from datacube.virtual import Measurement, Transformation
 from eodatasets3 import DatasetAssembler, serialise
@@ -11,6 +12,8 @@ from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 from eodatasets3.verify import PackageChecksum
 
 from datacube_alchemist.settings import AlchemistTask
+
+from toolz import dicttoolz
 
 
 class FakeTransformation(Transformation):
@@ -63,6 +66,54 @@ def _write_stac(
     checksummer.read(checksum_file)
     checksummer.add_file(stac_path)
     checksummer.write(checksum_file)
+    return stac
+
+
+def _stac_to_sns(sns_arn, stac):
+    """
+    Publish our STAC document to an SNS
+    """
+    bbox = stac['bbox']
+
+    client = boto3.client('sns')
+    client.publish(
+        TopicArn=sns_arn,
+        Message=json.dumps(stac, indent=4, default=json_fallback),
+        MessageAttributes={
+            'action': {
+                'DataType': 'String',
+                'StringValue': 'ADDED'
+            },
+            'datetime': {
+                'DataType': 'String',
+                'StringValue': str(dicttoolz.get_in(["properties", "datetime"], stac))
+            },
+            'product': {
+                'DataType': 'String',
+                'StringValue': dicttoolz.get_in(["properties", "odc:product"], stac)
+            },
+            'maturity': {
+                'DataType': 'String',
+                'StringValue': dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac)
+            },
+            'bbox.ll_lon': {
+                'DataType': 'Number',
+                'StringValue': str(bbox.left)
+            },
+            'bbox.ll_lat': {
+                'DataType': 'Number',
+                'StringValue': str(bbox.bottom)
+            },
+            'bbox.ur_lon': {
+                'DataType': 'Number',
+                'StringValue': str(bbox.right)
+            },
+            'bbox.ur_lat': {
+                'DataType': 'Number',
+                'StringValue': str(bbox.top)
+            }
+        }
+    )
 
 
 def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:

@@ -12,7 +12,9 @@ from datacube_alchemist.worker import Alchemist, get_messages
 _LOG = structlog.get_logger()
 
 # Define common options for all the commands
-queue_option = click.option("--queue", "-q", help="Name of an AWS SQS Message Queue")
+queue_option = click.option(
+    "--queue", "-q", help="Name of an AWS SQS Message Queue", required=True
+)
 uuid_option = click.option(
     "--uuid", "-u", required=True, help="UUID of the scene to be processed"
 )
@@ -49,6 +51,11 @@ dryrun_option = click.option(
     is_flag=True,
     default=False,
     help="Don't actually do real work",
+)
+sns_arn_option = click.option(
+    "--sns-arn",
+    default=None,
+    help="Publish resulting STAC document to an SNS",
 )
 
 
@@ -130,10 +137,12 @@ def add_to_queue(config_file, queue, expressions, limit, product_limit):
 @limit_option
 @queue_timeout
 @dryrun_option
-def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
+@sns_arn_option
+def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
     """
     Process messages from the given queue
     """
+
     alchemist = Alchemist(config_file=config_file)
 
     tasks_and_messages = alchemist.get_tasks_from_queue(queue, limit, queue_timeout)
@@ -141,8 +150,9 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
     errors = 0
 
     for task, message in tasks_and_messages:
+        alchemist.execute_task(task, dryrun, sns_arn)
         try:
-            alchemist.execute_task(task, dryrun)
+            alchemist.execute_task(task, dryrun, sns_arn)
             message.delete()
 
         except Exception as e:
@@ -158,7 +168,7 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun):
 
 @cli.command()
 @queue_option
-@click.option("--to-queue", "-t", help="Url of SQS Queue to move to")
+@click.option("--to-queue", "-t", help="Url of SQS Queue to move to", required=True)
 def redrive_to_queue(from_queue, to_queue):
     """
     Redrives all the messages from the given sqs queue to the destination

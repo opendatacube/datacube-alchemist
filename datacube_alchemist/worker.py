@@ -30,7 +30,7 @@ from odc.index import odc_uuid
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import (_munge_dataset_to_eo3, _write_stac,
-                                       _write_thumbnail)
+                                       _write_thumbnail, _stac_to_sns)
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()
@@ -199,7 +199,7 @@ class Alchemist:
             yield self.generate_task_by_uuid(message_body["id"]), message
 
     # Task execution
-    def execute_task(self, task: AlchemistTask, dryrun: bool = False):
+    def execute_task(self, task: AlchemistTask, dryrun: bool = False, sns_arn: str = None):
         log = _LOG.bind(task=task.dataset.id)
         log.info("Task commencing", task=task)
 
@@ -336,8 +336,9 @@ class Alchemist:
 
                 # Write STAC, because it depends on this being .done()
                 # Conveniently, this also checks that files are there!
+                stac = None
                 if task.settings.output.write_stac:
-                    _write_stac(metadata_path, task, dataset_assembler)
+                    stac = _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
                 relative_path = dataset_assembler._dataset_location.relative_to(
@@ -381,6 +382,10 @@ class Alchemist:
                         )
 
                 log.info("Task complete")
+                if stac is not None and sns_arn:
+                    _stac_to_sns(sns_arn, stac)
+                elif sns_arn:
+                    _LOG.error("Not posting to SNS because there's no STAC to post")
 
         return dataset_id, metadata_path
 
