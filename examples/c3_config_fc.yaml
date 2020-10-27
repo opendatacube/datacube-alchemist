@@ -45,7 +45,9 @@ output:
   explorer_url: https://explorer.dev.dea.ga.gov.au
   write_data_settings:
     overview_resampling: average
+  reference_source_dataset: True
   write_stac: True
+  inherit_geometry: True
 
   metadata:
     product_family: fc

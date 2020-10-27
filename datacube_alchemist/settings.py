@@ -23,12 +23,12 @@ class OutputSettings:
         converter=_convert_write_data_settings
     )
     preview_image: Optional[List[str]] = None
-    preview_image_lookuptable_band: Optional[str] = None
-    preview_image_lookuptable: Optional[Mapping[int, Any]] = None
+    preview_image_singleband: Optional[Mapping[Any, Any]] = None
     metadata: Optional[Mapping[str, str]] = None
     properties: Optional[Mapping[str, str]] = None
     reference_source_dataset: bool = attr.ib(default=True)
     write_stac: Optional[bool] = False
+    inherit_geometry: bool = attr.ib(default=True)
     explorer_url: Optional[str] = None
 
 
