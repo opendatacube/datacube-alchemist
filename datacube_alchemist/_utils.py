@@ -47,7 +47,6 @@ def _write_stac(
     # Madness in deferred destination logic
     uri_base = dataset_assembler.names.destination_folder(Path(task.settings.output.location))
     uri_base = str(uri_base) + '/'
-    uri_base.replace('s3:/', 's3://')
 
     stac = dc_to_stac(
         out_dataset,
