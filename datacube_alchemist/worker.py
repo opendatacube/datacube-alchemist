@@ -19,7 +19,7 @@ from datacube.testutils.io import native_geobox, native_load
 from datacube.virtual import Transformation
 from eodatasets3.assemble import DatasetAssembler
 from odc.aws import s3_url_parse
-from odc.aws.queue import get_messages, get_queue, publish_message
+from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
 
 from datacube_alchemist import __version__
