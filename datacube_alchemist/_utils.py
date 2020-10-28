@@ -59,8 +59,6 @@ def _write_stac(
         False,
     )
 
-    import pdb; pdb.set_trace()
-
     with stac_path.open("w") as f:
         json.dump(stac, f, default=json_fallback)
     dataset_assembler.add_accessory_file("metadata:stac", stac_path)
