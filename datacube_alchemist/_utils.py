@@ -45,18 +45,20 @@ def _write_stac(
     out_dataset = serialise.from_path(metadata_path)
     stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
     # Madness in deferred destination logic
-    uri_base = dataset_assembler.names.destination_folder(Path(task.settings.output.location))
-    uri_base = str(uri_base) + '/'
-    uri_base.replace('s3:/', 's3://')
+    uri_base = dataset_assembler.names.destination_folder(
+        Path(task.settings.output.location)
+    )
+    uri_base = str(uri_base) + "/"
 
     stac = dc_to_stac(
         out_dataset,
         metadata_path,
         stac_path,
-        uri_base,
+        uri_base.replace("s3:/", "s3://"),
         task.settings.output.explorer_url,
         False,
     )
+
     with stac_path.open("w") as f:
         json.dump(stac, f, default=json_fallback)
     dataset_assembler.add_accessory_file("metadata:stac", stac_path)
@@ -78,46 +80,33 @@ def _stac_to_sns(sns_arn, stac):
     """
     Publish our STAC document to an SNS
     """
-    bbox = stac['bbox']
+    bbox = stac["bbox"]
 
-    client = boto3.client('sns')
+    client = boto3.client("sns")
     client.publish(
         TopicArn=sns_arn,
         Message=json.dumps(stac, indent=4, default=json_fallback),
         MessageAttributes={
-            'action': {
-                'DataType': 'String',
-                'StringValue': 'ADDED'
+            "action": {"DataType": "String", "StringValue": "ADDED"},
+            "datetime": {
+                "DataType": "String",
+                "StringValue": str(dicttoolz.get_in(["properties", "datetime"], stac)),
             },
-            'datetime': {
-                'DataType': 'String',
-                'StringValue': str(dicttoolz.get_in(["properties", "datetime"], stac))
+            "product": {
+                "DataType": "String",
+                "StringValue": dicttoolz.get_in(["properties", "odc:product"], stac),
             },
-            'product': {
-                'DataType': 'String',
-                'StringValue': dicttoolz.get_in(["properties", "odc:product"], stac)
+            "maturity": {
+                "DataType": "String",
+                "StringValue": dicttoolz.get_in(
+                    ["properties", "dea:dataset_maturity"], stac
+                ),
             },
-            'maturity': {
-                'DataType': 'String',
-                'StringValue': dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac)
-            },
-            'bbox.ll_lon': {
-                'DataType': 'Number',
-                'StringValue': str(bbox.left)
-            },
-            'bbox.ll_lat': {
-                'DataType': 'Number',
-                'StringValue': str(bbox.bottom)
-            },
-            'bbox.ur_lon': {
-                'DataType': 'Number',
-                'StringValue': str(bbox.right)
-            },
-            'bbox.ur_lat': {
-                'DataType': 'Number',
-                'StringValue': str(bbox.top)
-            }
-        }
+            "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox.left)},
+            "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox.bottom)},
+            "bbox.ur_lon": {"DataType": "Number", "StringValue": str(bbox.right)},
+            "bbox.ur_lat": {"DataType": "Number", "StringValue": str(bbox.top)},
+        },
     )
 
 
