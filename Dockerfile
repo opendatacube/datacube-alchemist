@@ -25,7 +25,7 @@ ENV LC_ALL=C.UTF-8 \
 
 RUN apt-get update \
     && apt-get install -y \
-    git vim fish wget \
+    git vim nano fish wget postgresql \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=env_builder /env /env

@@ -214,9 +214,8 @@ class Alchemist:
             transform = message_body.get("transform", None)
 
             if transform and transform != self.transform_name:
-                raise ValueError(
-                    "Your transform doesn't match the transform in the message."
-                )
+                _LOG.error(f"Your transform doesn't match the transform in the message. Ignoring {uuid}")
+                continue
             task = self.generate_task_by_uuid(message_body["id"])
             if task:
                 yield task, message
@@ -406,7 +405,8 @@ class Alchemist:
 
                 log.info("Task complete")
                 if stac is not None and sns_arn:
-                    _stac_to_sns(sns_arn, stac)
+                    if not dryrun:
+                        _stac_to_sns(sns_arn, stac)
                 elif sns_arn:
                     _LOG.error("Not posting to SNS because there's no STAC to post")
 
