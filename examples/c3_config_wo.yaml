@@ -23,15 +23,15 @@ output:
   preview_image_singleband:
     measurement: water
     lookup_table:
-      '0': [150, 150, 110]   # dry
-      '1': [255, 255, 255]   # nodata,
-      '16': [119, 104, 87]   # terrain
-      '32': [89, 88, 86]     # cloud_shadow
-      '64': [216, 215, 214]  # cloud
-      '80': [242, 220, 180]  # cloudy terrain
-      '128': [79, 129, 189]  # water
-      '160': [51, 82, 119]   # shady water
-      '192': [186, 211, 242] # cloudy water
+      0: [150, 150, 110]   # dry
+      1: [255, 255, 255]   # nodata,
+      16: [119, 104, 87]   # terrain
+      32: [89, 88, 86]     # cloud_shadow
+      64: [216, 215, 214]  # cloud
+      80: [242, 220, 180]  # cloudy terrain
+      128: [79, 129, 189]  # water
+      160: [51, 82, 119]   # shady water
+      192: [186, 211, 242] # cloudy water
   write_data_settings:
     overview_resampling: mode
   reference_source_dataset: True
