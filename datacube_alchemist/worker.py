@@ -9,6 +9,7 @@ except ImportError:
 import json
 import shutil
 import subprocess
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -29,8 +30,12 @@ from odc.aws.queue import get_messages, get_queue, publish_message
 from odc.index import odc_uuid
 
 from datacube_alchemist import __version__
-from datacube_alchemist._utils import (_munge_dataset_to_eo3, _write_stac,
-                                       _write_thumbnail, _stac_to_sns)
+from datacube_alchemist._utils import (
+    _munge_dataset_to_eo3,
+    _stac_to_sns,
+    _write_stac,
+    _write_thumbnail,
+)
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()
@@ -172,14 +177,35 @@ class Alchemist:
 
     # Queue related functions
     def enqueue_datasets(self, queue, query, limit=None, product_limit=None):
-        datasets = self._find_datasets(query, limit, product_limit)
         alive_queue = get_queue(queue)
 
+        def post_messages(messages, count):
+            alive_queue.send_messages(Entries=messages)
+            sys.stdout.write(f"\rAdded {count} messages...")
+            return []
+
+        datasets = self._find_datasets(query, limit, product_limit)
+
         count = 0
+        messages = []
+        sys.stdout.write("\rAdding messages...")
         for dataset in datasets:
-            message = {"id": str(dataset.id), "transform": self.transform_name}
-            publish_message(alive_queue, json.dumps(message))
+            message = {
+                "Id": str(count),
+                "MessageBody": json.dumps(
+                    {"id": str(dataset.id), "transform": self.transform_name}
+                )
+            }
+            messages.append(message)
+
             count += 1
+            if count % 10 == 0:
+                messages = post_messages(messages, count)
+
+        # Post the last messages if there are any
+        if len(messages) > 0:
+            post_messages(messages, count)
+        sys.stdout.write("\r")
 
         return count
 
@@ -190,22 +216,26 @@ class Alchemist:
 
         for message in messages:
             message_body = json.loads(message.body)
-            uuid = message_body.get('id', None)
+            uuid = message_body.get("id", None)
             if uuid is None:
                 # This is probably a message created from an SNS, so it's double
                 # JSON dumped
-                message_body = json.loads(message_body['Message'])
+                message_body = json.loads(message_body["Message"])
             transform = message_body.get("transform", None)
 
             if transform and transform != self.transform_name:
-                _LOG.error(f"Your transform doesn't match the transform in the message. Ignoring {uuid}")
+                _LOG.error(
+                    f"Your transform doesn't match the transform in the message. Ignoring {uuid}"
+                )
                 continue
             task = self.generate_task_by_uuid(message_body["id"])
             if task:
                 yield task, message
 
     # Task execution
-    def execute_task(self, task: AlchemistTask, dryrun: bool = False, sns_arn: str = None):
+    def execute_task(
+        self, task: AlchemistTask, dryrun: bool = False, sns_arn: str = None
+    ):
         log = _LOG.bind(task=task.dataset.id)
         log.info("Task commencing", task=task)
 
