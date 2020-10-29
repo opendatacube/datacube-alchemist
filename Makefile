@@ -80,7 +80,7 @@ fc-broken-dry:
 wofs-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml \
-		--uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6
+		--uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6 --dryrun
 
 wofs-many:
 	docker-compose exec alchemist \
@@ -102,25 +102,16 @@ fc-one-of-each:
 		bash -c \
 			"echo '${THREE_SCENES}' | xargs -n1 datacube-alchemist run-one ./examples/c3_config_fc.yaml"
 
-c3-populate-queue-from-ard:
-	docker-compose exec alchemist \
-		/code/datacube_alchemist/cli.py \
-		push-to-queue-from-s3 \
-		-M alchemist-nehem-backup-wofs \
-		-B dea-public-data-dev \
-		-P "analysis-ready-data" \
-		-F "final.odc-metadata.yaml"
-
 # Queue testing
 wofs-to-queue:
 	docker-compose exec alchemist \
 		datacube-alchemist add-to-queue --config-file ./examples/c3_config_wo.yaml --queue alex-dev-alive \
-			--limit=20 --product-limit=5
+			--limit=300 --product-limit=100
 
 wofs-from-queue:
 	docker-compose exec alchemist \
 		datacube-alchemist run-from-queue --config-file ./examples/c3_config_wo.yaml --queue alex-dev-alive \
-			--limit=1 --queue-timeout=600
+			--limit=1 --queue-timeout=600 --dryrun
 
 fc-to-queue:
 	docker-compose exec alchemist \
@@ -130,4 +121,16 @@ fc-to-queue:
 fc-from-queue:
 	docker-compose exec alchemist \
 		datacube-alchemist run-from-queue --config-file ./examples/c3_config_fc.yaml --queue alex-dev-alive \
-			--limit=1 --queue-timeout=600
+			--limit=1 --queue-timeout=1200
+
+fc-deadletter:
+	docker-compose exec alchemist \
+		datacube-alchemist run-from-queue --config-file ./examples/c3_config_fc.yaml \
+		--queue dea-dev-eks-alchemist-c3-processing-fc-deadletter \
+		--queue-timeout=1200
+
+wo-deadletter:
+	docker-compose exec alchemist \
+		datacube-alchemist run-from-queue --config-file ./examples/c3_config_wo.yaml \
+		--queue dea-dev-eks-alchemist-c3-processing-wo-deadletter \
+		--queue-timeout=1200
