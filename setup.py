@@ -32,7 +32,7 @@ setup(
         "datacube",
         "eodatasets3",
         "attrs>=18.1",
-        "cattrs",
+        "cattrs==1.0.0",
         "structlog",
         "boto3",
         "dask>=2",
