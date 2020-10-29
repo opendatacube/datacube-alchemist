@@ -1,4 +1,4 @@
-name: Alchemist
+name: Push
 
 on:
   push:

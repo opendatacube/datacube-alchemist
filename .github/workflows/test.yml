@@ -1,4 +1,4 @@
-name: Alchemist
+name: Test
 
 on:
   pull_request:
