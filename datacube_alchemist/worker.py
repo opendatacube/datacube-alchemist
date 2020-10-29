@@ -405,6 +405,7 @@ class Alchemist:
                         "s3",
                         "sync",
                         "--only-show-errors",
+                        "--acl bucket-owner-full-control",
                         str(dataset_assembler._dataset_location),
                         s3_location,
                     ]
