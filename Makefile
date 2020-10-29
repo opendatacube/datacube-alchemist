@@ -80,7 +80,7 @@ fc-broken-dry:
 wofs-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml \
-		--uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6 --dryrun
+		--uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6
 
 wofs-many:
 	docker-compose exec alchemist \
