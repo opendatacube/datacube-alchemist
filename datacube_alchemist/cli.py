@@ -115,25 +115,6 @@ def run_many(config_file, expressions, limit, dryrun):
 @cli.command()
 @config_file_option
 @queue_option
-@ui.parsed_search_expressions
-@limit_option
-@product_limit_option
-def add_to_queue(config_file, queue, expressions, limit, product_limit):
-    """
-    Search for Datasets and enqueue Tasks into an AWS SQS Queue for later processing.
-    """
-
-    start_time = time.time()
-
-    alchemist = Alchemist(config_file=config_file)
-    n_messages = alchemist.enqueue_datasets(queue, expressions, limit, product_limit)
-
-    _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
-
-
-@cli.command()
-@config_file_option
-@queue_option
 @limit_option
 @queue_timeout
 @dryrun_option
@@ -170,6 +151,25 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
             f"There were {errors} tasks that failed and {successes} successful tasks"
             ", which is less than the limit specified"
         )
+
+
+@cli.command()
+@config_file_option
+@queue_option
+@ui.parsed_search_expressions
+@limit_option
+@product_limit_option
+def add_to_queue(config_file, queue, expressions, limit, product_limit):
+    """
+    Search for Datasets and enqueue Tasks into an AWS SQS Queue for later processing.
+    """
+
+    start_time = time.time()
+
+    alchemist = Alchemist(config_file=config_file)
+    n_messages = alchemist.enqueue_datasets(queue, expressions, limit, product_limit)
+
+    _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
 
 
 @cli.command()
