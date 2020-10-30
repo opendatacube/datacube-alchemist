@@ -24,7 +24,7 @@ output:
     measurement: water
     lookup_table:
       0: [150, 150, 110]   # dry
-      1: [255, 255, 255]   # nodata,
+      1: [0, 0, 0]   # nodata,
       16: [119, 104, 87]   # terrain
       32: [89, 88, 86]     # cloud_shadow
       64: [216, 215, 214]  # cloud
