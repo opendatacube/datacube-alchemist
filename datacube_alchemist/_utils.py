@@ -124,6 +124,8 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
     product = ProductDoc(name=ds.type.name)
     # Wrap properties to avoid typos and the like
     properties = StacPropertyView(ds.metadata_doc.get("properties", {}))
+    if properties.get('eo:gsd'):
+        del properties['eo:gsd']
     return DatasetDoc(
         id=ds.id,
         product=product,
