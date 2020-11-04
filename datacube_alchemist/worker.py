@@ -66,13 +66,19 @@ class Alchemist:
         return self.config.specification.transform
 
     @property
-    def _transform(self) -> Type[Transformation]:
+    def transform(self) -> Type[Transformation]:
 
         module_name, class_name = self.transform_name.rsplit(".", maxsplit=1)
         module = importlib.import_module(name=module_name)
         imported_class = getattr(module, class_name)
         assert issubclass(imported_class, Transformation)
         return imported_class
+
+    def _native_resolution(self, task: AlchemistTask) -> float:
+        geobox = native_geobox(
+            task.dataset, basis=list(task.dataset.measurements.keys())[0]
+        )
+        return geobox.affine[0]
 
     def _transform_with_args(self, task: AlchemistTask) -> Transformation:
         transform_args = None
@@ -84,9 +90,9 @@ class Alchemist:
                 task.dataset.type.name
             )
         if transform_args is not None:
-            return self._transform(**transform_args)
+            return self.transform(**transform_args)
         else:
-            return self._transform()
+            return self.transform()
 
     def _find_dataset(self, uuid: str) -> Dataset:
         # Find a dataset for a given UUID from within the available
@@ -270,10 +276,7 @@ class Alchemist:
 
         # Load and process data in a decimated array
         if dryrun:
-            geobox = native_geobox(
-                task.dataset, basis=list(task.dataset.measurements.keys())[0]
-            )
-            res_by_ten = geobox.affine[0] * 10
+            res_by_ten = self._native_resolution(task) * 10
             data = self.dc.load(
                 product=task.dataset.type.name,
                 id=task.dataset.id,
@@ -346,6 +349,9 @@ class Alchemist:
                 setattr(dataset_assembler, k, v)
             for k, v in task.settings.output.properties.items():
                 dataset_assembler.properties[k] = v
+
+            # Update the GSD
+            dataset_assembler.properties['eo:gsd'] = self._native_resolution(task)
 
             dataset_assembler.processed = datetime.utcnow()
 
