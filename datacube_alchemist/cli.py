@@ -2,14 +2,15 @@ import sys
 import time
 
 import click
-import structlog
 from datacube.ui import click as ui
+
+from datacube_alchemist._utils import _get_logger
 
 from odc.aws.queue import get_queue
 
 from datacube_alchemist.worker import Alchemist, get_messages
 
-_LOG = structlog.get_logger()
+_LOG = _get_logger("CLI")
 
 # Define common options for all the commands
 queue_option = click.option(

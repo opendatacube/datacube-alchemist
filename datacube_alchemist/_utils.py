@@ -2,6 +2,10 @@ import json
 from pathlib import Path
 from typing import Dict
 
+import logging
+import structlog
+import sys
+
 import boto3
 from datacube.model import Dataset
 from datacube.virtual import Measurement, Transformation
@@ -26,6 +30,23 @@ class FakeTransformation(Transformation):
 
     def compute(self, data) -> Dataset:
         return data
+
+
+def _get_logger(name: str):
+    logger = structlog.get_logger(name)
+    logging.basicConfig(
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        stream=sys.stdout,
+        level=logging.INFO,
+        datefmt="%y-%m-%d %H:%M:%S",
+    )
+    structlog.configure(
+        processors=[structlog.processors.KeyValueRenderer(key_order=["event"])],
+        context_class=structlog.threadlocal.wrap_dict(dict),
+        logger_factory=structlog.stdlib.LoggerFactory(),
+    )
+
+    return logger
 
 
 def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
@@ -124,8 +145,8 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
     product = ProductDoc(name=ds.type.name)
     # Wrap properties to avoid typos and the like
     properties = StacPropertyView(ds.metadata_doc.get("properties", {}))
-    if properties.get('eo:gsd'):
-        del properties['eo:gsd']
+    if properties.get("eo:gsd"):
+        del properties["eo:gsd"]
     return DatasetDoc(
         id=ds.id,
         product=product,
