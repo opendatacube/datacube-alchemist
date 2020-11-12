@@ -19,7 +19,7 @@ import cattr
 import datacube
 import fsspec
 import numpy as np
-import structlog
+
 import yaml
 from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
@@ -35,10 +35,12 @@ from datacube_alchemist._utils import (
     _stac_to_sns,
     _write_stac,
     _write_thumbnail,
+    _get_logger,
 )
+
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
-_LOG = structlog.get_logger()
+_LOG = _get_logger("WORKER")
 cattr.register_structure_hook(np.dtype, np.dtype)
 
 
@@ -200,7 +202,7 @@ class Alchemist:
                 "Id": str(count),
                 "MessageBody": json.dumps(
                     {"id": str(dataset.id), "transform": self.transform_name}
-                )
+                ),
             }
             messages.append(message)
 
@@ -335,7 +337,7 @@ class Alchemist:
                 dataset_assembler.properties[k] = v
 
             # Update the GSD
-            dataset_assembler.properties['eo:gsd'] = self._native_resolution(task)
+            dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
 
             dataset_assembler.processed = datetime.utcnow()
 
