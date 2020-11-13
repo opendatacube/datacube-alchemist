@@ -2,11 +2,7 @@
 import io
 from setuptools import setup, find_packages
 
-dev_requirements = [
-    "flake8",
-    "pytest",
-    "pytest-cov"
-]
+dev_requirements = ["flake8", "pytest", "pytest-cov"]
 
 setup(
     name="datacube-alchemist",
@@ -19,12 +15,15 @@ setup(
     zip_safe=False,
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
+        "Environment :: Console",
     ],
     packages=find_packages(exclude=("tests",)),
     include_package_data=True,
