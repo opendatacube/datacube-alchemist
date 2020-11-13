@@ -11,9 +11,7 @@ from odc.aws.queue import get_queue
 
 from datacube_alchemist.worker import Alchemist, get_messages
 
-_configure_logger()
 _LOG = structlog.get_logger()
-
 
 # Define common options for all the commands
 queue_option = click.option(
@@ -72,6 +70,8 @@ def cli():
     """
     Transform Datasets from the Open Data Cube into a new type of Dataset
     """
+    # Set up opinionated logging
+    _configure_logger()
 
 
 @cli.command()
