@@ -12,7 +12,7 @@ import cattr
 import datacube
 import fsspec
 import numpy as np
-
+import structlog
 import yaml
 from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
@@ -28,12 +28,10 @@ from datacube_alchemist._utils import (
     _stac_to_sns,
     _write_stac,
     _write_thumbnail,
-    _get_logger,
 )
-
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
-_LOG = _get_logger("WORKER")
+_LOG = structlog.get_logger()
 cattr.register_structure_hook(np.dtype, np.dtype)
 
 
