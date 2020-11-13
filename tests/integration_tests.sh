@@ -2,6 +2,10 @@
 # Bail on the first error
 set -ex
 
+# Stupid symbolic links don't work on GitHub Actions
+# something to do with Docker in Docker, I think. Alex Nov 2020
+pip install .
+
 # Init the DB
 datacube system init
 
