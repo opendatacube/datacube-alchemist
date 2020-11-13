@@ -33,7 +33,7 @@ test:
 	docker-compose exec alchemist pytest tests
 
 lint:
-	docker-compose exec alchemist flake8
+	docker-compose exec alchemist black --check datacube_alchemist
 
 integration-test:
 	docker-compose up -d

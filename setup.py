@@ -3,7 +3,7 @@ import io
 from setuptools import setup, find_packages
 
 dev_requirements = [
-    "flake8",
+    "black",
     "pytest",
     "pytest-cov"
 ]
