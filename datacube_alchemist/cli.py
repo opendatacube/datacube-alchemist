@@ -1,16 +1,12 @@
-#!/usr/bin/env python
+import click
 import sys
 import time
 
-import click
 from datacube.ui import click as ui
-
 from datacube_alchemist._utils import _configure_logger
 import structlog
-
-from odc.aws.queue import get_queue
-
 from datacube_alchemist.worker import Alchemist, get_messages
+from odc.aws.queue import get_queue
 
 _LOG = structlog.get_logger()
 
@@ -62,11 +58,29 @@ sns_arn_option = click.option(
 )
 
 
+def _print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    from datacube_alchemist import __version__ as alchemist_version
+    from datacube import __version__ as datacube_version
+
+    click.echo(f"datacube-alchemist, version {alchemist_version}")
+    click.echo(f"Open Data Cube core, version {datacube_version}")
+    ctx.exit()
+
+
 def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
 
 
 @click.group(context_settings=dict(max_content_width=120))
+@click.option(
+    "--version",
+    is_flag=True,
+    callback=_print_version,
+    expose_value=False,
+    is_eager=True,
+)
 def cli():
     """
     Transform Datasets from the Open Data Cube into a new type of Dataset
