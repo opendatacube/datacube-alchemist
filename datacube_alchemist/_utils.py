@@ -2,11 +2,8 @@ import json
 from pathlib import Path
 from typing import Dict
 
-import logging
-import structlog
-import sys
-
 import boto3
+import structlog
 from datacube.model import Dataset
 from datacube.virtual import Measurement, Transformation
 from eodatasets3 import DatasetAssembler, serialise
@@ -14,10 +11,9 @@ from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 from eodatasets3.verify import PackageChecksum
+from toolz import dicttoolz
 
 from datacube_alchemist.settings import AlchemistTask
-
-from toolz import dicttoolz
 
 
 class FakeTransformation(Transformation):
@@ -32,21 +28,21 @@ class FakeTransformation(Transformation):
         return data
 
 
-def _get_logger(name: str):
-    logger = structlog.get_logger(name)
-    logging.basicConfig(
-        format="%(asctime)s %(name)s %(levelname)s %(message)s",
-        stream=sys.stdout,
-        level=logging.INFO,
-        datefmt="%y-%m-%d %H:%M:%S",
-    )
-    structlog.configure(
-        processors=[structlog.processors.KeyValueRenderer(key_order=["event"])],
-        context_class=structlog.threadlocal.wrap_dict(dict),
-        logger_factory=structlog.stdlib.LoggerFactory(),
-    )
+def _configure_logger():
+    processors = [
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.dev.ConsoleRenderer(),
+    ]
 
-    return logger
+    structlog.configure(
+        processors=processors,
+        context_class=dict,
+        cache_logger_on_first_use=True,
+        logger_factory=structlog.PrintLoggerFactory(),
+    )
 
 
 def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
