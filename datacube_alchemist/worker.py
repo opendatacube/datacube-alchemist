@@ -1,11 +1,5 @@
 import importlib
 
-try:
-    # Only available in Python 3.8+
-    from importlib import metadata
-except ImportError:
-    # Backport installed from PyPI
-    from importlib_metadata import metadata, PackageNotFoundError
 import json
 import shutil
 import subprocess
@@ -36,6 +30,7 @@ from datacube_alchemist._utils import (
     _write_stac,
     _write_thumbnail,
     _get_logger,
+    get_transform_info,
 )
 
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
@@ -434,99 +429,3 @@ class Alchemist:
                     _LOG.error("Not posting to SNS because there's no STAC to post")
 
         return dataset_id, metadata_path
-
-
-def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
-    if (
-        task.settings.output.preview_image
-        and task.settings.output.preview_image_lookuptable
-    ):
-        _LOG.warning(
-            "preview_image and preview_imag_lookuptable options both set, defaulting to preview_image"
-        )
-    if task.settings.output.preview_image is not None:
-        dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
-    elif task.settings.output.preview_image_lookuptable is not None:
-        writer = FileWrite()
-
-        measurements = {
-            name: (grid, path)
-            for grid, name, path in dataset_assembler._measurements.iter_paths()
-        }
-
-        if task.settings.output.preview_image_lookuptable_band not in measurements:
-            _LOG.error(
-                f"Can't find band {task.settings.output.preview_image_lookuptable_band} to write thumbnail with"
-            )
-        else:
-            image_in = measurements[
-                task.settings.output.preview_image_lookuptable_band
-            ][1]
-            thumb_path = dataset_assembler.names.thumbnail_name(
-                dataset_assembler._work_path
-            )
-            thumb_out = Path(thumb_path)
-            writer.create_thumbnail_singleband(
-                image_in,
-                thumb_out,
-                lookup_table=task.settings.output.preview_image_lookuptable,
-            )
-            dataset_assembler.add_accessory_file("thumbnail:jpg", thumb_out)
-
-
-def _write_stac(
-    metadata_path: Path,
-    task: AlchemistTask,
-    dataset_assembler: DatasetAssembler,
-):
-    out_dataset = serialise.from_path(metadata_path)
-    stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
-    stac = dc_to_stac(
-        out_dataset,
-        metadata_path,
-        stac_path,
-        stac_path.root,
-        task.settings.output.explorer_url,
-        False,
-    )
-    with stac_path.open("w") as f:
-        json.dump(stac, f, default=json_fallback)
-    dataset_assembler.add_accessory_file("metadata:stac", stac_path)
-
-    # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
-    # Need a new checksummer because EODatasets is insane
-    checksummer = PackageChecksum()
-    checksum_file = (
-        dataset_assembler._dataset_location
-        / dataset_assembler._accessories["checksum:sha1"].name
-    )
-    checksummer.read(checksum_file)
-    checksummer.add_file(stac_path)
-    checksummer.write(checksum_file)
-
-
-def get_transform_info(transform_name):
-    """
-    Given a transform return version and url info of the transform.
-    :param transform:
-    :return:
-    """
-    version = ""
-    version_major_minor = ""
-    url = ""
-    try:
-        transform_package = transform_name.split(".")[0]
-
-        m = metadata(transform_package)
-        version = m["Version"]
-        version_major_minor = ".".join(version.split(".")[0:2])
-        url = m.get("Home-page", "")
-    except (AttributeError, PackageNotFoundError):
-        _LOG.info(
-            "algorithm_version not set and " "not used to generate deterministic uuid"
-        )
-    return {
-        "version": version,
-        "version_major_minor": version_major_minor,
-        "url": url,
-    }
