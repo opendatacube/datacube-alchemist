@@ -25,17 +25,27 @@ jobs:
     - name: Bring up the docker container
       run: |
         docker-compose up -d
+        echo $(pwd) === ONE
+        ls -l
         sleep 5
-        docker-compose exec -T alchemist datacube system init
+        docker-compose exec -T alchemist bash -c "pwd; ls -la; datacube system init"
 
     - name: Run linting
       run: |
-        docker-compose exec -T alchemist flake8
+        echo $(pwd) === TWO
+        ls -l
+        docker-compose exec -T alchemist bash -c "pwd; ls -la; flake8"
+        echo $(pwd) === THREE
+        ls -l
 
     - name: Run tests
       run: |
-        docker-compose exec -T alchemist pytest tests
-  
+        echo $(pwd) === FOUR
+        ls -l
+        docker-compose exec -T alchemist bash -c "pwd; ls -la; pytest tests"
+        echo $(pwd) === FIVE
+        ls -l
+
     # This is failing, so I'm disabling until later. Alex Oct 2020
     # - name: Integration tests
     #   run: |
