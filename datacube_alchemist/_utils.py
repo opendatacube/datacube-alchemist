@@ -197,8 +197,6 @@ def _convert_eo(ds) -> DatasetDoc:
 def get_transform_info(transform_name):
     """
     Given a transform return version and url info of the transform.
-    :param transform:
-    :return:
     """
     version = ""
     version_major_minor = ""
