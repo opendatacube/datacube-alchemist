@@ -1,4 +1,5 @@
-from datacube_alchemist.worker import Alchemist, get_transform_info
+from datacube_alchemist.worker import Alchemist
+from datacube_alchemist._utils import get_transform_info
 
 
 def test_alchemist_local_config(config_file):
