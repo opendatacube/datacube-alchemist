@@ -19,12 +19,15 @@ setup(
     zip_safe=False,
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
+        "Environment :: Console",
     ],
     packages=find_packages(exclude=("tests",)),
     include_package_data=True,
@@ -44,7 +47,7 @@ setup(
         "odc-aws",
         "odc-index",
         "awscli",
-        "h5py",  # Needed for eodatasets3 (confirm fixed before removing)
+        "importlib_metadata;python_version<'3.8'",
     ],
     extras_require={"dev": dev_requirements},
     use_scm_version=True,

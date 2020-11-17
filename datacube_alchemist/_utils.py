@@ -7,6 +7,14 @@ import structlog
 from datacube.model import Dataset
 from datacube.virtual import Measurement, Transformation
 from eodatasets3 import DatasetAssembler, serialise
+import structlog
+
+try:
+    # Only available in Python 3.8+
+    from importlib import metadata
+except ImportError:
+    # Backport installed from PyPI
+    from importlib_metadata import metadata, PackageNotFoundError
 from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
@@ -14,6 +22,8 @@ from eodatasets3.verify import PackageChecksum
 from toolz import dicttoolz
 
 from datacube_alchemist.settings import AlchemistTask
+
+_LOG = structlog.get_logger()
 
 
 class FakeTransformation(Transformation):
@@ -183,3 +193,28 @@ def _convert_eo(ds) -> DatasetDoc:
     )
     product = ProductDoc(name=ds.type.name)
     return DatasetDoc(id=ds.id, product=product, crs=str(ds.crs), properties=properties)
+
+
+def get_transform_info(transform_name):
+    """
+    Given a transform return version and url info of the transform.
+    """
+    version = ""
+    version_major_minor = ""
+    url = ""
+    try:
+        transform_package = transform_name.split(".")[0]
+
+        m = metadata(transform_package)
+        version = m["Version"]
+        version_major_minor = ".".join(version.split(".")[0:2])
+        url = m.get("Home-page", "")
+    except (AttributeError, PackageNotFoundError):
+        _LOG.info(
+            "algorithm_version not set and " "not used to generate deterministic uuid"
+        )
+    return {
+        "version": version,
+        "version_major_minor": version_major_minor,
+        "url": url,
+    }

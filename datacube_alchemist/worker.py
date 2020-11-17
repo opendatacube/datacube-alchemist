@@ -18,6 +18,13 @@ from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
 from datacube.virtual import Transformation
 from eodatasets3.assemble import DatasetAssembler
+from eodatasets3.images import FileWrite
+from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
+from eodatasets3.verify import PackageChecksum
+
+from datacube_alchemist import __version__
+from datacube_alchemist._utils import _munge_dataset_to_eo3, get_transform_info
+from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
@@ -129,7 +136,7 @@ class Alchemist:
 
     def _deterministic_uuid(self, task, algorithm_version=None, **other_tags):
         if algorithm_version is None:
-            transform_info = self._get_transform_info()
+            transform_info = get_transform_info(self.transform_name)
             algorithm_version = transform_info["version_major_minor"]
         if "dataset_version" not in other_tags:
             try:
@@ -362,7 +369,7 @@ class Alchemist:
             )
 
             # Software Version of Transformer
-            version_url = self._get_transform_info()
+            version_url = get_transform_info(self.transform_name)
             dataset_assembler.note_software_version(
                 name=task.settings.specification.transform,
                 url=version_url["url"],
