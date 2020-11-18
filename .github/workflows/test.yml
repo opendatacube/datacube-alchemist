@@ -24,28 +24,27 @@ jobs:
 
     - name: Build the docker container
       run: |
-        docker-compose build
+        docker-compose --verbose --log-level INFO build
         pwd
         ls -la
 
     - name: Initialise datacube database
       run: |
-        docker-compose run alchemist datacube system init
-        docker-compose logs alchemist
-        docker-compose ps -a
+        docker-compose --verbose --log-level INFO up -d
         pwd
         ls -la
-        docker-compose run alchemist datacube-alchemist --version
+        docker-compose --verbose --log-level INFO exec alchemist datacube-alchemist --version
 
     - name: Run linting
       run: |
-        docker-compose run alchemist datacube-alchemist --version
-        docker-compose run alchemist black --check datacube_alchemist
+        docker-compose --verbose --log-level INFO exec alchemist datacube-alchemist --version
+        docker-compose --verbose --log-level INFO exec alchemist black --check datacube_alchemist
 
     - name: Run tests
       run: |
-        docker-compose run alchemist bash -c "pip freeze; pip install .; pip freeze; pytest tests"
+        docker-compose --verbose --log-level INFO exec alchemist bash -c "pip freeze; pip install .; pip freeze; pytest tests"
 
     - name: Integration tests
       run: |
-        docker-compose run alchemist bash ./tests/integration_tests.sh
+        docker-compose --verbose --log-level INFO exec alchemist datacube system init
+        docker-compose --verbose --log-level INFO exec alchemist bash ./tests/integration_tests.sh
