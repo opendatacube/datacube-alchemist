@@ -29,6 +29,8 @@ jobs:
     - name: Initialise datacube database
       run: |
         docker-compose run alchemist datacube system init
+        docker-compose logs alchemist
+        docker-compose ps -a
         docker-compose run alchemist datacube-alchemist --version
 
     - name: Run linting
