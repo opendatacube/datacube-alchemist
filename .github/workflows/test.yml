@@ -38,8 +38,8 @@ jobs:
 
     - name: Run tests
       run: |
-        docker-compose exec -T alchemist pytest tests
-  
+        docker-compose exec -T alchemist bash -c "pip freeze; pip install .; pip freeze; pytest tests"
+
     - name: Integration tests
       run: |
         docker-compose exec -T alchemist bash ./tests/integration_tests.sh
