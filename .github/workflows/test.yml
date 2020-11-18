@@ -31,9 +31,11 @@ jobs:
         docker-compose up -d
         sleep 5
         docker-compose exec -T alchemist datacube system init
+        docker-compose exec -T alchemist datacube-alchemist --version
 
     - name: Run linting
       run: |
+        docker-compose exec -T alchemist datacube-alchemist --version
         docker-compose exec -T alchemist black --check datacube_alchemist
 
     - name: Run tests

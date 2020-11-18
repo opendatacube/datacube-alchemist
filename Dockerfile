@@ -49,6 +49,6 @@ RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
     else pip install --extra-index-url="https://packages.dea.ga.gov.au" --editable .[$ENVIRONMENT] ; \
     fi
 
-RUN datacube-alchemist --help
+RUN datacube-alchemist --help && which datacube-alchemist && datacube-alchemist --version && python -c 'import sys; print(sys.path)'
 
-CMD ["datacube-alchemist", "--help"]
+CMD ["datacube-alchemist"]
