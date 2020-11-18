@@ -26,22 +26,20 @@ jobs:
       run: |
         docker-compose build
 
-    - name: Bring up the docker container
+    - name: Initialise datacube database
       run: |
-        docker-compose up -d
-        sleep 5
-        docker-compose exec -T alchemist datacube system init
-        docker-compose exec -T alchemist datacube-alchemist --version
+        docker-compose run alchemist datacube system init
+        docker-compose run alchemist datacube-alchemist --version
 
     - name: Run linting
       run: |
-        docker-compose exec -T alchemist datacube-alchemist --version
-        docker-compose exec -T alchemist black --check datacube_alchemist
+        docker-compose run alchemist datacube-alchemist --version
+        docker-compose run alchemist black --check datacube_alchemist
 
     - name: Run tests
       run: |
-        docker-compose exec -T alchemist bash -c "pip freeze; pip install .; pip freeze; pytest tests"
+        docker-compose run alchemist bash -c "pip freeze; pip install .; pip freeze; pytest tests"
 
     - name: Integration tests
       run: |
-        docker-compose exec -T alchemist bash ./tests/integration_tests.sh
+        docker-compose run alchemist bash ./tests/integration_tests.sh
