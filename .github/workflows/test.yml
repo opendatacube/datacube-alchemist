@@ -27,8 +27,7 @@ jobs:
         docker-compose --verbose --log-level INFO build
         pwd
         ls -la
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+
     - name: Initialise datacube database
       run: |
         docker-compose --verbose --log-level INFO up -d
