@@ -33,7 +33,7 @@ jobs:
         docker-compose --verbose --log-level INFO up -d
         pwd
         ls -la
-        docker-compose --verbose --log-level INFO exec alchemist datacube-alchemist --version
+        docker-compose --verbose --log-level INFO exec alchemist bash -c "pwd; ls -l; pip list; ls -l /env/lib/python3.6/site-packages/; which datacube-alchemist; cat `which datacube-alchemist`; datacube-alchemist --version"
 
     - name: Run linting
       run: |
