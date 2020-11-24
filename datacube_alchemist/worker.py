@@ -424,7 +424,8 @@ class Alchemist:
                             "PRETENDING to sync files to S3", s3_location=s3_destination
                         )
 
-                    log.info("S3 command: ", command=s3_command)
+                    log.info("Writing files to s3", location=s3_location)
+                    log.debug("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
