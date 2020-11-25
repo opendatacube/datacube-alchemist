@@ -57,30 +57,18 @@ product:
 
 index:
 	docker-compose exec alchemist \
-		bash -c "s3-to-dc 's3://dea-public-data-dev/analysis-ready-data/**/*.odc-metadata.yaml'\
-			--no-sign-request --skip-lineage 'ga_ls8c_ard_3 ga_ls7e_ard_3 ga_ls5t_ard_3'"
+		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+			s3://dea-public-data/baseline/ga_ls8c_ard_3/098/073/2020/07/19/ga_ls8c_ard_3-1-0_098073_2020-07-19_final.odc-metadata.yaml \
+			s3://dea-public-data/baseline/ga_ls5t_ard_3/108/083/2010/10/02/ga_ls5t_ard_3-0-0_108083_2010-10-02_final.odc-metadata.yaml \
+			s3://dea-public-data/baseline/ga_ls7e_ard_3/100/075/2003/10/15/ga_ls7e_ard_3-0-0_100075_2003-10-15_final.odc-metadata.yaml
 
-# LS8 example: 7b9553d4-3367-43fe-8e6f-b45999c5ada6
-# LS7 example: b03ab26f-dcb3-408f-9f78-f4bf4b84cb4b
-# LS5 example: 76223191-e942-4e26-b116-8c072e87d843
-
-THREE_SCENES=7b9553d4-3367-43fe-8e6f-b45999c5ada6 b03ab26f-dcb3-408f-9f78-f4bf4b84cb4b 76223191-e942-4e26-b116-8c072e87d843
-
-
-fc-broken:
-	docker-compose exec alchemist \
-		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
-		--uuid c12fdb9e-892e-4b33-ae39-7edbbf01eb85
-
-fc-broken-dry:
-	docker-compose exec alchemist \
-		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
-		--uuid c12fdb9e-892e-4b33-ae39-7edbbf01eb85 --dryrun
+# Landsat 8, 7 and 5 respectively
+THREE_SCENES=600645a5-5256-4632-a13d-fa13d1c11a8f 8b215983-ae1b-45bd-ad63-7245248bd41b 3fda2741-e810-4d3e-a54a-279fc3cd795f
 
 wofs-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml \
-		--uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6
+		--uuid 600645a5-5256-4632-a13d-fa13d1c11a8f
 
 wofs-many:
 	docker-compose exec alchemist \
@@ -90,7 +78,7 @@ wofs-many:
 fc-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
-		--uuid 7b9553d4-3367-43fe-8e6f-b45999c5ada6
+		--uuid 600645a5-5256-4632-a13d-fa13d1c11a8f
 
 wofs-one-of-each:
 	docker-compose exec alchemist \
