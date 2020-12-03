@@ -90,6 +90,13 @@ fc-one-of-each:
 		bash -c \
 			"echo '${THREE_SCENES}' | xargs -n1 datacube-alchemist run-one ./examples/c3_config_fc.yaml"
 
+find_missing:
+	docker-compose exec alchemist \
+		datacube-alchemist add-missing-to-queue --config-file ./examples/c3_config_wo.yaml \
+			--queue alex-dev-alive \
+			--dryrun
+
+
 # Queue testing
 wofs-to-queue:
 	docker-compose exec alchemist \

@@ -178,6 +178,25 @@ def add_to_queue(config_file, queue, expressions, limit, product_limit):
 
 
 @cli.command()
+@config_file_option
+@queue_option
+@dryrun_option
+def add_missing_to_queue(config_file, queue, dryrun):
+    """
+    Search for datasets that don't have a target product dataset and add them to the queue
+    """
+
+    alchemist = Alchemist(config_file=config_file)
+
+    n_messages = alchemist.find_fill_missing(queue, dryrun)
+
+    if not dryrun:
+        _LOG.info(f"Pushed {n_messages} items.")
+    else:
+        _LOG.info(f"DRYRUN! Would have pushed {n_messages} items.")
+
+
+@cli.command()
 @queue_option
 @limit_option
 @click.option("--to-queue", "-t", help="Url of SQS Queue to move to", required=True)
