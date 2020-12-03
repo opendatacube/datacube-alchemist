@@ -291,6 +291,7 @@ class Alchemist:
             dataset_assembler.cancel()
 
         # This is actual valuable work
+        _LOG.info("Querying database, please wait...")
         conn = psycopg2.connect(str(self.dc.index.url))
         cur = conn.cursor()
 
@@ -298,7 +299,12 @@ class Alchemist:
             query.format(input_products=input_products, output_product=output_product)
         )
         results = cur.fetchall()
-        _LOG.info(f"Found {len(results)} datasets missing in the child product")
+        _LOG.info(
+            (
+                f"Found {len(results)} datasets from {len(self.input_products)} input products"
+                f" missing in the output product {output_product}"
+            )
+        )
 
         if not dryrun:
             datasets = [self.dc.index.datasets.get(row[0]) for row in results]
