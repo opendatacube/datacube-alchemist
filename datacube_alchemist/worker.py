@@ -294,7 +294,9 @@ class Alchemist:
         conn = psycopg2.connect(str(self.dc.index.url))
         cur = conn.cursor()
 
-        cur.execute(query.format(input_products=input_products, output_product=output_product))
+        cur.execute(
+            query.format(input_products=input_products, output_product=output_product)
+        )
         results = cur.fetchall()
         _LOG.info(f"Found {len(results)} datasets missing in the child product")
 
