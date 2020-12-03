@@ -7,6 +7,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Type
+import psycopg2
 
 import cattr
 import datacube
@@ -73,6 +74,10 @@ class Alchemist:
         imported_class = getattr(module, class_name)
         assert issubclass(imported_class, Transformation)
         return imported_class
+
+    @property
+    def naming_convention(self) -> str:
+        return self.config.output.metadata.get("naming_conventions", "default")
 
     def _native_resolution(self, task: AlchemistTask) -> float:
         geobox = native_geobox(
@@ -181,36 +186,13 @@ class Alchemist:
             "url": "",
         }
 
-    # Task related functions
-    def generate_task(self, dataset) -> AlchemistTask:
-        return AlchemistTask(dataset=dataset, settings=self.config)
-
-    def generate_task_by_uuid(self, uuid: str) -> AlchemistTask:
-        # Retrieve a task based on a UUID, or none if it doesn't exist for input product(s)
-        dataset = self._find_dataset(uuid)
-        if dataset:
-            return AlchemistTask(dataset=dataset, settings=self.config)
-        else:
-            return None
-
-    def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
-        # Find which datasets needs to be processed
-        datasets = self._find_datasets(query, limit)
-
-        tasks = (self.generate_task(ds) for ds in datasets)
-
-        return tasks
-
-    # Queue related functions
-    def enqueue_datasets(self, queue, query, limit=None, product_limit=None):
+    def _datasets_to_queue(self, queue, datasets):
         alive_queue = get_queue(queue)
 
         def post_messages(messages, count):
             alive_queue.send_messages(Entries=messages)
             sys.stdout.write(f"\rAdded {count} messages...")
             return []
-
-        datasets = self._find_datasets(query, limit, product_limit)
 
         count = 0
         messages = []
@@ -234,6 +216,93 @@ class Alchemist:
         sys.stdout.write("\r")
 
         return count
+
+    # Task related functions
+    def generate_task(self, dataset) -> AlchemistTask:
+        return AlchemistTask(dataset=dataset, settings=self.config)
+
+    def generate_task_by_uuid(self, uuid: str) -> AlchemistTask:
+        # Retrieve a task based on a UUID, or none if it doesn't exist for input product(s)
+        dataset = self._find_dataset(uuid)
+        if dataset:
+            return AlchemistTask(dataset=dataset, settings=self.config)
+        else:
+            return None
+
+    def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
+        # Find which datasets needs to be processed
+        datasets = self._find_datasets(query, limit)
+
+        tasks = (self.generate_task(ds) for ds in datasets)
+
+        return tasks
+
+    # Queue related functions
+    def enqueue_datasets(self, queue, query, limit=None, product_limit=None):
+        datasets = self._find_datasets(query, limit, product_limit)
+        return self._datasets_to_queue(queue, datasets)
+
+    def find_fill_missing(self, queue, dryrun):
+        query = """
+            select d.id
+            from agdc.dataset as d
+            join agdc.dataset_type as t
+            on d.dataset_type_ref = t.id
+            left join (
+                select
+                    sub_s.dataset_ref,
+                    sub_s.source_dataset_ref
+                from agdc.dataset_source as sub_s
+                join agdc.dataset as sub_d
+                on sub_d.id = sub_s.dataset_ref
+                join agdc.dataset_type as sub_t
+                on sub_d.dataset_type_ref = sub_t.id
+                where sub_t.name = '{output_product}'
+            ) as s
+            on d.id = s.source_dataset_ref
+            where t.name in ({input_products})
+            and s.dataset_ref is null
+        """
+
+        # Most of this guff is just to get a destination product name...
+        input_products = ", ".join(f"'{p.name}'" for p in self.input_products)
+        output_product = ""
+
+        dataset = self.dc.find_datasets(product=self.input_products[0].name, limit=1)
+        source_doc = _munge_dataset_to_eo3(dataset[0])
+
+        with DatasetAssembler(
+            metadata_path="/fake/path",
+            naming_conventions=self.naming_convention,
+        ) as dataset_assembler:
+            dataset_assembler.add_source_dataset(
+                source_doc,
+                auto_inherit_properties=True,
+                inherit_geometry=self.config.output.inherit_geometry,
+                classifier=self.config.specification.override_product_family,
+            )
+            for k, v in self.config.output.metadata.items():
+                setattr(dataset_assembler, k, v)
+            for k, v in self.config.output.properties.items():
+                dataset_assembler.properties[k] = v
+            dataset_assembler.processed = datetime.utcnow()
+
+            output_product = dataset_assembler.names.product_name
+            dataset_assembler.cancel()
+
+        # This is actual valuable work
+        conn = psycopg2.connect(str(self.dc.index.url))
+        cur = conn.cursor()
+
+        cur.execute(query.format(input_products=input_products, output_product=output_product))
+        results = cur.fetchall()
+        _LOG.info(f"Found {len(results)} datasets missing in the child product")
+
+        if not dryrun:
+            datasets = [self.dc.index.datasets.get(row[0]) for row in results]
+            return self._datasets_to_queue(queue, datasets)
+        else:
+            return len(results)
 
     def get_tasks_from_queue(self, queue, limit, queue_timeout):
         """Retrieve messages from the named queue, returning an iterable of (AlchemistTasks, SQS Messages)"""
@@ -326,17 +395,10 @@ class Alchemist:
 
         uuid, _ = self._deterministic_uuid(task)
 
-        naming_conventions = task.settings.output.metadata.get(
-            "naming_conventions", None
-        )
-        if not naming_conventions:
-            # Default to basic naming conventions
-            naming_conventions = "default"
-
         temp_metadata_path = Path(tempfile.gettempdir()) / f"{task.dataset.id}.yaml"
         with DatasetAssembler(
             metadata_path=temp_metadata_path,
-            naming_conventions=naming_conventions,
+            naming_conventions=self.naming_convention,
             dataset_id=uuid,
         ) as dataset_assembler:
             if task.settings.output.reference_source_dataset:
