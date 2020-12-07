@@ -262,7 +262,7 @@ class Alchemist:
         """
 
         # Most of this guff is just to get a destination product name...
-        input_products = ", ".join(f"'{p.name}'" for p in self.input_products)
+        input_products = [p.name for p in self.input_products]
         output_product = ""
 
         dataset = self.dc.find_datasets(product=self.input_products[0].name, limit=1)
