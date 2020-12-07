@@ -109,6 +109,10 @@ class Alchemist:
                 _LOG.error(
                     f"Dataset {uuid} is not one of {', '.join(product.name for product in self.input_products)}"
                 )
+            if dataset.archived_time is not None:
+                # Dataset is archived
+                dataset = None
+                _LOG.error(f"Dataset {uuid} has been archived")
         else:
             # Dataset doesn't exist
             _LOG.error(f"Couldn't find dataset {uuid}")
