@@ -253,10 +253,10 @@ class Alchemist:
                 on sub_d.id = sub_s.dataset_ref
                 join agdc.dataset_type as sub_t
                 on sub_d.dataset_type_ref = sub_t.id
-                where sub_t.name = '{output_product}'
+                where sub_t.name = %{output_product}s
             ) as s
             on d.id = s.source_dataset_ref
-            where t.name in ({input_products})
+            where t.name in %{input_products}s
             and s.dataset_ref is null
             and d.archived is null
         """
