@@ -293,7 +293,7 @@ class Alchemist:
         cur = conn.cursor()
 
         cur.execute(
-            query.format(input_products=input_products, output_product=output_product)
+            query, dict(input_products=input_products, output_product=output_product)
         )
         results = cur.fetchall()
         _LOG.info(
