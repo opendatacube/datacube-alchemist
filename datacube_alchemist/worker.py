@@ -258,6 +258,7 @@ class Alchemist:
             on d.id = s.source_dataset_ref
             where t.name in ({input_products})
             and s.dataset_ref is null
+            and d.archived is null
         """
 
         # Most of this guff is just to get a destination product name...
