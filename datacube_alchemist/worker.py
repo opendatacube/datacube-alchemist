@@ -112,6 +112,7 @@ class Alchemist:
             if dataset.archived_time is not None:
                 # Dataset is archived
                 dataset = None
+                _LOG.debug("Useless thing")
                 _LOG.error(f"Dataset {uuid} has been archived")
         else:
             # Dataset doesn't exist
@@ -500,7 +501,7 @@ class Alchemist:
                         )
 
                     log.info("Writing files to s3", location=s3_location)
-                    log.debug("S3 command: ", command=s3_command)
+                    # log.debug("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
