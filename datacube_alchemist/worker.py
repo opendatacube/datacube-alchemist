@@ -257,16 +257,16 @@ class Alchemist:
                 on sub_d.id = sub_s.dataset_ref
                 join agdc.dataset_type as sub_t
                 on sub_d.dataset_type_ref = sub_t.id
-                where sub_t.name = '{output_product}'
+                where sub_t.name = %(output_product)s
             ) as s
             on d.id = s.source_dataset_ref
-            where t.name in ({input_products})
+            where t.name in %(input_products)s
             and s.dataset_ref is null
             and d.archived is null
         """
 
         # Most of this guff is just to get a destination product name...
-        input_products = ", ".join(f"'{p.name}'" for p in self.input_products)
+        input_products = tuple(p.name for p in self.input_products)
         output_product = ""
 
         dataset = self.dc.find_datasets(product=self.input_products[0].name, limit=1)
@@ -296,9 +296,8 @@ class Alchemist:
         conn = psycopg2.connect(str(self.dc.index.url))
         cur = conn.cursor()
 
-        cur.execute(
-            query.format(input_products=input_products, output_product=output_product)
-        )
+        query_args = dict(input_products=input_products, output_product=output_product)
+        cur.execute(query, query_args)
         results = cur.fetchall()
         _LOG.info(
             (
