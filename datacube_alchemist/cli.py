@@ -231,7 +231,9 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
                 _LOG.error(f"Unable to send message {message} to queue")
         _LOG.info(f"Completed sending {count} messages to the queue")
     else:
-        _LOG.warning(f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue")
+        _LOG.warning(
+            f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue"
+        )
 
 
 if __name__ == "__main__":
