@@ -200,7 +200,8 @@ def add_missing_to_queue(config_file, queue, dryrun):
 @queue_option
 @limit_option
 @click.option("--to-queue", "-t", help="Url of SQS Queue to move to", required=True)
-def redrive_to_queue(queue, to_queue, limit):
+@dryrun_option
+def redrive_to_queue(queue, to_queue, limit, dryrun):
     """
     Redrives all the messages from the given sqs queue to the destination
     """
@@ -212,16 +213,25 @@ def redrive_to_queue(queue, to_queue, limit):
 
     count = 0
 
-    for message in messages:
-        response = alive_queue.send_message(MessageBody=message.body)
-        if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-            message.delete()
-            count += 1
-            if limit and count >= limit:
-                break
-        else:
-            _LOG.error(f"Unable to send message {message} to queue")
-    _LOG.info(f"Completed sending {count} messages to the queue")
+    count_messages = dead_queue.attributes.get("ApproximateNumberOfMessages")
+
+    if count_messages == 0:
+        _LOG.info("No messages to redrive")
+        return
+
+    if not dryrun:
+        for message in messages:
+            response = alive_queue.send_message(MessageBody=message.body)
+            if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+                message.delete()
+                count += 1
+                if limit and count >= limit:
+                    break
+            else:
+                _LOG.error(f"Unable to send message {message} to queue")
+        _LOG.info(f"Completed sending {count} messages to the queue")
+    else:
+        _LOG.warning(f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue")
 
 
 if __name__ == "__main__":
