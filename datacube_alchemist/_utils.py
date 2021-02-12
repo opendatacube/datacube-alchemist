@@ -18,7 +18,7 @@ from datacube_alchemist.settings import AlchemistTask
 
 
 # Regex for extracting region codes from tile IDs.
-RE_TILE_REGION_CODE = re.compile(r'.*A\d{6}_T(\w{5})_N\d{2}\.\d{2}')
+RE_TILE_REGION_CODE = re.compile(r".*A\d{6}_T(\w{5})_N\d{2}\.\d{2}")
 
 
 class FakeTransformation(Transformation):
@@ -179,9 +179,9 @@ def _guess_region_code(ds: Dataset) -> str:
     # An example of such a tile ID for S2A NRT is:
     # S2A_OPER_MSI_L1C_TL_VGS1_20201114T053541_A028185_T50JPP_N02.09
     # The region code is 50JPP.
-    tile_match = RE_TILE_REGION_CODE.match(ds.metadata_doc['tile_id'])
+    tile_match = RE_TILE_REGION_CODE.match(ds.metadata_doc["tile_id"])
     if not tile_match:
-        raise ValueError('No region code for dataset {}'.format(d.id))
+        raise ValueError("No region code for dataset {}".format(d.id))
     return tile_match.group(1)
 
 
