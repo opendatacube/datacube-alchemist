@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import re
 from typing import Dict
 
 import boto3
@@ -14,6 +15,10 @@ from eodatasets3.verify import PackageChecksum
 from toolz import dicttoolz
 
 from datacube_alchemist.settings import AlchemistTask
+
+
+# Regex for extracting region codes from tile IDs.
+RE_TILE_REGION_CODE = re.compile(r'.*A\d{6}_T(\w{5})_N\d{2}\.\d{2}')
 
 
 class FakeTransformation(Transformation):
@@ -152,11 +157,40 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
     )
 
 
+def _guess_region_code(ds: Dataset) -> str:
+    """
+    Get the region code of a dataset.
+    """
+    try:
+        # EO plus
+        return ds.metadata.region_code
+    except AttributeError:
+        # Not EO plus
+        pass
+
+    try:
+        # EO
+        return ds.metadata_doc["region_code"]
+    except KeyError:
+        # No region code!
+        pass
+
+    # Region code not specified, so get it from the tile ID.
+    # An example of such a tile ID for S2A NRT is:
+    # S2A_OPER_MSI_L1C_TL_VGS1_20201114T053541_A028185_T50JPP_N02.09
+    # The region code is 50JPP.
+    tile_match = RE_TILE_REGION_CODE.match(ds.metadata_doc['tile_id'])
+    if not tile_match:
+        raise ValueError('No region code for dataset {}'.format(d.id))
+    return tile_match.group(1)
+
+
 def _convert_eo_plus(ds) -> DatasetDoc:
     # Definitely need: # - 'datetime' # - 'eo:instrument' # - 'eo:platform' # - 'odc:region_code'
+    region_code = _guess_region_code(ds)
     properties = StacPropertyView(
         {
-            "odc:region_code": ds.metadata.region_code,
+            "odc:region_code": region_code,
             "datetime": ds.center_time,
             "eo:instrument": ds.metadata.instrument,
             "eo:platform": ds.metadata.platform,
@@ -172,9 +206,10 @@ def _convert_eo_plus(ds) -> DatasetDoc:
 
 def _convert_eo(ds) -> DatasetDoc:
     # Definitely need: # - 'datetime' # - 'eo:instrument' # - 'eo:platform' # - 'odc:region_code'
+    region_code = _guess_region_code(ds)
     properties = StacPropertyView(
         {
-            "odc:region_code": ds.metadata_doc["region_code"],
+            "odc:region_code": region_code,
             "datetime": ds.center_time,
             "eo:instrument": ds.metadata.instrument,
             "eo:platform": ds.metadata.platform,
