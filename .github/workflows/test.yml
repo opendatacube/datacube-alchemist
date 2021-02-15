@@ -8,6 +8,7 @@ on:
       - 'datacube_alchemist/**'
       - 'tests/**'
       - '.github/workflows/test.yml'
+      - 'Dockerfile'
 
 defaults:
   run:
