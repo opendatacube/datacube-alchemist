@@ -6,6 +6,7 @@ import click
 from datacube.ui import click as ui
 
 from datacube_alchemist._utils import _configure_logger
+from datacube_alchemist._version import version as __version__
 import structlog
 
 from odc.aws.queue import get_queue
@@ -234,6 +235,11 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
         _LOG.warning(
             f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue"
         )
+
+
+@cli.command('--version')
+def echo_version():
+    click.echo(__version__)
 
 
 if __name__ == "__main__":
