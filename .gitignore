@@ -111,3 +111,6 @@ venv.bak/
 .vscode/
 datacube-index/
 output
+
+# Let setuptools_scm manage the _version.py file
+datacube_alchemist/_version.py

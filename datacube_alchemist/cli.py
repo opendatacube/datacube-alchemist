@@ -6,6 +6,7 @@ import click
 from datacube.ui import click as ui
 
 from datacube_alchemist._utils import _configure_logger
+from datacube_alchemist import __version__
 import structlog
 
 from odc.aws.queue import get_queue
@@ -66,11 +67,15 @@ def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
 
 
-@click.group(context_settings=dict(max_content_width=120))
-def cli():
+@click.group(context_settings=dict(max_content_width=120), invoke_without_command=True)
+@click.option("--version", is_flag=True, default=False)
+def cli(version):
     """
     Transform Datasets from the Open Data Cube into a new type of Dataset
     """
+    if version:
+        click.echo(__version__)
+
     # Set up opinionated logging
     _configure_logger()
 
