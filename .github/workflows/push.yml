@@ -7,6 +7,7 @@ on:
     paths:
       - 'datacube_alchemist/**'
       - '.github/workflows/push.yml'
+      - 'Dockerfile'
 
   release:
     types: [created, edited]
@@ -28,11 +29,6 @@ jobs:
       run: |
         echo "RELEASE=${GITHUB_REF/refs\/tags\/}" >> $GITHUB_ENV
 
-    - name: Get git commit hash for merged PR's / Push to master
-      run: |
-        git fetch --all --tags
-        echo "RELEASE=$(git describe --tags)" >> $GITHUB_ENV
-
     - name: Build and Push semver tagged Docker Image for Release
       uses: whoan/docker-build-with-cache-action@v4
       if: github.event_name == 'release'
@@ -42,7 +38,13 @@ jobs:
         password: ${{ secrets.DOCKER_PASS }}
         image_tag: ${{ env.RELEASE }}
 
-    - name: Build and Push unstable Docker Image from PR / Push to Master
+    - name: Get git commit hash for push to main
+      if: github.event_name != 'release'
+      run: |
+        git fetch --all --tags
+        echo "RELEASE=$(git describe --tags)" >> $GITHUB_ENV
+
+    - name: Build and Push unstable Docker Image for push to main
       uses: whoan/docker-build-with-cache-action@v4
       if: github.event_name != 'release'
       with:
