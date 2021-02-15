@@ -6,7 +6,7 @@ import click
 from datacube.ui import click as ui
 
 from datacube_alchemist._utils import _configure_logger
-from datacube_alchemist._version import version as __version__
+from datacube_alchemist import __version__
 import structlog
 
 from odc.aws.queue import get_queue
