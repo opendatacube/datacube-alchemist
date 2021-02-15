@@ -69,10 +69,14 @@ def cli_with_envvar_handling():
 
 @click.group(context_settings=dict(max_content_width=120),
              invoke_without_command=True)
-def cli():
+@click.option('--version', is_flag=True, default=False)
+def cli(version):
     """
     Transform Datasets from the Open Data Cube into a new type of Dataset
     """
+    if version:
+        click.echo(__version__)
+
     # Set up opinionated logging
     _configure_logger()
 
@@ -236,11 +240,6 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
         _LOG.warning(
             f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue"
         )
-
-
-@cli.command('--version')
-def echo_version():
-    click.echo(__version__)
 
 
 if __name__ == "__main__":
