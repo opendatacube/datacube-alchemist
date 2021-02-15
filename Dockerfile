@@ -11,6 +11,8 @@ RUN mkdir -p /code
 WORKDIR /code
 ADD . /code
 
+RUN git status
+
 RUN pip install --use-feature=2020-resolver --extra-index-url="https://packages.dea.ga.gov.au" .
 
 # Make sure it's working first
