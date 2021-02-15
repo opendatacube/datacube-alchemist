@@ -67,7 +67,8 @@ def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
 
 
-@click.group(context_settings=dict(max_content_width=120))
+@click.group(context_settings=dict(max_content_width=120),
+             invoke_without_command=True)
 def cli():
     """
     Transform Datasets from the Open Data Cube into a new type of Dataset
