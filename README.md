@@ -10,7 +10,7 @@ Version: 0.3.0
 
 ## PURPOSE
 
-Datacube Alchemst is a command line application for performing Dataset to Dataset transformations in the context
+Datacube Alchemist is a command line application for performing Dataset to Dataset transformations in the context
 of an Open Data Cube system.
 
 It uses a configuration file which specifies an input _Product_ or _Products_, a _Transformation_ to perform, and
