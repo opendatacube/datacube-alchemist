@@ -142,6 +142,10 @@ def _munge_dataset_to_eo3(ds: Dataset) -> DatasetDoc:
     if ds.metadata_type.name == "eo":
         return _convert_eo(ds)
 
+    if ds.metadata_type.name == "eo_s2_nrt":
+        # Handle identically to eo_plus files.
+        return _convert_eo_plus(ds)
+
     # Else we have an already mostly eo3 style dataset
     product = ProductDoc(name=ds.type.name)
     # Wrap properties to avoid typos and the like
