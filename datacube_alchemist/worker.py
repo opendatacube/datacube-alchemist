@@ -183,7 +183,7 @@ class Alchemist:
         return {
             "version": version,
             "version_major_minor": version_major_minor,
-            "url": "",
+            "url": self.config.specification.transform_url,
         }
 
     def _datasets_to_queue(self, queue, datasets):

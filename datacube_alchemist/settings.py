@@ -36,6 +36,7 @@ class OutputSettings:
 class Specification:
     measurements: Sequence[str]
     transform: str
+    transform_url: Optional[str] = ""
     product: Optional[str] = None
     products: Optional[Sequence[str]] = None
     measurement_renames: Optional[Mapping[str, str]] = None
