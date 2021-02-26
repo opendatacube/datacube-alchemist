@@ -12,6 +12,7 @@ specification:
     nbart_swir_2: swir2
 
   transform: fc.virtualproduct.FractionalCover
+  transform_url: 'https://github.com/GeoscienceAustralia/fc/'
   override_product_family: ard
   basis: nbart_green
 
