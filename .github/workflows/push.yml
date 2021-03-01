@@ -8,7 +8,6 @@ on:
       - 'datacube_alchemist/**'
       - '.github/workflows/push.yml'
       - 'Dockerfile'
-      - 'setup.py'
 
   release:
     types: [created, edited]
