@@ -133,7 +133,7 @@ class Alchemist:
             for dataset in datasets:
                 yield dataset
                 count += 1
-                if limit is not None and count > limit:
+                if limit is not None and count >= limit:
                     return
 
     def _deterministic_uuid(self, task, algorithm_version=None, **other_tags):
