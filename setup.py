@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "datacube",
-        "eodatasets3>=0.16.0",
+        "eodatasets3>=0.17.0",
         "attrs>=18.1",
         "cattrs==1.0.0",
         "structlog",
