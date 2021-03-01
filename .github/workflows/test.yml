@@ -9,6 +9,7 @@ on:
       - 'tests/**'
       - '.github/workflows/test.yml'
       - 'Dockerfile'
+      - 'setup.py'
 
 defaults:
   run:
