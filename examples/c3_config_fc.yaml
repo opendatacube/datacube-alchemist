@@ -11,6 +11,7 @@ specification:
     nbart_swir_1: swir1
     nbart_swir_2: swir2
 
+  aws_unsigned: True
   transform: fc.virtualproduct.FractionalCover
   transform_url: 'https://github.com/GeoscienceAustralia/fc/'
   override_product_family: ard
@@ -61,5 +62,5 @@ output:
 
 processing:
   dask_chunks:
-    x: 600
-    y: 600
+    x: -1
+    y: 4096
