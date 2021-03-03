@@ -39,7 +39,7 @@ cattr.register_structure_hook(np.dtype, np.dtype)
 
 class Alchemist:
     def __init__(
-        self, *, config=None, config_file=None, dc_env=None, aws_unsigned=False
+        self, *, config=None, config_file=None, dc_env=None
     ):
         if config is not None:
             self.config = config
