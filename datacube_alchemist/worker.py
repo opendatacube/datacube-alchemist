@@ -7,12 +7,12 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Type
-import psycopg2
 
 import cattr
 import datacube
 import fsspec
 import numpy as np
+import psycopg2
 import structlog
 import yaml
 from datacube.model import Dataset
@@ -22,6 +22,7 @@ from eodatasets3.assemble import DatasetAssembler
 from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
+from datacube.utils.aws import configure_s3_access
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import (
@@ -37,7 +38,9 @@ cattr.register_structure_hook(np.dtype, np.dtype)
 
 
 class Alchemist:
-    def __init__(self, *, config=None, config_file=None, dc_env=None):
+    def __init__(
+        self, *, config=None, config_file=None, dc_env=None, aws_unsigned=False
+    ):
         if config is not None:
             self.config = config
         else:
@@ -61,6 +64,11 @@ class Alchemist:
         elif self.config.specification.products:
             for product in self.config.specification.products:
                 self.input_products.append(self.dc.index.products.get_by_name(product))
+
+        # Rasterio environment activation
+        configure_s3_access(
+            cloud_defaults=True, aws_unsigned=self.config.specification.aws_unsigned
+        )
 
     @property
     def transform_name(self) -> str:

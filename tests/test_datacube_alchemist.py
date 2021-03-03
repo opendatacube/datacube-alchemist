@@ -2,13 +2,13 @@ from datacube_alchemist.worker import Alchemist
 
 
 def test_alchemist_local_config(config_file):
-    alchemist = Alchemist(config_file=config_file)
+    alchemist = Alchemist(config_file=config_file, aws_unsigned=True)
 
     assert alchemist.transform_name == "wofs.virtualproduct.WOfSClassifier"
 
 
 def test_alchemist_remote_config(remote_config_file):
-    alchemist = Alchemist(config_file=remote_config_file)
+    alchemist = Alchemist(config_file=remote_config_file, aws_unsigned=True)
 
     assert alchemist.transform_name == "wofs.virtualproduct.WOfSClassifier"
 

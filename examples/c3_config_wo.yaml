@@ -6,6 +6,8 @@ specification:
   measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
   measurement_renames:
     oa_fmask: fmask
+
+  aws_unsigned: True
   transform: wofs.virtualproduct.WOfSClassifier
   transform_url: 'https://github.com/GeoscienceAustralia/wofs/'
   override_product_family: ard
@@ -51,5 +53,5 @@ output:
 
 processing:
   dask_chunks:
-    x: 600
-    y: 600
+    x: -1
+    y: 4096
