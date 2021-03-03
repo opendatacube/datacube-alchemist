@@ -38,9 +38,7 @@ cattr.register_structure_hook(np.dtype, np.dtype)
 
 
 class Alchemist:
-    def __init__(
-        self, *, config=None, config_file=None, dc_env=None
-    ):
+    def __init__(self, *, config=None, config_file=None, dc_env=None):
         if config is not None:
             self.config = config
         else:
