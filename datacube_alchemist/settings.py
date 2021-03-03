@@ -44,7 +44,7 @@ class Specification:
     transform_args_per_product: Mapping[str, Any] = None
     override_product_family: Optional[str] = attr.ib(default=None)
     basis: Optional[str] = attr.ib(default=None)
-    aws_unsigned: Optional[bool] = False
+    aws_unsigned: Optional[bool] = True
 
 
 @attr.s(auto_attribs=True)
