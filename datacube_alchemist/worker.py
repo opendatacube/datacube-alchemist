@@ -370,6 +370,7 @@ class Alchemist:
                 measurements=task.settings.specification.measurements,
                 output_crs=task.dataset.crs,
                 resolution=(-1 * res_by_ten, res_by_ten),
+                resampling=task.settings.specification.resampling,
             )
         else:
             data = native_load(
@@ -377,6 +378,7 @@ class Alchemist:
                 measurements=task.settings.specification.measurements,
                 dask_chunks=task.settings.processing.dask_chunks,
                 basis=task.settings.specification.basis,
+                resampling=task.settings.specification.resampling,
             )
         data = data.rename(task.settings.specification.measurement_renames)
 

@@ -1,4 +1,4 @@
-from typing import Optional, Mapping, List, Sequence, Any
+from typing import Optional, Mapping, List, Sequence, Any, Union
 
 import attr
 import numpy as np
@@ -42,6 +42,7 @@ class Specification:
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
     transform_args_per_product: Mapping[str, Any] = None
+    resampling: Optional[Union[str, Mapping[str, str]]] = None
     override_product_family: Optional[str] = attr.ib(default=None)
     basis: Optional[str] = attr.ib(default=None)
     aws_unsigned: Optional[bool] = True
