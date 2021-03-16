@@ -6,7 +6,7 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Type
+from typing import Iterable, Type, Union, Mapping
 
 import cattr
 import datacube
@@ -71,6 +71,10 @@ class Alchemist:
     @property
     def transform_name(self) -> str:
         return self.config.specification.transform
+
+    @property
+    def resampling(self) -> Union[str, Mapping[str, str]]:
+        return self.config.specification.resampling
 
     @property
     def transform(self) -> Type[Transformation]:

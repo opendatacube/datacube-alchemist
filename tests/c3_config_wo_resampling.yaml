@@ -1,0 +1,60 @@
+specification:
+  products:
+    - ga_ls5t_ard_3
+    - ga_ls7e_ard_3
+    - ga_ls8c_ard_3
+  measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
+  measurement_renames:
+    oa_fmask: fmask
+  resampling:
+    fmask: nearest
+    '*': bilinear
+
+  aws_unsigned: True
+  transform: wofs.virtualproduct.WOfSClassifier
+  transform_url: 'https://github.com/GeoscienceAustralia/wofs/'
+  override_product_family: ard
+  basis: nbart_green
+
+  transform_args:
+    # This works for local dev without credentials
+    dsm_path:  'https://dea-public-data.s3-ap-southeast-2.amazonaws.com/projects/elevation/ga_srtm_dem1sv1_0/dem1sv1_0.tif'
+    # dsm_path:  's3://dea-non-public-data/dsm/dsm1sv1_0_Clean.tiff'
+
+output:
+  location: /tmp/alchemist
+  nodata: 1
+  dtype: uint8
+  explorer_url: https://explorer.dev.dea.ga.gov.au
+  preview_image_singleband:
+    measurement: water
+    lookup_table:
+      0: [150, 150, 110]   # dry
+      1: [0, 0, 0]   # nodata,
+      16: [119, 104, 87]   # terrain
+      32: [89, 88, 86]     # cloud_shadow
+      64: [216, 215, 214]  # cloud
+      80: [242, 220, 180]  # cloudy terrain
+      128: [79, 129, 189]  # water
+      160: [51, 82, 119]   # shady water
+      192: [186, 211, 242] # cloudy water
+  write_data_settings:
+    overview_resampling: mode
+  reference_source_dataset: True
+  write_stac: True
+  inherit_geometry: True
+
+  metadata:
+    product_family: wo
+    producer: ga.gov.au
+    dataset_version: 1.6.0
+    collection_number: 3
+    naming_conventions: dea_c3
+
+  properties:
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: -1
+    y: 4096

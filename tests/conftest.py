@@ -34,7 +34,12 @@ def run_alchemist():
 
 @pytest.fixture
 def config_file():
-    return Path(__file__).absolute().parent.parent / "examples/c3_config_wo.yaml"
+    return Path(__file__).absolute().parent / "c3_config_wo_noresampling.yaml"
+
+
+@pytest.fixture
+def config_file_resampling():
+    return Path(__file__).absolute().parent / "c3_config_wo_resampling.yaml"
 
 
 @pytest.fixture

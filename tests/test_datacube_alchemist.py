@@ -7,6 +7,13 @@ def test_alchemist_local_config(config_file):
     assert alchemist.transform_name == "wofs.virtualproduct.WOfSClassifier"
 
 
+def test_alchemist_resampling(config_file_resampling):
+    alchemist = Alchemist(config_file=config_file_resampling)
+
+    assert alchemist.resampling["fmask"] == "nearest"
+    assert alchemist.resampling["*"] == "bilinear"
+
+
 def test_alchemist_remote_config(remote_config_file):
     alchemist = Alchemist(config_file=remote_config_file)
 
