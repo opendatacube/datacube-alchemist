@@ -6,7 +6,7 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Type
+from typing import Iterable, Type, Union, Mapping
 
 import cattr
 import datacube
@@ -71,6 +71,10 @@ class Alchemist:
     @property
     def transform_name(self) -> str:
         return self.config.specification.transform
+
+    @property
+    def resampling(self) -> Union[str, Mapping[str, str]]:
+        return self.config.specification.resampling
 
     @property
     def transform(self) -> Type[Transformation]:
@@ -370,6 +374,7 @@ class Alchemist:
                 measurements=task.settings.specification.measurements,
                 output_crs=task.dataset.crs,
                 resolution=(-1 * res_by_ten, res_by_ten),
+                resampling=task.settings.specification.resampling,
             )
         else:
             data = native_load(
@@ -377,6 +382,7 @@ class Alchemist:
                 measurements=task.settings.specification.measurements,
                 dask_chunks=task.settings.processing.dask_chunks,
                 basis=task.settings.specification.basis,
+                resampling=task.settings.specification.resampling,
             )
         data = data.rename(task.settings.specification.measurement_renames)
 

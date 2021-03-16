@@ -1,10 +1,27 @@
-from typing import Optional, Mapping, List, Sequence, Any
+from typing import Optional, Mapping, List, Sequence, Any, Union
 
 import attr
+import cattr
 import numpy as np
 from rasterio.enums import Resampling
 
 from datacube.model import Dataset
+
+
+def _convert_union_mapping(obj, typ):
+    # ignore typ, check obj behaves correctly
+    if isinstance(obj, str):
+        return obj
+    # duck-type validation for a Mapping[str, str]
+    if all(isinstance(v, str) for v in obj.values()):
+        return obj
+    raise ValueError(f"Expected Union[str, Mapping[str, str]]; got {repr(obj)}")
+
+
+cattr.register_structure_hook(Union[str, Mapping[str, str]], _convert_union_mapping)
+cattr.register_structure_hook(
+    Optional[Union[str, Mapping[str, str]]], _convert_union_mapping
+)
 
 
 def _convert_write_data_settings(settings):
@@ -42,6 +59,7 @@ class Specification:
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
     transform_args_per_product: Mapping[str, Any] = None
+    resampling: Optional[Union[str, Mapping[str, str]]] = None
     override_product_family: Optional[str] = attr.ib(default=None)
     basis: Optional[str] = attr.ib(default=None)
     aws_unsigned: Optional[bool] = True
