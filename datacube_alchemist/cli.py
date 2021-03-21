@@ -249,7 +249,9 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
                 if limit and count >= limit:
                     break
             else:
-                _LOG.error(f"Unable to send message {message} to queue {alive_queue.url}")
+                _LOG.error(
+                    f"Unable to send message {message} to queue {alive_queue.url}"
+                )
         _LOG.info(f"Completed sending {count} messages to the queue {alive_queue.url}")
     else:
         _LOG.warning(
