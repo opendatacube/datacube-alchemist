@@ -169,7 +169,8 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
 @ui.parsed_search_expressions
 @limit_option
 @product_limit_option
-def add_to_queue(config_file, queue, expressions, limit, product_limit):
+@dryrun_option
+def add_to_queue(config_file, queue, expressions, limit, product_limit, dryrun):
     """
     Search for Datasets and enqueue Tasks into an AWS SQS Queue for later processing.
     """
@@ -177,9 +178,14 @@ def add_to_queue(config_file, queue, expressions, limit, product_limit):
     start_time = time.time()
 
     alchemist = Alchemist(config_file=config_file)
-    n_messages = alchemist.enqueue_datasets(queue, expressions, limit, product_limit)
+    n_messages = alchemist.enqueue_datasets(
+        queue, expressions, limit, product_limit, dryrun
+    )
 
-    _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
+    if not dryrun:
+        _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
+    else:
+        _LOG.info(f"DRYRUN! Would have pushed {n_messages} items.")
 
 
 @cli.command()
@@ -204,16 +210,25 @@ def add_missing_to_queue(config_file, queue, dryrun):
 @cli.command()
 @queue_option
 @limit_option
-@click.option("--to-queue", "-t", help="Url of SQS Queue to move to", required=True)
+@click.option("--to-queue", "-t", help="Url of SQS Queue to move to", required=False)
 @dryrun_option
 def redrive_to_queue(queue, to_queue, limit, dryrun):
     """
-    Redrives all the messages from the given sqs queue to the destination
+    Redrives all the messages from the given sqs queue to their source, or the target queue
     """
 
     dead_queue = get_queue(queue)
-    alive_queue = get_queue(to_queue)
-
+    if to_queue:
+        alive_queue = get_queue(to_queue)
+    else:
+        count = 0
+        for q in dead_queue.dead_letter_source_queues.all():
+            alive_queue = q
+            count += 1
+            if count > 1:
+                raise Exception(
+                    "Deadletter queue has more than one source, please specify the target queue name."
+                )
     messages = get_messages(dead_queue)
 
     count = 0
@@ -224,6 +239,7 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
         _LOG.info("No messages to redrive")
         return
 
+    _LOG.info(f"Commencing pusing messages from {dead_queue.url} to {alive_queue.url}")
     if not dryrun:
         for message in messages:
             response = alive_queue.send_message(MessageBody=message.body)
@@ -233,11 +249,13 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
                 if limit and count >= limit:
                     break
             else:
-                _LOG.error(f"Unable to send message {message} to queue")
-        _LOG.info(f"Completed sending {count} messages to the queue")
+                _LOG.error(
+                    f"Unable to send message {message} to queue {alive_queue.url}"
+                )
+        _LOG.info(f"Completed sending {count} messages to the queue {alive_queue.url}")
     else:
         _LOG.warning(
-            f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue"
+            f"DRYRUN enabled, would have pushed approx {count_messages} messages to the queue {alive_queue.url}"
         )
 
 

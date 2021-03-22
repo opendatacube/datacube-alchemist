@@ -248,9 +248,14 @@ class Alchemist:
         return tasks
 
     # Queue related functions
-    def enqueue_datasets(self, queue, query, limit=None, product_limit=None):
+    def enqueue_datasets(
+        self, queue, query, limit=None, product_limit=None, dryrun=False
+    ):
         datasets = self._find_datasets(query, limit, product_limit)
-        return self._datasets_to_queue(queue, datasets)
+        if not dryrun:
+            return self._datasets_to_queue(queue, datasets)
+        else:
+            return sum(1 for _ in datasets)
 
     def find_fill_missing(self, queue, dryrun):
         query = """
