@@ -9,3 +9,4 @@ odc-aws
 odc-index
 odc-apps-cloud
 odc-apps-dc-tools
+fsspec==0.8.7
