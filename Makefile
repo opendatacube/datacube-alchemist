@@ -80,6 +80,12 @@ fc-one:
 		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
 		--uuid 600645a5-5256-4632-a13d-fa13d1c11a8f
 
+dnbr-one:
+	docker-compose exec alchemist \
+		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr.yaml \
+		--uuid 600645a5-5256-4632-a13d-fa13d1c11a8f
+
+
 wofs-one-of-each:
 	docker-compose exec alchemist \
 		bash -c \
@@ -129,3 +135,21 @@ wo-deadletter:
 		datacube-alchemist run-from-queue --config-file ./examples/c3_config_wo.yaml \
 		--queue dea-dev-eks-alchemist-c3-processing-wo-deadletter \
 		--queue-timeout=1200
+
+product_nci:
+	docker-compose exec alchemist \
+		datacube product add \
+        https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products/ard_ls5.odc-product.yaml \
+        https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products/ard_ls7.odc-product.yaml \
+        https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products/ard_ls8.odc-product.yaml
+
+index_nci:
+	docker-compose exec alchemist \
+		bash -c "\
+			find /code/examples/ga_ls8c_ard_3/ -name "*.odc-metadata.yaml" | \
+			xargs datacube dataset add \
+			--ignore-lineage --confirm-ignore-lineage --product=ga_ls8c_ard_3 \
+		"
+
+process_nci:
+	echo "Fake"
