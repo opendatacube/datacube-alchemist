@@ -1,9 +1,9 @@
-from datacube.virtual import Transformation, Measurement
-from xarray import Dataset, merge, concat
-
-from datacube import Datacube
-
 from typing import Dict
+
+import numpy
+from datacube import Datacube
+from datacube.virtual import Measurement, Transformation
+from xarray import Dataset, merge
 
 
 class DeltaNBR(Transformation):
@@ -18,9 +18,11 @@ class DeltaNBR(Transformation):
         return self.output_measurements
 
     def compute(self, data) -> Dataset:
-        base_year = data.time.dt.year.values[0]
+        base_year = data.time.dt.year.values[0] - 1
         if base_year == 2021:
             base_year = 2020
+        if base_year == 2012:
+            base_year = 2013
 
         dc = Datacube()
         gm_data = dc.load(
@@ -36,7 +38,7 @@ class DeltaNBR(Transformation):
         data["post"] = (data.nir - data.swir2) / (data.nir + data.swir2)
         data["dnbr"] = data.pre - data.post
 
-        data["dnbr"] = data.dnbr.where(data.nir != -999)
+        data["dnbr"] = data.dnbr.where(data.nir != -999).astype(numpy.single)
 
         data = data.drop(["nir", "swir2", "pre", "post"])
 

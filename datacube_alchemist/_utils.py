@@ -52,7 +52,7 @@ def _configure_logger():
 
 def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
     if task.settings.output.preview_image is not None:
-        dataset_assembler.write_thumbnail(*task.settings.output.preview_image)
+        dataset_assembler.write_thumbnail(**task.settings.output.preview_image)
     elif task.settings.output.preview_image_singleband is not None:
         dataset_assembler.write_thumbnail_singleband(
             **task.settings.output.preview_image_singleband
@@ -183,7 +183,7 @@ def _guess_region_code(ds: Dataset) -> str:
     # The region code is 50JPP.
     tile_match = RE_TILE_REGION_CODE.match(ds.metadata_doc["tile_id"])
     if not tile_match:
-        raise ValueError("No region code for dataset {}".format(d.id))
+        raise ValueError("No region code for dataset {}".format(ds.id))
     return tile_match.group(1)
 
 

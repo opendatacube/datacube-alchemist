@@ -21,7 +21,6 @@ specification:
 output:
   location: /tmp/alchemist
   nodata: 1
-  dtype: uint8
   explorer_url: https://explorer.dev.dea.ga.gov.au
   preview_image_singleband:
     measurement: water
