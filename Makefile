@@ -63,6 +63,13 @@ index:
 			s3://dea-public-data/baseline/ga_ls7e_ard_3/100/075/2003/10/15/ga_ls7e_ard_3-0-0_100075_2003-10-15_final.odc-metadata.yaml \
 			s3://dea-public-data/baseline/ga_ls8c_ard_3/091/089/2019/01/20/ga_ls8c_ard_3-0-0_091089_2019-01-20_final.odc-metadata.yaml
 
+index-geomedian:
+	docker-compose exec alchemist \
+		bash -c "\
+			datacube product add https://data.dea.ga.gov.au/geomedian-australia/v2.1.0/product-definition.yaml;\
+			s3-to-dc --no-sign-request 's3://dea-public-data/geomedian-australia/v2.1.0/L8/**/*.yaml' ls8_nbart_geomedian_annual\
+		"
+
 # Landsat 8, 7 and 5 respectively
 THREE_SCENES=600645a5-5256-4632-a13d-fa13d1c11a8f 8b215983-ae1b-45bd-ad63-7245248bd41b 3fda2741-e810-4d3e-a54a-279fc3cd795f
 
