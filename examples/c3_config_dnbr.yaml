@@ -1,17 +1,18 @@
 specification:
   products:
-    - ga_ls8c_ard_3
-  measurements: ['nbart_nir', 'nbart_swir_2']
+    - s2a_nrt_granule
+    - s2b_nrt_granule
+  measurements: ['nbart_nir_1', 'nbart_red_edge_1']
   measurement_renames:
-    nbart_nir: nir
-    nbart_swir_2: swir2
+    nbart_nir_1: nir
+    nbart_red_edge_1: swir2
 
   aws_unsigned: True
   transform: datacube_alchemist.transforms.DeltaNBR
   transform_args:
 
   override_product_family: ard
-  basis: nbart_nir
+  basis: nbart_nir_1
 
 output:
   location: /tmp/alchemist
