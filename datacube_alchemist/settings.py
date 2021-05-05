@@ -1,8 +1,7 @@
-from typing import Optional, Mapping, List, Sequence, Any, Union
+from typing import Optional, Mapping, Sequence, Any, Union
 
 import attr
 import cattr
-import numpy as np
 from rasterio.enums import Resampling
 
 from datacube.model import Dataset
@@ -34,12 +33,11 @@ def _convert_write_data_settings(settings):
 @attr.s(auto_attribs=True)
 class OutputSettings:
     location: str
-    dtype: np.dtype
-    nodata: int  # type depends on dtype
     write_data_settings: Optional[Mapping[str, str]] = attr.ib(
         converter=_convert_write_data_settings
     )
-    preview_image: Optional[List[str]] = None
+    nodata: Optional[int] = None
+    preview_image: Optional[Mapping[Any, Any]] = None
     preview_image_singleband: Optional[Mapping[Any, Any]] = None
     metadata: Optional[Mapping[str, str]] = None
     properties: Optional[Mapping[str, str]] = None

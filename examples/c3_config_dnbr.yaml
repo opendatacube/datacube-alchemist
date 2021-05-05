@@ -1,0 +1,43 @@
+specification:
+  products:
+    - s2a_nrt_granule
+    - s2b_nrt_granule
+  measurements: ['nbart_nir_1', 'nbart_red_edge_1']
+  measurement_renames:
+    nbart_nir_1: nir
+    nbart_red_edge_1: swir2
+
+  aws_unsigned: True
+  transform: datacube_alchemist.transforms.DeltaNBR
+  transform_args:
+
+  override_product_family: ard
+  basis: nbart_nir_1
+
+output:
+  location: /tmp/alchemist
+  preview_image:
+    red: dnbr
+    green: dnbr
+    blue: dnbr
+    static_stretch: [-1, 1]
+  explorer_url: https://explorer.dev.dea.ga.gov.au
+  write_data_settings:
+    overview_resampling: average
+  reference_source_dataset: True
+  write_stac: True
+  inherit_geometry: True
+
+  metadata:
+    product_family: dnbr
+    producer: ga.gov.au
+    dataset_version: 0.0.2
+    collection_number: 3
+    naming_conventions: dea_c3
+  properties:
+    dea:dataset_maturity: interim
+
+processing:
+  dask_chunks:
+    x: -1
+    y: 4096
