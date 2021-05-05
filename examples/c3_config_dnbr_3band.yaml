@@ -11,7 +11,6 @@ specification:
 
   aws_unsigned: True
   transform: datacube_alchemist.transforms.DeltaNBR_3band
-  transform_args:
 
   override_product_family: ard
   basis: nbart_nir_1
