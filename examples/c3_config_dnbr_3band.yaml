@@ -2,12 +2,12 @@ specification:
   products:
     - s2a_nrt_granule
     - s2b_nrt_granule
-  measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbar_blue', 'nbar_red']
+  measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red']
   measurement_renames:
     nbart_nir_1: nir
     nbart_red_edge_1: swir2
-    nbar_blue: blue
-    nbar_red: red
+    nbart_blue: blue
+    nbart_red: red
 
   aws_unsigned: True
   transform: datacube_alchemist.transforms.DeltaNBR_3band
@@ -31,9 +31,9 @@ output:
   inherit_geometry: True
 
   metadata:
-    product_family: dnbr
+    product_family: bs
     producer: ga.gov.au
-    dataset_version: 0.0.2
+    dataset_version: 1.6.0
     collection_number: 3
     naming_conventions: dea_c3
   properties:
