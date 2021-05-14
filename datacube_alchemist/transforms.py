@@ -11,7 +11,7 @@ class DeltaNBR(Transformation):
 
     def __init__(self):
         self.output_measurements = {
-            "dnbr": {"name": "dnbr", "dtype": "float", "nodata": -9999, "units": ""}
+            "dnbr": {"name": "dnbr", "dtype": "float", "nodata": numpy.nan, "units": ""}
         }
 
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
@@ -53,19 +53,19 @@ class DeltaNBR_3band(Transformation):
             "delta_nbr": {
                 "name": "dnbr",
                 "dtype": "float",
-                "nodata": -9999,
+                "nodata": numpy.nan,
                 "units": "",
             },
             "delta_bsi": {
                 "name": "bsi",
                 "dtype": "float",
-                "nodata": -9999,
+                "nodata": numpy.nan,
                 "units": "",
             },
             "delta_ndvi": {
                 "name": "ndvi",
                 "dtype": "float",
-                "nodata": -9999,
+                "nodata": numpy.nan,
                 "units": "",
             },
         }
@@ -101,12 +101,20 @@ class DeltaNBR_3band(Transformation):
         data["delta_nbr"] = data.delta_nbr.where(data.nir != -999).astype(numpy.single)
 
         # Burn Scar Index (BSI) = ((B11 + B04) - (B08 - B02)) / ((B11 + B04) + (B08 - B02))
-        pre_bsi = ((gm_data.swir2 + gm_data.red) - (gm_data.nir - gm_data.blue)) / (
-            (gm_data.swir2 + gm_data.red) + (gm_data.nir - gm_data.blue)
+        pre_bsi = (
+            (gm_data.swir2 / 10000 + gm_data.red / 10000)
+            - (gm_data.nir / 10000 - gm_data.blue / 10000)
+        ) / (
+            (gm_data.swir2 / 10000 + gm_data.red / 10000)
+            + (gm_data.nir / 10000 - gm_data.blue / 10000)
         )
         data = merge([data, {"pre_bsi": pre_bsi.isel(time=0, drop=True)}])
-        data["post_bsi"] = ((data.swir2 + data.red) - (data.nir - data.blue)) / (
-            (data.swir2 + data.red) + (data.nir - data.blue)
+        data["post_bsi"] = (
+            (data.swir2 / 10000 + data.red / 10000)
+            - (data.nir / 10000 - data.blue / 10000)
+        ) / (
+            (data.swir2 / 10000 + data.red / 10000)
+            + (data.nir / 10000 - data.blue / 10000)
         )
         data["delta_bsi"] = data.pre_bsi - data.post_bsi
         data["delta_bsi"] = data.delta_bsi.where(data.nir != -999).astype(numpy.single)
