@@ -78,7 +78,8 @@ metadata-s2-nrt:
 product-s2-nrt:
 	docker-compose exec alchemist \
 		datacube product add \
-			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/nrt/sentinel/s2_nrt.products.yaml
+			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/nrt/sentinel/s2_nrt.products.yaml \
+			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/dev/services/alchemist/s2_nrt_bs/s2_nrt_bs.alchemist.yaml
 
 product-s2a_ard_granule:
 	docker-compose exec alchemist \
@@ -93,9 +94,7 @@ metadata-eo_plus:
 index-s2-nrt:
 	docker-compose exec alchemist \
 		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
-			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-02/S2B_OPER_MSI_ARD_TL_VGS1_20210502T033357_A021693_T51KYA_N03.00/ARD-METADATA.yaml \
-			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-02-05/S2A_OPER_MSI_ARD_TL_VGS1_20210205T055002_A029372_T50HMK_N02.09/ARD-METADATA.yaml \
-			s3://dea-public-data/baseline/s2a_ard_granule/2021-02-05/S2A_OPER_MSI_ARD_TL_VGS1_20210205T055002_A029372_T50HMK_N02.09/eo3-ARD-METADATA.yaml
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-12/S2B_OPER_MSI_ARD_TL_VGS4_20210512T014256_A021835_T56JKM_N03.00/ARD-METADATA.yaml
 
 # Landsat 8, 7 and 5 respectively
 THREE_SCENES=600645a5-5256-4632-a13d-fa13d1c11a8f 8b215983-ae1b-45bd-ad63-7245248bd41b 3fda2741-e810-4d3e-a54a-279fc3cd795f
@@ -118,7 +117,7 @@ fc-one:
 dnbr-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band.yaml \
-		--uuid 28eb72e3-415a-4beb-a47f-a8ca779dda07
+		--uuid 078a80c4-f61d-41c8-89c3-0341da75a108
 
 wofs-one-of-each:
 	docker-compose exec alchemist \
