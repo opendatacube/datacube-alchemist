@@ -3,7 +3,7 @@ aiobotocore[awscli]==1.1.2
 boto3==1.14.44
 botocore==1.17.44
 # Pinned for production DEA run
-fc==1.3.3
+fc==1.3.2
 fsspec==0.8.7
 odc-apps-cloud
 odc-apps-dc-tools
