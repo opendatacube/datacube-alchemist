@@ -1,8 +1,6 @@
 # datacube-alchemist - ODC Dataset to Dataset Converter
 
-Copyright: © 2020, Open Data Cube Community
-
-Version: 0.3.0
+Copyright: © 2021, Open Data Cube Community
 
 ![Scan](https://github.com/opendatacube/datacube-alchemist/workflows/Scan/badge.svg)
 ![Test](https://github.com/opendatacube/datacube-alchemist/workflows/Test/badge.svg)
