@@ -175,9 +175,6 @@ wo-africa-three:
 			xargs -n1 datacube-alchemist run-one --config-file ./examples/wofs_ls.alchemist.yaml --uuid \
 			"
 
-
-
-
 # Queue testing
 wofs-to-queue:
 	docker-compose exec alchemist \
