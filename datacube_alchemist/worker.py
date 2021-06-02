@@ -438,8 +438,10 @@ class Alchemist:
             # Copy in metadata and properties
             for k, v in task.settings.output.metadata.items():
                 setattr(dataset_assembler, k, v)
-            for k, v in task.settings.output.properties.items():
-                dataset_assembler.properties[k] = v
+
+            if task.settings.output.properties:
+                for k, v in task.settings.output.properties.items():
+                    dataset_assembler.properties[k] = v
 
             # Update the GSD
             dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)

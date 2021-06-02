@@ -9,4 +9,4 @@ odc-apps-cloud
 odc-apps-dc-tools
 odc-aws
 odc-index
-wofs==1.6.1
+wofs==1.6.2
