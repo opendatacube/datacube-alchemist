@@ -497,7 +497,7 @@ class Alchemist:
                 )
                 if s3_destination:
                     s3_location = (
-                        f"s3://{task.settings.output.location.rstrip('/')}/{relative_path}"
+                        f"{task.settings.output.location.rstrip('/')}/{relative_path}"
                     )
                     s3_command = [
                         "aws",
