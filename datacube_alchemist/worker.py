@@ -363,9 +363,9 @@ class Alchemist:
         transform = self._transform_with_args(task)
 
         # Ensure output path exists, this should be fine for file or s3 paths
-        s3_destination = None
+        s3_destination = False
         try:
-            s3_bucket, s3_path = s3_url_parse(task.settings.output.location)
+            s3_url_parse(task.settings.output.location)
             s3_destination = True
         except ValueError:
             fs_destination = Path(task.settings.output.location)
@@ -497,7 +497,7 @@ class Alchemist:
                 )
                 if s3_destination:
                     s3_location = (
-                        f"s3://{s3_bucket}/{s3_path.rstrip('/')}/{relative_path}"
+                        f"{task.settings.output.location.rstrip('/')}/{relative_path}"
                     )
                     s3_command = [
                         "aws",
@@ -514,7 +514,7 @@ class Alchemist:
                     else:
                         s3_command.append("--dryrun")
                         log.warning(
-                            "PRETENDING to sync files to S3", s3_location=s3_destination
+                            "PRETENDING to sync files to S3", s3_location=s3_location
                         )
 
                     log.info("Writing files to s3", location=s3_location)
