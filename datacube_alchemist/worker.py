@@ -332,6 +332,10 @@ class Alchemist:
         alive_queue = get_queue(queue)
         messages = get_messages(alive_queue, limit, visibility_timeout=queue_timeout)
 
+        if messages == 0:
+            _LOG.error("Failed to generate any tasks")
+            sys.exit(1)
+
         for message in messages:
             message_body = json.loads(message.body)
             uuid = message_body.get("id", None)
