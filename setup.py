@@ -2,7 +2,7 @@
 import io
 from setuptools import setup, find_packages
 
-dev_requirements = ["black", "pytest", "pytest-cov"]
+dev_requirements = ["black", "pytest", "pytest-cov", "moto"]
 
 setup(
     name="datacube-alchemist",
