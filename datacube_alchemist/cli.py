@@ -153,6 +153,8 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
                 f"Failed to run transform {alchemist.transform_name} on dataset {task.dataset.id} with error {e}"
             )
 
+    print(f"ERRORS: {errors}")
+
     if errors > 0:
         _LOG.error(f"There were {errors} tasks that failed to execute.")
         sys.exit(errors)
