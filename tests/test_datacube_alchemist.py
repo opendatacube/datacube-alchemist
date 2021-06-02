@@ -28,7 +28,6 @@ def test_alchemist_remote_config(remote_config_file):
 
 @mock_sqs
 def test_empty_queue(run_alchemist, config_file):
-    print("KICKING OFF")
     sqs = boto3.resource('sqs')
     sqs.create_queue(QueueName=TEST_QUEUE_NAME)
 
