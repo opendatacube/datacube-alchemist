@@ -496,7 +496,9 @@ class Alchemist:
                     temp_dir
                 )
                 if s3_destination:
-                    s3_location = task.settings.output.location
+                    s3_location = (
+                        f"s3://{task.settings.output.location.rstrip('/')}/{relative_path}"
+                    )
                     s3_command = [
                         "aws",
                         "s3",
@@ -516,6 +518,7 @@ class Alchemist:
                         )
 
                     log.info("Writing files to s3", location=s3_location)
+                    # log.debug("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
