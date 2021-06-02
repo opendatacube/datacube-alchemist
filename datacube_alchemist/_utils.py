@@ -104,31 +104,32 @@ def _stac_to_sns(sns_arn, stac):
     """
     bbox = stac["bbox"]
 
+    attributes = {
+        "action": {"DataType": "String", "StringValue": "ADDED"},
+        "datetime": {
+            "DataType": "String",
+            "StringValue": str(dicttoolz.get_in(["properties", "datetime"], stac)),
+        },
+        "product": {
+            "DataType": "String",
+            "StringValue": dicttoolz.get_in(["properties", "odc:product"], stac),
+        },
+        "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox.left)},
+        "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox.bottom)},
+        "bbox.ur_lon": {"DataType": "Number", "StringValue": str(bbox.right)},
+        "bbox.ur_lat": {"DataType": "Number", "StringValue": str(bbox.top)},
+    }
+
+    maturity = dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac)
+
+    if maturity:
+        attributes["maturity"] = {"DataType": "String", "StringValue": maturity}
+
     client = boto3.client("sns")
     client.publish(
         TopicArn=sns_arn,
         Message=json.dumps(stac, indent=4, default=json_fallback),
-        MessageAttributes={
-            "action": {"DataType": "String", "StringValue": "ADDED"},
-            "datetime": {
-                "DataType": "String",
-                "StringValue": str(dicttoolz.get_in(["properties", "datetime"], stac)),
-            },
-            "product": {
-                "DataType": "String",
-                "StringValue": dicttoolz.get_in(["properties", "odc:product"], stac),
-            },
-            "maturity": {
-                "DataType": "String",
-                "StringValue": dicttoolz.get_in(
-                    ["properties", "dea:dataset_maturity"], stac
-                ),
-            },
-            "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox.left)},
-            "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox.bottom)},
-            "bbox.ur_lon": {"DataType": "Number", "StringValue": str(bbox.right)},
-            "bbox.ur_lat": {"DataType": "Number", "StringValue": str(bbox.top)},
-        },
+        MessageAttributes=attributes,
     )
 
 
