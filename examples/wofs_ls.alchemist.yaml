@@ -23,7 +23,6 @@ specification:
   transform_url: "https://github.com/GeoscienceAustralia/wofs/"
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
 
-
   transform_args:
     c2_scaling: True
     dsm_path: "https://deafrica-input-datasets.s3.af-south-1.amazonaws.com/srtm_dem/srtm_africa.tif"
