@@ -14,8 +14,9 @@ specification:
     swir_2: nbart_swir_2
     pixel_quality: fmask
   resampling:
-    fmask: nearest
+    pixel_quality: nearest
     "*": bilinear
+  basis: blue 
 
   aws_unsigned: True
   transform: wofs.virtualproduct.WOfSClassifier

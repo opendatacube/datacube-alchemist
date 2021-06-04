@@ -10,3 +10,4 @@ odc-apps-dc-tools
 odc-aws
 odc-index
 wofs==1.6.2
+xarray==0.16.1
