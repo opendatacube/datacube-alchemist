@@ -14,13 +14,15 @@ specification:
     swir_2: nbart_swir_2
     pixel_quality: fmask
   resampling:
-    fmask: nearest
+    pixel_quality: nearest
     "*": bilinear
+  basis: blue 
 
   aws_unsigned: True
   transform: wofs.virtualproduct.WOfSClassifier
   transform_url: "https://github.com/GeoscienceAustralia/wofs/"
   override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
 
   transform_args:
     c2_scaling: True
