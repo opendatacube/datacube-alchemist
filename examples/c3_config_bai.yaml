@@ -4,11 +4,13 @@ specification:
     - s2b_nrt_granule
   measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red']
   measurement_renames:
-    nbart_nir_1: nbart_nir_1
-    nbart_red_edge_1: nbart_swir_2
+    nbart_nir_1: nir
+    nbart_red_edge_1: swir2
+    nbart_blue: blue
+    nbart_red: red
 
   aws_unsigned: True
-  transform: datacube_alchemist.transforms.DeltaNBR_3band
+  transform: datacube_alchemist.transforms.BurntArea_Unsupervised
 
   override_product_family: ard
   basis: nbart_nir_1
@@ -16,9 +18,7 @@ specification:
 output:
   location: /tmp/alchemist
   preview_image:
-    red: delta_nbr
-    green: delta_ndvi
-    blue: delta_bsi
+    red: dbai
     static_stretch: [-1, 1]
   explorer_url: https://explorer.dev.dea.ga.gov.au
   write_data_settings:
@@ -28,7 +28,7 @@ output:
   inherit_geometry: True
 
   metadata:
-    product_family: bs
+    product_family: ba
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3

@@ -35,10 +35,13 @@ setup(
         "distributed",
         "fsspec>=0.3.3",
         "s3fs",
+        "nrt-predict@git+https://github.com/daleroberts/nrt-predict@000ea2e9dc5b75cf6764335189bdc73ae04225cf",
         "jsonschema>=3",
         "requests",
         "odc-aws",
         "odc-index",
+        "odc-algo",
+        "hdstats==0.1.8.post1",
         "awscli",
         "h5py",  # Needed for eodatasets3 (confirm fixed before removing)
     ],

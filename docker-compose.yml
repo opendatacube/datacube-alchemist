@@ -27,6 +27,8 @@ services:
     volumes:
       - .:/code
       - ./output:/tmp/alchemist
+    ports:
+      - 8787:8787
     depends_on:
       - postgres
     command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 180 ; done"]
