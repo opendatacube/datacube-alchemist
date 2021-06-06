@@ -1,0 +1,62 @@
+specification:
+  products:
+    - ls8_sr
+    - ls7_sr
+    - ls5_sr
+  measurements:
+    ["blue", "green", "red", "nir", "swir_1", "swir_2", "pixel_quality"]
+  measurement_renames:
+    blue: nbart_blue
+    green: nbart_green
+    red: nbart_red
+    nir: nbart_nir
+    swir_1: nbart_swir_1
+    swir_2: nbart_swir_2
+    pixel_quality: fmask
+  resampling:
+    pixel_quality: nearest
+    "*": bilinear
+  basis: blue 
+
+  aws_unsigned: True
+  transform: wofs.virtualproduct.WOfSClassifier
+  transform_url: "https://github.com/GeoscienceAustralia/wofs/"
+  override_product_family: ard # The relationship of the source dataset to the newly derived dataset
+
+  transform_args:
+    c2_scaling: True
+    dsm_path: "https://deafrica-input-datasets.s3.af-south-1.amazonaws.com/srtm_dem/srtm_africa.tif"
+
+output:
+  location: /tmp/alchemist
+  nodata: 1
+  dtype: uint8
+  explorer_url: https://explorer.digitalearth.africa/products/wofs_ls/extents
+  preview_image_singleband:
+    measurement: water
+    lookup_table:
+      0: [150, 150, 110] # dry
+      1: [0, 0, 0] # nodata
+      16: [119, 104, 87] # terrain
+      32: [89, 88, 86] # cloud_shadow
+      64: [216, 215, 214] # cloud
+      80: [242, 220, 180] # cloudy terrain
+      128: [79, 129, 189] # water
+      160: [51, 82, 119] # shady water
+      192: [186, 211, 242] # cloudy water
+  write_data_settings:
+    overview_resampling: nearest
+  reference_source_dataset: True
+  write_stac: True
+  inherit_geometry: True
+
+  metadata:
+    product_family: wofs
+    producer: digitalearthafrica.org
+    dataset_version: 0.0.2
+    naming_conventions: deafrica
+
+processing:
+  dask_chunks:
+    x: 4096
+    y: 4096

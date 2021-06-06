@@ -154,6 +154,45 @@ find_missing:
 			--queue alex-dev-alive \
 			--dryrun
 
+# Africa Examples
+product-africa:
+	docker-compose exec alchemist \
+		datacube product add \
+			https://raw.githubusercontent.com/digitalearthafrica/config/master/products/ls8_sr.odc-product.yaml \
+			https://raw.githubusercontent.com/digitalearthafrica/config/master/products/ls7_sr.odc-product.yaml \
+			https://raw.githubusercontent.com/digitalearthafrica/config/master/products/ls5_sr.odc-product.yaml
+
+index-africa:
+	docker-compose exec --env AWS_DEFAULT_REGION=af-south-1 alchemist \
+		bash -c "\
+		s3-to-dc --stac --no-sign-request \
+			s3://deafrica-landsat/collection02/level-2/standard/oli-tirs/2017/160/071/LC08_L2SP_160071_20170830_20200903_02_T1/*SR_stac.json \
+			ls8_sr && \
+		s3-to-dc --stac --no-sign-request \
+			s3://deafrica-landsat/collection02/level-2/standard/etm/2021/170/052/LE07_L2SP_170052_20210316_20210412_02_T1/*_SR_stac.json \
+			ls7_sr && \
+		s3-to-dc --stac --no-sign-request \
+			s3://deafrica-landsat/collection02/level-2/standard/tm/1994/176/044/LT05_L2SP_176044_19940714_20210402_02_T1/*_SR_stac.json \
+			ls5_sr"
+
+wo-africa-one:
+	docker-compose exec \
+		--env AWS_DEFAULT_REGION=af-south-1 \
+		--env AWS_S3_ENDPOINT=s3.af-south-1.amazonaws.com \
+		alchemist \
+		datacube-alchemist run-one --config-file ./examples/wofs_ls.alchemist.yaml \
+		--uuid 1f88087d-0da6-55be-aafb-5e370520e405
+
+THREE_AFRICA=1f88087d-0da6-55be-aafb-5e370520e405 272c298f-03e3-5a08-a584-41a0a3c3cb95 834d56e2-7465-5980-a6af-615ef0f67e28
+
+wo-africa-three:
+	docker-compose exec \
+		--env AWS_DEFAULT_REGION=af-south-1 \
+		--env AWS_S3_ENDPOINT=s3.af-south-1.amazonaws.com \
+		alchemist bash -c\
+			"echo '${THREE_AFRICA}' | \
+			xargs -n1 datacube-alchemist run-one --config-file ./examples/wofs_ls.alchemist.yaml --uuid \
+			"
 
 # Queue testing
 wofs-to-queue:

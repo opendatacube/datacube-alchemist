@@ -2,7 +2,7 @@
 import io
 from setuptools import setup, find_packages
 
-dev_requirements = ["black", "pytest", "pytest-cov"]
+dev_requirements = ["black", "pytest", "pytest-cov", "moto"]
 
 setup(
     name="datacube-alchemist",
@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "datacube",
-        "eodatasets3>=0.19.2",
+        "eodatasets3>=0.20.1",
         "attrs>=18.1",
         "cattrs==1.0.0",
         "structlog",
