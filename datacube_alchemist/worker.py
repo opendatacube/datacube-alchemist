@@ -133,10 +133,21 @@ class Alchemist:
     ) -> Iterable[Dataset]:
         # Find many datasets across many products with a limit
         count = 0
+        products = self.input_products
         if not product_limit:
             product_limit = limit
 
-        for product in self.input_products:
+        # Allow specifying a single product out of multiple input products
+        query_product = query.get("product", None)
+        if query_product:
+            query.pop("product")
+            if query_product not in self.input_products:
+                raise ValueError(
+                    f"Query included product {query_product} but this is not in input_products"
+                )
+            products = [query_product]
+
+        for product in products:
             datasets = self.dc.index.datasets.search(
                 limit=product_limit, product=product.name, **query
             )
