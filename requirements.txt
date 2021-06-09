@@ -9,5 +9,5 @@ odc-apps-cloud
 odc-apps-dc-tools
 odc-aws
 odc-index
-wofs==1.6.2
+wofs==1.6.3
 xarray==0.16.1
