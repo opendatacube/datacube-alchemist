@@ -17,7 +17,6 @@ env:
 
 jobs:
   push:
-    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +24,20 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Build and Push for main branch
-    # Docker
+    - name: Get tag for this build if it exists
+      if: github.event_name == 'release'
+      run: |
+        echo "RELEASE=${GITHUB_REF/refs\/tags\/}" >> $GITHUB_ENV
+
+    - name: Build and Push semver tagged Docker Image for Release
+      uses: whoan/docker-build-with-cache-action@v4
+      if: github.event_name == 'release'
+      with:
+        image_name: ${{ env.IMAGE_NAME }}
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASS }}
+        image_tag: ${{ env.RELEASE }}
+
     - name: Get git commit hash for push to main
       if: github.event_name != 'release'
       run: |
@@ -41,37 +52,3 @@ jobs:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASS }}
         image_tag: latest,${{ env.GITHASH }}
-
-    # Build and Push for release
-    # Python
-    - name: Build the package
-      if: github.event_name == 'release'
-      run: python setup.py sdist bdist_wheel
-
-    - name: Deploy packages to DEA Packages
-      if: github.event_name == 'release'
-      uses: jakejarvis/s3-sync-action@master
-      with:
-        args: --acl public-read --follow-symlinks
-      env:
-        AWS_S3_BUCKET: "datacube-core-deployment"
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: "ap-southeast-2" # optional: defaults to us-east-1
-        SOURCE_DIR: "dist" # optional: defaults to entire repository
-        DEST_DIR: "datacube-alchemist"
-
-    # Docker
-    - name: Get tag for this build if it exists
-      if: github.event_name == 'release'
-      run: |
-        echo "RELEASE=${GITHUB_REF/refs\/tags\/}" >> $GITHUB_ENV
-
-    - name: Build and Push semver tagged Docker Image for Release
-      uses: whoan/docker-build-with-cache-action@v4
-      if: github.event_name == 'release'
-      with:
-        image_name: ${{ env.IMAGE_NAME }}
-        username: ${{ secrets.DOCKER_USER }}
-        password: ${{ secrets.DOCKER_PASS }}
-        image_tag: ${{ env.RELEASE }}
