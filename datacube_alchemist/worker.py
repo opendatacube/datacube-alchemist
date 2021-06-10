@@ -140,23 +140,32 @@ class Alchemist:
 
         # Allow specifying a single product out of multiple input products
         query_product = query.get("product", None)
-        if query_product:
+        if query_product is not None:
             query.pop("product")
-            if query_product not in self.input_products:
+
+            if query_product not in [p.name for p in self.input_products]:
                 raise ValueError(
                     f"Query included product {query_product} but this is not in input_products"
                 )
-            products = [query_product]
+            for p in self.input_products:
+                if p.name == query_product:
+                    products = [p]
+                    break
 
         for product in products:
             datasets = self.dc.index.datasets.search(
                 limit=product_limit, product=product.name, **query
             )
-            for dataset in datasets:
-                yield dataset
-                count += 1
-                if limit is not None and count >= limit:
-                    return
+
+            try:
+                for dataset in datasets:
+                    yield dataset
+                    count += 1
+                    if limit is not None and count >= limit:
+                        return
+            except ValueError as e:
+                _LOG.warning(f"Error searching for datasets, maybe it returned no datasets. Error was {e}")
+                continue
 
     def _deterministic_uuid(self, task, algorithm_version=None, **other_tags):
         if algorithm_version is None:
@@ -209,7 +218,7 @@ class Alchemist:
         }
 
     def _datasets_to_queue(self, queue, datasets):
-        alive_queue = get_queue(queue)
+        # alive_queue = get_queue(queue)
 
         def post_messages(messages, count):
             alive_queue.send_messages(Entries=messages)
