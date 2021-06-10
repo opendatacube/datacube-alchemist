@@ -219,7 +219,7 @@ class Alchemist:
         }
 
     def _datasets_to_queue(self, queue, datasets):
-        # alive_queue = get_queue(queue)
+        alive_queue = get_queue(queue)
 
         def post_messages(messages, count):
             alive_queue.send_messages(Entries=messages)
