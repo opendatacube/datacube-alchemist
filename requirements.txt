@@ -1,13 +1,13 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
-aiobotocore[awscli]==1.1.2
-boto3==1.14.44
-botocore==1.17.44
-# Pinned for production DEA run
-fc==1.3.2
+aiobotocore[awscli]
+boto3
+botocore
+fc==1.3.4
 fsspec==0.8.7
 odc-apps-cloud
 odc-apps-dc-tools
 odc-aws
 odc-index
 wofs==1.6.3
-xarray==0.16.1
+xarray
+numpy
