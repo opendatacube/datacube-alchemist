@@ -163,7 +163,9 @@ class Alchemist:
                     if limit is not None and count >= limit:
                         return
             except ValueError as e:
-                _LOG.warning(f"Error searching for datasets, maybe it returned no datasets. Error was {e}")
+                _LOG.warning(
+                    f"Error searching for datasets, maybe it returned no datasets. Error was {e}"
+                )
                 continue
 
     def _deterministic_uuid(self, task, algorithm_version=None, **other_tags):
