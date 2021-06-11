@@ -100,7 +100,7 @@ class DeltaNBR_3band(Transformation):
             product=["s2a_ard_granule", "s2b_ard_granule"],
             # products=[ "s2a_ard_granule" , "s2b_ard_granule" ],
             # TODO - Compute the relevant 3 month period for the geomedian (eg. 2018-01 to 2018-03)
-            time=("2018-04-01", "2018-07-01"),
+            time=("2018-07-01", "2018-07-02"),
             # time=("2018-07-01"),
             like=data.geobox,
             measurements=[

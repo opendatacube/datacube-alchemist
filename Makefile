@@ -183,6 +183,14 @@ wo-africa-one:
 		datacube-alchemist run-one --config-file ./examples/wofs_ls.alchemist.yaml \
 		--uuid 1f88087d-0da6-55be-aafb-5e370520e405
 
+fc-africa-one:
+	docker-compose exec \
+		--env AWS_DEFAULT_REGION=af-south-1 \
+		--env AWS_S3_ENDPOINT=s3.af-south-1.amazonaws.com \
+		alchemist \
+		datacube-alchemist run-one --config-file ./examples/fc_ls.alchemist.yaml \
+		--uuid 1f88087d-0da6-55be-aafb-5e370520e405
+
 THREE_AFRICA=1f88087d-0da6-55be-aafb-5e370520e405 272c298f-03e3-5a08-a584-41a0a3c3cb95 834d56e2-7465-5980-a6af-615ef0f67e28
 
 wo-africa-three:
@@ -192,6 +200,15 @@ wo-africa-three:
 		alchemist bash -c\
 			"echo '${THREE_AFRICA}' | \
 			xargs -n1 datacube-alchemist run-one --config-file ./examples/wofs_ls.alchemist.yaml --uuid \
+			"
+
+fc-africa-three:
+	docker-compose exec \
+		--env AWS_DEFAULT_REGION=af-south-1 \
+		--env AWS_S3_ENDPOINT=s3.af-south-1.amazonaws.com \
+		alchemist bash -c\
+			"echo '${THREE_AFRICA}' | \
+			xargs -n1 datacube-alchemist run-one --config-file ./examples/fc_ls.alchemist.yaml --uuid \
 			"
 
 # Queue testing

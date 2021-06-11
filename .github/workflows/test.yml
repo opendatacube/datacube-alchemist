@@ -40,8 +40,14 @@ jobs:
 
     - name: Run tests
       run: |
-        docker-compose exec -T alchemist pytest tests
-  
+        docker-compose exec -T alchemist pytest --cov=./datacube_alchemist --cov-report=xml tests/
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
     - name: Integration tests
       run: |
         docker-compose exec -T alchemist bash ./tests/integration_tests.sh

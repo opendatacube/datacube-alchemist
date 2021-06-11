@@ -1,24 +1,29 @@
 specification:
   products:
-    - ga_ls5t_ard_3
-    - ga_ls7e_ard_3
-    - ga_ls8c_ard_3
-  measurements: ['nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2']
+    - ls8_sr
+    - ls7_sr
+    - ls5_sr
+  measurements: ['green', 'red', 'nir', 'swir_1', 'swir_2']
   measurement_renames:
-    nbart_green: green
-    nbart_red: red
-    nbart_nir: nir
-    nbart_swir_1: swir1
-    nbart_swir_2: swir2
+    swir_1: swir1
+    swir_2: swir2
+  resampling:
+    pixel_quality: nearest
+    "*": bilinear
+  basis: green
 
   aws_unsigned: True
   transform: fc.virtualproduct.FractionalCover
   transform_url: 'https://github.com/GeoscienceAustralia/fc/'
   override_product_family: ard
-  basis: nbart_green
 
   transform_args_per_product:
-    ga_ls8c_ard_3:
+    ls5_sr:
+      c2_scaling: True
+    ls7_sr:
+      c2_scaling: True
+    ls8_sr:
+      c2_scaling: True
       regression_coefficients:
         blue:
           - 4.1
@@ -40,30 +45,26 @@ specification:
           - 1.02551
 
 output:
+  explorer_url: https://explorer.digitalearth.africa/products/fc_ls/extents
   location: /tmp/alchemist
   nodata: 255
   preview_image:
     red: bs
     green: pv
     blue: npv
-  explorer_url: https://explorer.dev.dea.ga.gov.au
   write_data_settings:
-    overview_resampling: average
+    overview_resampling: nearest
   reference_source_dataset: True
   write_stac: True
   inherit_geometry: True
 
   metadata:
     product_family: fc
-    producer: ga.gov.au
-    dataset_version: 2.5.0
-    collection_number: 3
-    naming_conventions: dea_c3
-
-  properties:
-    dea:dataset_maturity: interim
+    producer: digitalearthafrica.org
+    dataset_version: 0.0.1
+    naming_conventions: deafrica
 
 processing:
   dask_chunks:
-    x: -1
+    x: 4096
     y: 4096
