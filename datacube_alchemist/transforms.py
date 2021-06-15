@@ -1,12 +1,16 @@
 from typing import Dict
 
 import numpy
+
+# import pandas
 from datacube import Datacube
 from datacube.virtual import Measurement, Transformation
 from xarray import Dataset, merge
 from nrtmodels import UnsupervisedBurnscarDetect2
 from odc.algo import int_geomedian
 from datacube.utils.rio import configure_s3_access
+
+# import datetime
 import os
 
 
@@ -94,14 +98,41 @@ class DeltaNBR_3band(Transformation):
         if gm_base_year == 2012:
             gm_base_year = 2013
 
-        # Find the S2 data for the geomedian
+        # Only one item in time dimension
+        data_time_epoch = numpy.datetime64(data["time"].item(0), "ns")
+
+        # data_time = datetime.datetime.fromtimestamp(data_time_epoch)
+
+        print(data_time_epoch)
+
+        # Compute the relevant period for the geomedian calculation
+        # GM Start date is image date minus 3 years
+        #  Note that the calculation is in weeks, as delta in months/years are not constant.
+        gm_start_date = data_time_epoch - numpy.timedelta64(52 * 3, "W").astype(
+            "timedelta64[ns]"
+        )
+
+        # End date is start date plus 3 months
+        gm_end_date = gm_start_date + numpy.timedelta64(12, "W").astype(
+            "timedelta64[ns]"
+        )
+
+        print(gm_start_date)
+        print(gm_end_date)
+
+        # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
         dc = Datacube()
+        gm_query = dc.find_datasets(
+            product=["s2a_ard_granule", "s2b_ard_granule"],
+            time=(str(gm_start_date), str(gm_end_date)),
+            like=data.geobox,
+        )
+        print("Found " + str(len(gm_query)) + " matching datasets")
+
+        # Find the data for geomedian calculation.
         gm_datasets = dc.load(
             product=["s2a_ard_granule", "s2b_ard_granule"],
-            # products=[ "s2a_ard_granule" , "s2b_ard_granule" ],
-            # TODO - Compute the relevant 3 month period for the geomedian (eg. 2018-01 to 2018-03)
-            time=("2018-07-01", "2018-07-02"),
-            # time=("2018-07-01"),
+            time=(str(gm_start_date), str(gm_end_date)),
             like=data.geobox,
             measurements=[
                 "nbart_blue",
@@ -111,23 +142,13 @@ class DeltaNBR_3band(Transformation):
             ],  # B02, B04, B08, B11
             dask_chunks={
                 "time": -1,
-                "x": 4096,  # TODO - Avoid rechunk cost by using source resolution? i.e. 10980x10980
+                "x": 4096,
                 "y": 2048,
             },
         )
 
-        # No geomedian data, continue?
+        # No geomedian data, exit.
         if not gm_datasets:
-            # print(list(data.sizes.values()))
-            # data["delta_nbr"] = numpy.zeros(data.sizes, dtype=float)
-            # data = data.drop(
-            #     [
-            #     "nir",
-            #     "swir2",
-            #     "red",
-            #     "blue",
-            #     ]
-            # )
             raise ValueError("No geomedian data for this location.")
 
         # TODO - log number of datasets from datacube query??
@@ -312,18 +333,8 @@ class DeltaNBR_3band_s2gm(Transformation):
             measurements=["blue", "red", "nir", "swir2"],  # B02, B04, B08, B11
         )
 
-        # No geomedian data, continue?
+        # No geomedian data, exit.
         if not gm_data:
-            # print(list(data.sizes.values()))
-            # data["delta_nbr"] = numpy.zeros(data.sizes, dtype=float)
-            # data = data.drop(
-            #     [
-            #     "nir",
-            #     "swir2",
-            #     "red",
-            #     "blue",
-            #     ]
-            # )
             raise ValueError("No geomedian data for this location.")
 
         # Delta Normalised Burn Ratio (dNBR) = (B08 - B11)/(B08 + B11)
