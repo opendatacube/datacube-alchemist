@@ -9,9 +9,12 @@ from xarray import Dataset, merge
 from nrtmodels import UnsupervisedBurnscarDetect2
 from odc.algo import int_geomedian
 from datacube.utils.rio import configure_s3_access
+import structlog
 
 # import datetime
 import os
+
+logger = structlog.get_logger()
 
 
 class DeltaNBR(Transformation):
@@ -98,12 +101,8 @@ class DeltaNBR_3band(Transformation):
         if gm_base_year == 2012:
             gm_base_year = 2013
 
-        # Only one item in time dimension
+        # Get time of input NRT image
         data_time_epoch = numpy.datetime64(data["time"].item(0), "ns")
-
-        # data_time = datetime.datetime.fromtimestamp(data_time_epoch)
-
-        print(data_time_epoch)
 
         # Compute the relevant period for the geomedian calculation
         # GM Start date is image date minus 3 years
@@ -117,8 +116,12 @@ class DeltaNBR_3band(Transformation):
             "timedelta64[ns]"
         )
 
-        print(gm_start_date)
-        print(gm_end_date)
+        logger.debug(
+            "Geomedian will be generated over timeframe from "
+            + str(gm_start_date)
+            + " to "
+            + str(gm_end_date)
+        )
 
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
         dc = Datacube()
@@ -127,7 +130,13 @@ class DeltaNBR_3band(Transformation):
             time=(str(gm_start_date), str(gm_end_date)),
             like=data.geobox,
         )
-        print("Found " + str(len(gm_query)) + " matching datasets")
+        logger.info(
+            "Found "
+            + str(len(gm_query))
+            + " matching datasets for geomedian computation"
+        )
+
+        raise ValueError("Stop.")
 
         # Find the data for geomedian calculation.
         gm_datasets = dc.load(
@@ -151,15 +160,14 @@ class DeltaNBR_3band(Transformation):
         if not gm_datasets:
             raise ValueError("No geomedian data for this location.")
 
-        # TODO - log number of datasets from datacube query??
-        print(gm_datasets)
-        print("starting geomedian calculation\n")
+        logger.debug(gm_datasets)
+        logger.info("starting geomedian calculation\n")
 
         gm_data = int_geomedian(gm_datasets, num_threads=1)
-        print("\ngm_data:")
-        print(gm_data)
-        print("\ndata:")
-        print(data)
+        logger.debug("\ngm_data:")
+        logger.debug(gm_data)
+        logger.debug("\ndata:")
+        logger.debug(data)
 
         # Compose the computed gm data
         # refer to https://github.com/opendatacube/datacube-wps/blob/master/datacube_wps/processes/__init__.py#L426
@@ -174,16 +182,16 @@ class DeltaNBR_3band(Transformation):
                 region_name=os.getenv("AWS_DEFAULT_REGION", "auto"),
                 client=client,
             )
-            print("starting dask operation\n")
+            logger.debug("starting dask operation\n")
             gm_data = gm_data.load()
 
-        print("starting dnbr calculations\n")
+        logger.debug("starting dnbr calculations\n")
 
         # Delta Normalised Burn Ratio (dNBR) = (B08 - B11)/(B08 + B11)
         pre_nbr = (gm_data.nbart_nir_1 - gm_data.nbart_swir_2) / (
             gm_data.nbart_nir_1 + gm_data.nbart_swir_2
         )
-        print(pre_nbr)
+        logger.info(pre_nbr)
 
         time_dim = data.time
 
@@ -199,7 +207,7 @@ class DeltaNBR_3band(Transformation):
         )
 
         # Burn Scar Index (BSI) = ((B11 + B04) - (B08 - B02)) / ((B11 + B04) + (B08 - B02))
-        print("Starting BSI calculation")
+        logger.info("Starting BSI calculation")
         pre_bsi = (
             (gm_data.nbart_swir_2 / 10000 + gm_data.nbart_red / 10000)
             - (gm_data.nbart_nir_1 / 10000 - gm_data.nbart_blue / 10000)
@@ -223,7 +231,7 @@ class DeltaNBR_3band(Transformation):
         )
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
-        print("Starting NDVI calculation")
+        logger.info("Starting NDVI calculation")
         pre_ndvi = (gm_data.nbart_nir_1 - gm_data.nbart_red) / (
             gm_data.nbart_nir_1 + gm_data.nbart_red
         )
@@ -244,7 +252,7 @@ class DeltaNBR_3band(Transformation):
         data["gm_data_nbart_blue"] = gm_data.nbart_blue
         data["gm_data_nbart_swir_2"] = gm_data.nbart_swir_2
 
-        print("Exporting data")
+        logger.info("Exporting data")
 
         data = data.drop(
             [
@@ -262,7 +270,7 @@ class DeltaNBR_3band(Transformation):
         )
 
         # add time dimension back to "data"
-        print("Adding time dimension")
+        logger.debug("Adding time dimension")
         data = data.expand_dims({"time": time_dim})
 
         return data
