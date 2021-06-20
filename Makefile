@@ -81,6 +81,22 @@ index-s2a:
 			s3-to-dc --no-sign-request 's3://dea-public-data/baseline/s2a_ard_granule/**/*.yaml' s2a_ard_granule\
 		"
 
+product-s2be:
+	docker-compose exec alchemist \
+		datacube product add \
+		https://explorer.dev.dea.ga.gov.au/products/s2_barest_earth.odc-product.yaml
+
+index-s2be:
+	docker-compose exec alchemist \
+		bash -c "\
+			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*odc-metadata.yaml' s2_barest_earth\
+		"
+
+index-one-s2be:
+	docker-compose exec alchemist \
+		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+			https://dea-public-data-dev.s3.ap-southeast-2.amazonaws.com/s2be/s2be-SG5006.odc-metadata.yaml
+
 metadata-s2-nrt:
 	docker-compose exec alchemist \
 		datacube metadata add \
@@ -105,7 +121,7 @@ index-s2-nrt:
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-18/S2A_OPER_MSI_ARD_TL_VGS4_20210518T025201_A030830_T53KLV_N03.00/ARD-METADATA.yaml \
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/ARD-METADATA.yaml
 
-quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2a index-s2a
+quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2a index-s2a product-s2be index-s2be
 
 
 # Landsat 8, 7 and 5 respectively
@@ -130,7 +146,7 @@ fc-one:
 
 dnbr-one:
 	docker-compose exec alchemist \
-		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band.yaml \
+		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \
 		--uuid f9a66dde-d423-47b5-8421-a71cfb1d8883
 
 bai-one:
