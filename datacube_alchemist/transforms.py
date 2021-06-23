@@ -1,11 +1,11 @@
 from typing import Dict
 
 import numpy
+import xarray as xr
 
 # import pandas
 from datacube import Datacube
 from datacube.virtual import Measurement, Transformation
-from xarray import Dataset, merge
 from nrtmodels import UnsupervisedBurnscarDetect2
 from odc.algo import int_geomedian
 from datacube.utils.rio import configure_s3_access
@@ -13,6 +13,7 @@ import structlog
 
 # import datetime
 import os
+
 
 logger = structlog.get_logger()
 
@@ -28,7 +29,7 @@ class DeltaNBR(Transformation):
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
         return self.output_measurements
 
-    def compute(self, data) -> Dataset:
+    def compute(self, data) -> xr.Dataset:
         base_year = data.time.dt.year.values[0] - 1
         if base_year == 2021:
             base_year = 2020
@@ -46,7 +47,7 @@ class DeltaNBR(Transformation):
         pre = (gm_data.nbart_nir_1 - gm_data.nbart_swir_2) / (
             gm_data.nbart_nir_1 + gm_data.nbart_swir_2
         )
-        data = merge([data, {"pre": pre.isel(time=0, drop=True)}])
+        data = xr.merge([data, {"pre": pre.isel(time=0, drop=True)}])
 
         data["post"] = (data.nbart_nir_1 - data.nbart_swir_2) / (
             data.nbart_nir_1 + data.nbart_swir_2
@@ -88,7 +89,7 @@ class DeltaNBR_3band(Transformation):
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
         return self.output_measurements
 
-    def compute(self, data) -> Dataset:
+    def compute(self, data) -> xr.Dataset:
 
         """
         Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
@@ -193,7 +194,7 @@ class DeltaNBR_3band(Transformation):
 
         time_dim = data.time
 
-        data = merge([data.isel(time=0, drop=True), {"pre_nbr": pre_nbr}])
+        data = xr.merge([data.isel(time=0, drop=True), {"pre_nbr": pre_nbr}])
         data["post_nbr"] = (data.nbart_nir_1 - data.nbart_swir_2) / (
             data.nbart_nir_1 + data.nbart_swir_2
         )
@@ -215,7 +216,7 @@ class DeltaNBR_3band(Transformation):
             (gm_data.nbart_swir_2 / 10000 + gm_data.nbart_red / 10000)
             + (gm_data.nbart_nir_1 / 10000 - gm_data.nbart_blue / 10000)
         )
-        data = merge([data, {"pre_bsi": pre_bsi}])
+        data = xr.merge([data, {"pre_bsi": pre_bsi}])
         data["post_bsi"] = (
             (data.nbart_swir_2 / 10000 + data.nbart_red / 10000)
             - (data.nbart_nir_1 / 10000 - data.nbart_blue / 10000)
@@ -237,7 +238,7 @@ class DeltaNBR_3band(Transformation):
         pre_ndvi = (gm_data.nbart_nir_1 - gm_data.nbart_red) / (
             gm_data.nbart_nir_1 + gm_data.nbart_red
         )
-        data = merge([data, {"pre_ndvi": pre_ndvi}])
+        data = xr.merge([data, {"pre_ndvi": pre_ndvi}])
         data["post_ndvi"] = (data.nbart_nir_1 - data.nbart_red) / (
             data.nbart_nir_1 + data.nbart_red
         )
@@ -308,7 +309,7 @@ class DeltaNBR_3band_s2be(Transformation):
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
         return self.output_measurements
 
-    def compute(self, data) -> Dataset:
+    def compute(self, data) -> xr.Dataset:
 
         """
         Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
@@ -359,7 +360,7 @@ class DeltaNBR_3band_s2be(Transformation):
         )
         logger.info(pre_nbr)
 
-        data = merge([data.isel(time=0, drop=True), {"pre_nbr": pre_nbr}])
+        data = xr.merge([data.isel(time=0, drop=True), {"pre_nbr": pre_nbr}])
         data["post_nbr"] = (data.nbart_nir_1 - data.nbart_swir_2) / (
             data.nbart_nir_1 + data.nbart_swir_2
         )
@@ -382,7 +383,7 @@ class DeltaNBR_3band_s2be(Transformation):
             (gm_data.s2be_swir_2 / 10000 + gm_data.s2be_red / 10000)
             + (gm_data.s2be_nir_1 / 10000 - gm_data.s2be_blue / 10000)
         )
-        data = merge([data, {"pre_bsi": pre_bsi}])
+        data = xr.merge([data, {"pre_bsi": pre_bsi}])
         data["post_bsi"] = (
             (data.nbart_swir_2 / 10000 + data.nbart_red / 10000)
             - (data.nbart_nir_1 / 10000 - data.nbart_blue / 10000)
@@ -405,7 +406,7 @@ class DeltaNBR_3band_s2be(Transformation):
         pre_ndvi = (gm_data.s2be_nir_1 - gm_data.s2be_red) / (
             gm_data.s2be_nir_1 + gm_data.s2be_red
         )
-        data = merge([data, {"pre_ndvi": pre_ndvi}])
+        data = xr.merge([data, {"pre_ndvi": pre_ndvi}])
         data["post_ndvi"] = (data.nbart_nir_1 - data.nbart_red) / (
             data.nbart_nir_1 + data.nbart_red
         )
@@ -467,7 +468,7 @@ class BAUnsupervised_s2be(Transformation):
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
         return self.output_measurements
 
-    def compute(self, data) -> Dataset:
+    def compute(self, data) -> xr.Dataset:
 
         """
         Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
@@ -499,6 +500,7 @@ class BAUnsupervised_s2be(Transformation):
                 "s2be_nir_1",
                 "s2be_swir_2",
             ],  # B02, B04, B08, B11
+            resampling="average",
         )
 
         # No geomedian data, exit.
@@ -581,13 +583,14 @@ class BAUnsupervised_s2be(Transformation):
         logger.debug(data["B02"].shape)
 
         model = UnsupervisedBurnscarDetect2()
-        uyhat = model.predict(mask, gm_data, data)
-
-        logger.debug("Converting back to xarray.")
+        result = model.predict(mask, gm_data, data)
+        logger.debug("result:")
+        logger.debug(result)
 
         # convert numpy data back to xarray
-        da = uyhat.DataArray(uyhat, dims=("y", "x", "variable"), name="result")
-        return Dataset(data_vars={"result": da})
+        logger.debug("Converting back to xarray.")
+        da = xr.DataArray(result, dims=("y", "x"), name="result")
+        return xr.Dataset(data_vars={"result": da})
 
 
 class BurntArea_Unsupervised(Transformation):
@@ -606,7 +609,7 @@ class BurntArea_Unsupervised(Transformation):
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
         return self.output_measurements
 
-    def compute(self, data) -> Dataset:
+    def compute(self, data) -> xr.Dataset:
 
         # Load base Geomedian from datacube
         gm_base_year = data.time.dt.year.values[0] - 1
@@ -624,9 +627,6 @@ class BurntArea_Unsupervised(Transformation):
             measurements=["blue", "red", "nir", "swir2"],  # B02, B04, B08, B11
         )
 
-        # Insert empty bands for compatibility with NRT lib
-        gm_data.merge
-
         # Convert from xarray to numpy array
         squashed = data.to_array().transpose("y", "x", "variable", ...)
         data = squashed.data.astype(numpy.float32) / 10000.0
@@ -640,5 +640,5 @@ class BurntArea_Unsupervised(Transformation):
         uyhat = model.predict(mask, gm_data, data)
 
         # convert back to xarray
-        da = uyhat.DataArray(uyhat, dims=("y", "x", "variable"), name="result")
-        return Dataset(data_vars={"result": da})
+        da = xr.DataArray(uyhat, dims=("y", "x", "variable"), name="result")
+        return xr.Dataset(data_vars={"result": da})

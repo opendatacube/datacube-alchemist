@@ -8,7 +8,7 @@ specification:
   aws_unsigned: True
   transform: datacube_alchemist.transforms.BAUnsupervised_s2be
   override_product_family: ard
-  basis: nbart_nir_1
+  basis: nbar_red_edge_1
 
 output:
   location: /tmp/alchemist
