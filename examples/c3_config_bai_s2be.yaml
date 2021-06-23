@@ -5,10 +5,8 @@ specification:
   measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red']
   measurement_renames:
     nbart_red_edge_1: nbart_swir_2
-
   aws_unsigned: True
-  transform: datacube_alchemist.transforms.DeltaNBR_3band_s2be
-
+  transform: datacube_alchemist.transforms.BAUnsupervised_s2be
   override_product_family: ard
   basis: nbart_nir_1
 

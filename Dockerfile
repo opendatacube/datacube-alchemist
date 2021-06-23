@@ -54,8 +54,6 @@ RUN datacube-alchemist --version
 
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then\
         rm -rf $APPDIR ;\
-        #Open Dask Dashboard port in dev
-        EXPOSE 8787;\
     else \
         pip install --extra-index-url="https://packages.dea.ga.gov.au" \
         -c /code/constraints.txt --editable .[$ENVIRONMENT] ; \

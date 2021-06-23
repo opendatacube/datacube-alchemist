@@ -63,6 +63,7 @@ index:
 			s3://dea-public-data/baseline/ga_ls7e_ard_3/100/075/2003/10/15/ga_ls7e_ard_3-0-0_100075_2003-10-15_final.odc-metadata.yaml \
 			s3://dea-public-data/baseline/ga_ls8c_ard_3/091/089/2019/01/20/ga_ls8c_ard_3-0-0_091089_2019-01-20_final.odc-metadata.yaml
 
+# Landsat geomedian
 index-geomedian:
 	docker-compose exec alchemist \
 		bash -c "\
@@ -70,6 +71,7 @@ index-geomedian:
 			s3-to-dc --no-sign-request 's3://dea-public-data/geomedian-australia/v2.1.0/L8/**/*.yaml' ls8_nbart_geomedian_annual\
 		"
 
+# s2a required for on-the-fly gm calculation
 product-s2a:
 	docker-compose exec alchemist \
 		datacube product add \
@@ -81,6 +83,7 @@ index-s2a:
 			s3-to-dc --no-sign-request 's3://dea-public-data/baseline/s2a_ard_granule/**/*.yaml' s2a_ard_granule\
 		"
 
+# Barest Earth required for NRT calculation
 product-s2be:
 	docker-compose exec alchemist \
 		datacube product add \
@@ -92,6 +95,7 @@ index-s2be:
 			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*odc-metadata.yaml' s2_barest_earth\
 		"
 
+# Specific BE dataset for local testing
 index-one-s2be:
 	docker-compose exec alchemist \
 		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
@@ -142,8 +146,8 @@ fc-one:
 		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
 		--uuid 600645a5-5256-4632-a13d-fa13d1c11a8f
 
+# Specific test dataset
 # f9a66dde-d423-47b5-8421-a71cfb1d8883 = https://data.dea.ga.gov.au/?prefix=L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/
-
 dnbr-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \
@@ -151,8 +155,8 @@ dnbr-one:
 
 bai-one:
 	docker-compose exec alchemist \
-		datacube-alchemist run-one --config-file ./examples/c3_config_bai.yaml \
-		--uuid c37f3228-f350-4f50-8165-86232051319b
+		datacube-alchemist run-one --config-file ./examples/c3_config_bai_s2be.yaml \
+		--uuid f9a66dde-d423-47b5-8421-a71cfb1d8883
 
 wofs-one-of-each:
 	docker-compose exec alchemist \

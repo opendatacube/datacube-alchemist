@@ -27,6 +27,9 @@ services:
     volumes:
       - .:/code
       - ./output:/tmp/alchemist
+    expose:
+      #Open Dask Dashboard port in dev
+      - "8787"
     ports:
       - 8787:8787
     depends_on:
