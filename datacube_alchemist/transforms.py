@@ -504,56 +504,64 @@ class BAUnsupervised_s2be(Transformation):
         # Convert from xarray to numpy array
 
         # Renaming bands to match expected band names (B02, B04, B08, B11)
-        # gm_data.rename({
-        #     "s2be_blue":"B02",
-        #     "s2be_red":"B04",
-        #     "s2be_nir_1":"B08",
-        #     "s2be_swir_2":"B11",
-        # })
+        gm_data = (
+            gm_data.rename(
+                {
+                    "s2be_blue": "B02",
+                    "s2be_red": "B04",
+                    "s2be_nir_1": "B08",
+                    "s2be_swir_2": "B11",
+                }
+            ).astype(numpy.float32)
+            / 10000.0
+        )
 
-        # data.rename({
-        #     "nbart_blue":"B02",
-        #     "nbart_red":"B04",
-        #     "nbart_nir_1":"B08",
-        #     "nbart_swir_2":"B11",
-        # })
+        data = (
+            data.rename(
+                {
+                    "nbart_blue": "B02",
+                    "nbart_red": "B04",
+                    "nbart_nir_1": "B08",
+                    "nbart_swir_2": "B11",
+                }
+            ).astype(numpy.float32)
+            / 10000.0
+        )
+
+        gm_data = gm_data.load()
+        data = data.load()
 
         gm_data = gm_data.isel(time=0, drop=True)
         post_data = data.isel(time=0, drop=True)
 
         # TODO - load a suitable mask dataset here... zeroes for now.
-        logger.debug(post_data["nbart_blue"].transpose("y", "x", ...).shape)
-        mask = numpy.zeros(
-            post_data["nbart_blue"].transpose("y", "x", ...).shape, dtype=bool
-        )
+        logger.debug(post_data["B02"].shape)
+        mask = numpy.zeros(post_data["B02"].shape, dtype=bool)
 
-        gm_data = {
-            "B02": gm_data["s2be_blue"].transpose("y", "x", ...).astype(numpy.float32)
-            / 10000.0,
-            "B04": gm_data["s2be_red"].transpose("y", "x", ...).astype(numpy.float32)
-            / 10000.0,
-            "B08": gm_data["s2be_nir_1"].transpose("y", "x", ...).astype(numpy.float32)
-            / 10000.0,
-            "B11": gm_data["s2be_swir_2"].transpose("y", "x", ...).astype(numpy.float32)
-            / 10000.0,
-        }
+        # gm_data = {
+        #     "B02": gm_data["B02"].astype(numpy.float32)
+        #     / 10000.0,
+        #     "B04": gm_data["s2be_red"].astype(numpy.float32)
+        #     / 10000.0,
+        #     "B08": gm_data["s2be_nir_1"].astype(numpy.float32)
+        #     / 10000.0,
+        #     "B11": gm_data["s2be_swir_2"].astype(numpy.float32)
+        #     / 10000.0,
+        # }
 
-        post_data = {
-            "B02": post_data["nbart_blue"]
-            .transpose("y", "x", ...)
-            .astype(numpy.float32)
-            / 10000.0,
-            "B04": post_data["nbart_red"].transpose("y", "x", ...).astype(numpy.float32)
-            / 10000.0,
-            "B08": post_data["nbart_nir_1"]
-            .transpose("y", "x", ...)
-            .astype(numpy.float32)
-            / 10000.0,
-            "B11": post_data["nbart_swir_2"]
-            .transpose("y", "x", ...)
-            .astype(numpy.float32)
-            / 10000.0,
-        }
+        # post_data = {
+        #     "B02": post_data["nbart_blue"]
+        #     .astype(numpy.float32)
+        #     / 10000.0,
+        #     "B04": post_data["nbart_red"].astype(numpy.float32)
+        #     / 10000.0,
+        #     "B08": post_data["nbart_nir_1"]
+        #     .astype(numpy.float32)
+        #     / 10000.0,
+        #     "B11": post_data["nbart_swir_2"]
+        #     .astype(numpy.float32)
+        #     / 10000.0,
+        # }
 
         logger.debug(mask.shape)
         logger.debug(gm_data["B02"].shape)
@@ -577,10 +585,10 @@ class BAUnsupervised_s2be(Transformation):
 
         data = data.drop(
             [
-                "nbart_nir_1",
-                "nbart_swir_2",
-                "nbart_red",
-                "nbart_blue",
+                "B02",
+                "B04",
+                "B08",
+                "B11",
             ]
         )
 
