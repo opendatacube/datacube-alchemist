@@ -445,24 +445,12 @@ class BAUnsupervised_s2be(Transformation):
 
     def __init__(self):
         self.output_measurements = {
-            "delta_nbr": {
+            "ba_unsupervised": {
                 "name": "dnbr",
                 "dtype": "float",
                 "nodata": numpy.nan,
                 "units": "",
-            },
-            "delta_bsi": {
-                "name": "bsi",
-                "dtype": "float",
-                "nodata": numpy.nan,
-                "units": "",
-            },
-            "delta_ndvi": {
-                "name": "ndvi",
-                "dtype": "float",
-                "nodata": numpy.nan,
-                "units": "",
-            },
+            }
         }
 
     def measurements(self, input_measurements) -> Dict[str, Measurement]:
@@ -473,8 +461,6 @@ class BAUnsupervised_s2be(Transformation):
         """
         Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
         """
-
-        data = data.load()
 
         gm_base_year = 2018
 
@@ -501,6 +487,7 @@ class BAUnsupervised_s2be(Transformation):
                 "s2be_swir_2",
             ],  # B02, B04, B08, B11
             resampling="average",
+            dask_chunks={"time": 1},
         )
 
         # No geomedian data, exit.
@@ -513,8 +500,6 @@ class BAUnsupervised_s2be(Transformation):
         logger.debug(data)
 
         logger.debug("starting unsupervised calculations\n")
-
-        # Invoke NRT unsupervised model calculation
 
         # Convert from xarray to numpy array
 
@@ -534,63 +519,72 @@ class BAUnsupervised_s2be(Transformation):
         # })
 
         gm_data = gm_data.isel(time=0, drop=True)
-        data = data.isel(time=0, drop=True)
+        post_data = data.isel(time=0, drop=True)
 
         # TODO - load a suitable mask dataset here... zeroes for now.
-        logger.debug(data["nbart_blue"].transpose("y", "x", ...).data.shape)
+        logger.debug(post_data["nbart_blue"].transpose("y", "x", ...).shape)
         mask = numpy.zeros(
-            data["nbart_blue"].transpose("y", "x", ...).data.shape, dtype=bool
+            post_data["nbart_blue"].transpose("y", "x", ...).shape, dtype=bool
         )
 
         gm_data = {
-            "B02": gm_data["s2be_blue"]
-            .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            "B02": gm_data["s2be_blue"].transpose("y", "x", ...).astype(numpy.float32)
             / 10000.0,
-            "B04": gm_data["s2be_red"]
-            .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            "B04": gm_data["s2be_red"].transpose("y", "x", ...).astype(numpy.float32)
             / 10000.0,
-            "B08": gm_data["s2be_nir_1"]
-            .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            "B08": gm_data["s2be_nir_1"].transpose("y", "x", ...).astype(numpy.float32)
             / 10000.0,
-            "B11": gm_data["s2be_swir_2"]
-            .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            "B11": gm_data["s2be_swir_2"].transpose("y", "x", ...).astype(numpy.float32)
             / 10000.0,
         }
 
-        data = {
-            "B02": data["nbart_blue"]
+        post_data = {
+            "B02": post_data["nbart_blue"]
             .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            .astype(numpy.float32)
             / 10000.0,
-            "B04": data["nbart_red"].transpose("y", "x", ...).data.astype(numpy.float32)
+            "B04": post_data["nbart_red"].transpose("y", "x", ...).astype(numpy.float32)
             / 10000.0,
-            "B08": data["nbart_nir_1"]
+            "B08": post_data["nbart_nir_1"]
             .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            .astype(numpy.float32)
             / 10000.0,
-            "B11": data["nbart_swir_2"]
+            "B11": post_data["nbart_swir_2"]
             .transpose("y", "x", ...)
-            .data.astype(numpy.float32)
+            .astype(numpy.float32)
             / 10000.0,
         }
 
         logger.debug(mask.shape)
         logger.debug(gm_data["B02"].shape)
-        logger.debug(data["B02"].shape)
+        logger.debug(post_data["B02"].shape)
 
+        # Invoke NRT unsupervised model calculation
         model = UnsupervisedBurnscarDetect2()
-        result = model.predict(mask, gm_data, data)
+        result = model.predict(mask, gm_data, post_data)
         logger.debug("result:")
         logger.debug(result)
 
         # convert numpy data back to xarray
         logger.debug("Converting back to xarray.")
         da = xr.DataArray(result, dims=("y", "x"), name="result")
-        return xr.Dataset(data_vars={"result": da})
+        # dr = xr.Dataset(data_vars={"result": da})
+
+        logger.debug(xr)
+
+        # Prepare the output dataset
+        data = xr.merge([data, {"ba_unsupervised": da}])
+
+        data = data.drop(
+            [
+                "nbart_nir_1",
+                "nbart_swir_2",
+                "nbart_red",
+                "nbart_blue",
+            ]
+        )
+
+        return data
 
 
 class BurntArea_Unsupervised(Transformation):
