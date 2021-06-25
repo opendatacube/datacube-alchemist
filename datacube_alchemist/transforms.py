@@ -512,9 +512,21 @@ class BAUnsupervised_s2be(Transformation):
                     "s2be_nir_1": "B08",
                     "s2be_swir_2": "B11",
                 }
-            ).astype(numpy.float32)
+            ).astype(numpy.float64)
             / 10000.0
         )
+
+        # gm_data=gm_data.where(gm_data.B02 != numpy.NaN)
+        # gm_data=gm_data.where(gm_data.B02 != numpy.Infinity)
+        # gm_data=gm_data.where(gm_data.B04 != numpy.NaN)
+        # gm_data=gm_data.where(gm_data.B04 != numpy.Infinity)
+        # gm_data=gm_data.where(gm_data.B08 != numpy.NaN)
+        # gm_data=gm_data.where(gm_data.B08 != numpy.Infinity)
+        # gm_data=gm_data.where(gm_data.B11 != numpy.NaN)
+        # gm_data=gm_data.where(gm_data.B11 != numpy.Infinity)
+
+        # Select/compute the mask array
+        mask = data.nbart_contiguity.astype(numpy.bool8)
 
         data = (
             data.rename(
@@ -524,9 +536,18 @@ class BAUnsupervised_s2be(Transformation):
                     "nbart_nir_1": "B08",
                     "nbart_swir_2": "B11",
                 }
-            ).astype(numpy.float32)
+            ).astype(numpy.float64)
             / 10000.0
         )
+
+        # data=data.where(data.B02 != numpy.NaN)
+        # data=data.where(data.B02 != numpy.Infinity)
+        # data=data.where(data.B04 != numpy.NaN)
+        # data=data.where(data.B04 != numpy.Infinity)
+        # data=data.where(data.B08 != numpy.NaN)
+        # data=data.where(data.B08 != numpy.Infinity)
+        # data=data.where(data.B11 != numpy.NaN)
+        # data=data.where(data.B11 != numpy.Infinity)
 
         gm_data = gm_data.load()
         data = data.load()
@@ -534,9 +555,8 @@ class BAUnsupervised_s2be(Transformation):
         gm_data = gm_data.isel(time=0, drop=True)
         post_data = data.isel(time=0, drop=True)
 
-        # TODO - load a suitable mask dataset here... zeroes for now.
         logger.debug(post_data["B02"].shape)
-        mask = numpy.zeros(post_data["B02"].shape, dtype=bool)
+        # mask = numpy.zeros(post_data["B02"].shape, dtype=bool)
 
         # gm_data = {
         #     "B02": gm_data["B02"].astype(numpy.float32)
@@ -549,23 +569,11 @@ class BAUnsupervised_s2be(Transformation):
         #     / 10000.0,
         # }
 
-        # post_data = {
-        #     "B02": post_data["nbart_blue"]
-        #     .astype(numpy.float32)
-        #     / 10000.0,
-        #     "B04": post_data["nbart_red"].astype(numpy.float32)
-        #     / 10000.0,
-        #     "B08": post_data["nbart_nir_1"]
-        #     .astype(numpy.float32)
-        #     / 10000.0,
-        #     "B11": post_data["nbart_swir_2"]
-        #     .astype(numpy.float32)
-        #     / 10000.0,
-        # }
+        # post_data = post_data.where(post_data["nbart_blue"])
 
-        logger.debug(mask.shape)
-        logger.debug(gm_data["B02"].shape)
-        logger.debug(post_data["B02"].shape)
+        logger.debug(mask)
+        logger.debug(gm_data["B02"])
+        logger.debug(post_data["B02"])
 
         # Invoke NRT unsupervised model calculation
         model = UnsupervisedBurnscarDetect2()
