@@ -1,6 +1,7 @@
 name: Test
 
 on:
+  push:
   pull_request:
     branches:
       - main
@@ -45,7 +46,6 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
-        file: ./coverage.xml
         fail_ci_if_error: false
 
     - name: Integration tests

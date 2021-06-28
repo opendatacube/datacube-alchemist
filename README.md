@@ -1,11 +1,10 @@
-# datacube-alchemist - ODC Dataset to Dataset Converter
+# Datacube Alchemist - ODC Dataset to Dataset Converter
 
-Copyright: © 2021, Open Data Cube Community
 
 ![Scan](https://github.com/opendatacube/datacube-alchemist/workflows/Scan/badge.svg)
 ![Test](https://github.com/opendatacube/datacube-alchemist/workflows/Test/badge.svg)
 ![Push](https://github.com/opendatacube/datacube-alchemist/workflows/Push/badge.svg)
-[![codecov](https://codecov.io/gh/opendatacube/datacube-alchemist/branch/master/graph/badge.svg?token=8dsJGc99qY)](https://codecov.io/gh/opendatacube/datacube-alchemist)
+[![codecov](https://codecov.io/gh/opendatacube/datacube-alchemist/branch/main/graph/badge.svg?token=8dsJGc99qY)](https://codecov.io/gh/opendatacube/datacube-alchemist)
 
 ## PURPOSE
 
@@ -122,6 +121,10 @@ datacube-alchemist redrive-to-queue \
   --to-queue example-to-queue
 ```
 
-## LICENSE
+## License
 
 Apache License 2.0
+
+## Copyright
+
+© 2021, Open Data Cube Community

@@ -23,6 +23,7 @@ from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
 from datacube.utils.aws import configure_s3_access
+from odc.index.stac import stac_transform
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import (
@@ -368,7 +369,15 @@ class Alchemist:
                     f"Your transform doesn't match the transform in the message. Ignoring {uuid}"
                 )
                 continue
-            task = self.generate_task_by_uuid(message_body["id"])
+
+            try:
+                # First try the simple case that the JSON object has an ODC ID
+                task = self.generate_task_by_uuid(message_body["id"])
+            except ValueError:
+                # If that fails, try doing a standard STAC transform and getting an ID from that
+                _LOG.info("Couldn't find dataset by UUID, trying another way")
+                message_transformed = stac_transform(message_body)
+                task = self.generate_task_by_uuid(message_transformed["id"])
             if task:
                 yield task, message
 
