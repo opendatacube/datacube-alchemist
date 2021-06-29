@@ -503,17 +503,28 @@ class BAUnsupervised_s2be(Transformation):
 
         # Convert from xarray to numpy array
 
-        gm_data["s2be_blue"] = gm_data.s2be_blue.where(
-            gm_data.s2be_blue == -999, numpy.NaN
+        gm_data["s2be_blue"] = (
+            gm_data.s2be_blue.where(gm_data.s2be_blue != -999, numpy.NaN)
+            .where(numpy.isfinite(gm_data.s2be_blue), numpy.NaN)
+            .astype(numpy.single)
         )
-        gm_data["s2be_red"] = gm_data.s2be_red.where(
-            gm_data.s2be_red == -999, numpy.NaN
+
+        gm_data["s2be_red"] = (
+            gm_data.s2be_red.where(gm_data.s2be_red != -999, numpy.NaN)
+            .where(numpy.isfinite(gm_data.s2be_red), numpy.NaN)
+            .astype(numpy.single)
         )
-        gm_data["s2be_nir_1"] = gm_data.s2be_nir_1.where(
-            gm_data.s2be_nir_1 == -999, numpy.NaN
+
+        gm_data["s2be_nir_1"] = (
+            gm_data.s2be_nir_1.where(gm_data.s2be_nir_1 != -999, numpy.NaN)
+            .where(numpy.isfinite(gm_data.s2be_nir_1), numpy.NaN)
+            .astype(numpy.single)
         )
-        gm_data["s2be_swir_2"] = gm_data.s2be_swir_2.where(
-            gm_data.s2be_swir_2 == -999, numpy.NaN
+
+        gm_data["s2be_swir_2"] = (
+            gm_data.s2be_swir_2.where(gm_data.s2be_swir_2 != -999, numpy.NaN)
+            .where(numpy.isfinite(gm_data.s2be_swir_2), numpy.NaN)
+            .astype(numpy.single)
         )
 
         # Renaming bands to match expected band names (B02, B04, B08, B11)
@@ -541,16 +552,33 @@ class BAUnsupervised_s2be(Transformation):
         # Select/compute the mask array
         mask = xr.where(data.fmask == 1, 0, 1).astype(numpy.int8)
         mask = mask.isel(time=0, drop=True)
+        logger.debug("uniques:")
+        logger.debug(numpy.unique(mask))
 
         # data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN).astype(numpy.float64)
 
-        data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN)
-        data["nbart_red"] = data.nbart_red.where(data.nbart_red == -999, numpy.NaN)
-        data["nbart_nir_1"] = data.nbart_nir_1.where(
-            data.nbart_nir_1 == -999, numpy.NaN
+        data["nbart_blue"] = (
+            data.nbart_blue.where(data.nbart_blue != -999, numpy.NaN)
+            .where(numpy.isfinite(data.nbart_blue), numpy.NaN)
+            .astype(numpy.single)
         )
-        data["nbart_swir_2"] = data.nbart_swir_2.where(
-            data.nbart_swir_2 == -999, numpy.NaN
+
+        data["nbart_red"] = (
+            data.nbart_red.where((data.nbart_red != -999), numpy.NaN)
+            .where(numpy.isfinite(data.nbart_red), numpy.NaN)
+            .astype(numpy.single)
+        )
+
+        data["nbart_nir_1"] = (
+            data.nbart_nir_1.where(data.nbart_nir_1 != -999, numpy.NaN)
+            .where(numpy.isfinite(data.nbart_nir_1), numpy.NaN)
+            .astype(numpy.single)
+        )
+
+        data["nbart_swir_2"] = (
+            data.nbart_swir_2.where(data.nbart_swir_2 != -999, numpy.NaN)
+            .where(numpy.isfinite(data.nbart_swir_2), numpy.NaN)
+            .astype(numpy.single)
         )
 
         data = (
@@ -576,6 +604,25 @@ class BAUnsupervised_s2be(Transformation):
 
         gm_data = gm_data.load()
         data = data.load()
+
+        logger.debug(data.B02.values)
+        logger.debug("B02 min:" + str(data.B02.min()))
+        logger.debug("B02 max:" + str(data.B02.max()))
+        logger.debug("B04 min:" + str(data.B04.min()))
+        logger.debug("B04 max:" + str(data.B04.max()))
+        logger.debug("B08 min:" + str(data.B08.min()))
+        logger.debug("B08 max:" + str(data.B08.max()))
+        logger.debug("B11 min:" + str(data.B11.min()))
+        logger.debug("B11 max:" + str(data.B11.max()))
+
+        logger.debug("be B02 min:" + str(gm_data.B02.min()))
+        logger.debug("be B02 max:" + str(gm_data.B02.max()))
+        logger.debug("be B04 min:" + str(gm_data.B04.min()))
+        logger.debug("be B04 max:" + str(gm_data.B04.max()))
+        logger.debug("be B08 min:" + str(gm_data.B08.min()))
+        logger.debug("be B08 max:" + str(gm_data.B08.max()))
+        logger.debug("be B11 min:" + str(gm_data.B11.min()))
+        logger.debug("be B11 max:" + str(gm_data.B11.max()))
 
         gm_data = gm_data.isel(time=0, drop=True)
         post_data = data.isel(time=0, drop=True)
@@ -610,6 +657,8 @@ class BAUnsupervised_s2be(Transformation):
 
         # convert numpy data back to xarray
         logger.debug("Converting back to xarray.")
+        logger.debug("uniques:")
+        logger.debug(numpy.unique(result))
         da = xr.DataArray(result, dims=("y", "x"), name="result")
         # dr = xr.Dataset(data_vars={"result": da})
 

@@ -156,7 +156,7 @@ dnbr-one:
 bai-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_bai_s2be.yaml \
-		--uuid e3c0c325-1736-4d9e-9555-38b451e90f35
+		--uuid f9a66dde-d423-47b5-8421-a71cfb1d8883
 
 wofs-one-of-each:
 	docker-compose exec alchemist \
