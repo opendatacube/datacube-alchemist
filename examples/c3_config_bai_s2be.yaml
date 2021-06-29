@@ -20,7 +20,7 @@ output:
     overview_resampling: average
   reference_source_dataset: True
   write_stac: True
-  inherit_geometry: False
+  inherit_geometry: True
 
   metadata:
     product_family: ba

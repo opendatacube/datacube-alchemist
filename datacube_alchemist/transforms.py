@@ -539,7 +539,7 @@ class BAUnsupervised_s2be(Transformation):
         # gm_data=gm_data.where(gm_data.B11 != numpy.Infinity)
 
         # Select/compute the mask array
-        mask = data.fmask.where(data.fmask != 1, 1, 0).astype(numpy.bool8)
+        mask = xr.where(data.fmask == 1, 0, 1).astype(numpy.int8)
         mask = mask.isel(time=0, drop=True)
 
         # data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN).astype(numpy.float64)
@@ -580,6 +580,8 @@ class BAUnsupervised_s2be(Transformation):
         gm_data = gm_data.isel(time=0, drop=True)
         post_data = data.isel(time=0, drop=True)
 
+        # mask = numpy.zeros(post_data["B02"].shape, dtype=bool)
+
         logger.debug(post_data["B02"].shape)
         # mask = numpy.zeros(post_data["B02"].shape, dtype=bool)
 
@@ -611,20 +613,25 @@ class BAUnsupervised_s2be(Transformation):
         da = xr.DataArray(result, dims=("y", "x"), name="result")
         # dr = xr.Dataset(data_vars={"result": da})
 
-        logger.debug(xr)
+        logger.debug(da)
 
         # Prepare the output dataset
-        data = xr.merge([data, {"ba_unsupervised": da}])
-
-        data = data.drop(
-            [
-                "B02",
-                "B04",
-                "B08",
-                "B11",
-                # "fmask",
-            ]
+        # data = xr.merge([data, {"ba_unsupervised": da}])
+        ds = xr.Dataset(
+            data_vars={"ba_unsupervised": da}, coords=data.coords, attrs=data.attrs
         )
+
+        # data = data.drop(
+        #     [
+        #         "B02",
+        #         "B04",
+        #         "B08",
+        #         "B11",
+        #         # "fmask",
+        #     ]
+        # )
+
+        logger.debug(ds)
 
         # data.rename(
         #         {
@@ -635,7 +642,7 @@ class BAUnsupervised_s2be(Transformation):
         #         }
         #     )
 
-        return data
+        return ds
 
 
 class BurntArea_Unsupervised(Transformation):
