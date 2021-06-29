@@ -503,6 +503,19 @@ class BAUnsupervised_s2be(Transformation):
 
         # Convert from xarray to numpy array
 
+        gm_data["s2be_blue"] = gm_data.s2be_blue.where(
+            gm_data.s2be_blue == -999, numpy.NaN
+        )
+        gm_data["s2be_red"] = gm_data.s2be_red.where(
+            gm_data.s2be_red == -999, numpy.NaN
+        )
+        gm_data["s2be_nir_1"] = gm_data.s2be_nir_1.where(
+            gm_data.s2be_nir_1 == -999, numpy.NaN
+        )
+        gm_data["s2be_swir_2"] = gm_data.s2be_swir_2.where(
+            gm_data.s2be_swir_2 == -999, numpy.NaN
+        )
+
         # Renaming bands to match expected band names (B02, B04, B08, B11)
         gm_data = (
             gm_data.rename(
@@ -526,7 +539,19 @@ class BAUnsupervised_s2be(Transformation):
         # gm_data=gm_data.where(gm_data.B11 != numpy.Infinity)
 
         # Select/compute the mask array
-        mask = data.nbart_contiguity.astype(numpy.bool8)
+        mask = data.fmask.where(data.fmask != 1, 1, 0).astype(numpy.bool8)
+        mask = mask.isel(time=0, drop=True)
+
+        # data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN).astype(numpy.float64)
+
+        data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN)
+        data["nbart_red"] = data.nbart_red.where(data.nbart_red == -999, numpy.NaN)
+        data["nbart_nir_1"] = data.nbart_nir_1.where(
+            data.nbart_nir_1 == -999, numpy.NaN
+        )
+        data["nbart_swir_2"] = data.nbart_swir_2.where(
+            data.nbart_swir_2 == -999, numpy.NaN
+        )
 
         data = (
             data.rename(
@@ -572,8 +597,8 @@ class BAUnsupervised_s2be(Transformation):
         # post_data = post_data.where(post_data["nbart_blue"])
 
         logger.debug(mask)
-        logger.debug(gm_data["B02"])
-        logger.debug(post_data["B02"])
+        logger.debug(gm_data)
+        logger.debug(post_data)
 
         # Invoke NRT unsupervised model calculation
         model = UnsupervisedBurnscarDetect2()
@@ -597,8 +622,18 @@ class BAUnsupervised_s2be(Transformation):
                 "B04",
                 "B08",
                 "B11",
+                # "fmask",
             ]
         )
+
+        # data.rename(
+        #         {
+        #             "B02":"nbart_blue",
+        #             "B04":"nbart_red",
+        #             "B08":"nbart_nir_1",
+        #             "B11":"nbart_swir_2",
+        #         }
+        #     )
 
         return data
 

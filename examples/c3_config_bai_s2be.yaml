@@ -2,7 +2,7 @@ specification:
   products:
     - s2a_nrt_granule
     - s2b_nrt_granule
-  measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red', 'nbart_contiguity']
+  measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red', 'fmask']
   measurement_renames:
     nbart_red_edge_1: nbart_swir_2
   aws_unsigned: True
@@ -20,10 +20,10 @@ output:
     overview_resampling: average
   reference_source_dataset: True
   write_stac: True
-  inherit_geometry: True
+  inherit_geometry: False
 
   metadata:
-    product_family: bs
+    product_family: ba
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3
