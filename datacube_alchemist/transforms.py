@@ -6,7 +6,7 @@ import xarray as xr
 # import pandas
 from datacube import Datacube
 from datacube.virtual import Measurement, Transformation
-from nrtmodels import UnsupervisedBurnscarDetect2
+from nrtmodels import UnsupervisedBurnscarDetect2, UnsupervisedBurnscarDetect1
 from odc.algo import int_geomedian
 from datacube.utils.rio import configure_s3_access
 import structlog
@@ -458,10 +458,6 @@ class BAUnsupervised_s2be(Transformation):
 
     def compute(self, data) -> xr.Dataset:
 
-        """
-        Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
-        """
-
         gm_base_year = 2018
 
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
@@ -501,31 +497,22 @@ class BAUnsupervised_s2be(Transformation):
 
         logger.debug("starting unsupervised calculations\n")
 
-        # Convert from xarray to numpy array
+        # Filter bad data
+        gm_data["s2be_blue"] = gm_data.s2be_blue.where(
+            gm_data.s2be_blue != -999, numpy.NaN
+        ).where(numpy.isfinite(gm_data.s2be_blue), numpy.NaN)
 
-        gm_data["s2be_blue"] = (
-            gm_data.s2be_blue.where(gm_data.s2be_blue != -999, numpy.NaN)
-            .where(numpy.isfinite(gm_data.s2be_blue), numpy.NaN)
-            .astype(numpy.single)
-        )
+        gm_data["s2be_red"] = gm_data.s2be_red.where(
+            gm_data.s2be_red != -999, numpy.NaN
+        ).where(numpy.isfinite(gm_data.s2be_red), numpy.NaN)
 
-        gm_data["s2be_red"] = (
-            gm_data.s2be_red.where(gm_data.s2be_red != -999, numpy.NaN)
-            .where(numpy.isfinite(gm_data.s2be_red), numpy.NaN)
-            .astype(numpy.single)
-        )
+        gm_data["s2be_nir_1"] = gm_data.s2be_nir_1.where(
+            gm_data.s2be_nir_1 != -999, numpy.NaN
+        ).where(numpy.isfinite(gm_data.s2be_nir_1), numpy.NaN)
 
-        gm_data["s2be_nir_1"] = (
-            gm_data.s2be_nir_1.where(gm_data.s2be_nir_1 != -999, numpy.NaN)
-            .where(numpy.isfinite(gm_data.s2be_nir_1), numpy.NaN)
-            .astype(numpy.single)
-        )
-
-        gm_data["s2be_swir_2"] = (
-            gm_data.s2be_swir_2.where(gm_data.s2be_swir_2 != -999, numpy.NaN)
-            .where(numpy.isfinite(gm_data.s2be_swir_2), numpy.NaN)
-            .astype(numpy.single)
-        )
+        gm_data["s2be_swir_2"] = gm_data.s2be_swir_2.where(
+            gm_data.s2be_swir_2 != -999, numpy.NaN
+        ).where(numpy.isfinite(gm_data.s2be_swir_2), numpy.NaN)
 
         # Renaming bands to match expected band names (B02, B04, B08, B11)
         gm_data = (
@@ -540,15 +527,6 @@ class BAUnsupervised_s2be(Transformation):
             / 10000.0
         )
 
-        # gm_data=gm_data.where(gm_data.B02 != numpy.NaN)
-        # gm_data=gm_data.where(gm_data.B02 != numpy.Infinity)
-        # gm_data=gm_data.where(gm_data.B04 != numpy.NaN)
-        # gm_data=gm_data.where(gm_data.B04 != numpy.Infinity)
-        # gm_data=gm_data.where(gm_data.B08 != numpy.NaN)
-        # gm_data=gm_data.where(gm_data.B08 != numpy.Infinity)
-        # gm_data=gm_data.where(gm_data.B11 != numpy.NaN)
-        # gm_data=gm_data.where(gm_data.B11 != numpy.Infinity)
-
         # Select/compute the mask array
         mask = xr.where(data.fmask == 1, 0, 1).astype(numpy.int8)
         mask = mask.isel(time=0, drop=True)
@@ -557,29 +535,21 @@ class BAUnsupervised_s2be(Transformation):
 
         # data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN).astype(numpy.float64)
 
-        data["nbart_blue"] = (
-            data.nbart_blue.where(data.nbart_blue != -999, numpy.NaN)
-            .where(numpy.isfinite(data.nbart_blue), numpy.NaN)
-            .astype(numpy.single)
-        )
+        data["nbart_blue"] = data.nbart_blue.where(
+            data.nbart_blue != -999, numpy.NaN
+        ).where(numpy.isfinite(data.nbart_blue), numpy.NaN)
 
-        data["nbart_red"] = (
-            data.nbart_red.where((data.nbart_red != -999), numpy.NaN)
-            .where(numpy.isfinite(data.nbart_red), numpy.NaN)
-            .astype(numpy.single)
-        )
+        data["nbart_red"] = data.nbart_red.where(
+            (data.nbart_red != -999), numpy.NaN
+        ).where(numpy.isfinite(data.nbart_red), numpy.NaN)
 
-        data["nbart_nir_1"] = (
-            data.nbart_nir_1.where(data.nbart_nir_1 != -999, numpy.NaN)
-            .where(numpy.isfinite(data.nbart_nir_1), numpy.NaN)
-            .astype(numpy.single)
-        )
+        data["nbart_nir_1"] = data.nbart_nir_1.where(
+            data.nbart_nir_1 != -999, numpy.NaN
+        ).where(numpy.isfinite(data.nbart_nir_1), numpy.NaN)
 
-        data["nbart_swir_2"] = (
-            data.nbart_swir_2.where(data.nbart_swir_2 != -999, numpy.NaN)
-            .where(numpy.isfinite(data.nbart_swir_2), numpy.NaN)
-            .astype(numpy.single)
-        )
+        data["nbart_swir_2"] = data.nbart_swir_2.where(
+            data.nbart_swir_2 != -999, numpy.NaN
+        ).where(numpy.isfinite(data.nbart_swir_2), numpy.NaN)
 
         data = (
             data.rename(
@@ -592,15 +562,6 @@ class BAUnsupervised_s2be(Transformation):
             ).astype(numpy.float64)
             / 10000.0
         )
-
-        # data=data.where(data.B02 != numpy.NaN)
-        # data=data.where(data.B02 != numpy.Infinity)
-        # data=data.where(data.B04 != numpy.NaN)
-        # data=data.where(data.B04 != numpy.Infinity)
-        # data=data.where(data.B08 != numpy.NaN)
-        # data=data.where(data.B08 != numpy.Infinity)
-        # data=data.where(data.B11 != numpy.NaN)
-        # data=data.where(data.B11 != numpy.Infinity)
 
         gm_data = gm_data.load()
         data = data.load()
@@ -650,46 +611,32 @@ class BAUnsupervised_s2be(Transformation):
         logger.debug(post_data)
 
         # Invoke NRT unsupervised model calculation
-        model = UnsupervisedBurnscarDetect2()
-        result = model.predict(mask, gm_data, post_data)
-        logger.debug("result:")
-        logger.debug(result)
+
+        model1 = UnsupervisedBurnscarDetect1()
+        result1 = model1.predict(mask, gm_data, post_data)
+        logger.debug("result 1:")
+        logger.debug(result1)
+        da1 = xr.DataArray(result1, dims=("y", "x"), name="result1")
+        logger.debug(da1)
+
+        model2 = UnsupervisedBurnscarDetect2()
+        result2 = model2.predict(mask, gm_data, post_data)
+        logger.debug("result 2:")
+        logger.debug(result2)
+        da2 = xr.DataArray(result2, dims=("y", "x"), name="result2")
+        logger.debug(da2)
 
         # convert numpy data back to xarray
         logger.debug("Converting back to xarray.")
-        logger.debug("uniques:")
-        logger.debug(numpy.unique(result))
-        da = xr.DataArray(result, dims=("y", "x"), name="result")
-        # dr = xr.Dataset(data_vars={"result": da})
-
-        logger.debug(da)
 
         # Prepare the output dataset
-        # data = xr.merge([data, {"ba_unsupervised": da}])
         ds = xr.Dataset(
-            data_vars={"ba_unsupervised": da}, coords=data.coords, attrs=data.attrs
+            data_vars={"ba_unsupervised_model_1": da1, "ba_unsupervised_model_2": da2},
+            coords=data.coords,
+            attrs=data.attrs,
         )
 
-        # data = data.drop(
-        #     [
-        #         "B02",
-        #         "B04",
-        #         "B08",
-        #         "B11",
-        #         # "fmask",
-        #     ]
-        # )
-
         logger.debug(ds)
-
-        # data.rename(
-        #         {
-        #             "B02":"nbart_blue",
-        #             "B04":"nbart_red",
-        #             "B08":"nbart_nir_1",
-        #             "B11":"nbart_swir_2",
-        #         }
-        #     )
 
         return ds
 

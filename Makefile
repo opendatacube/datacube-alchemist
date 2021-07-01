@@ -123,7 +123,9 @@ index-s2-nrt:
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-05/S2B_OPER_MSI_ARD_TL_VGS4_20210506T011341_A021749_T56GMA_N03.00/ARD-METADATA.yaml \
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-05/S2A_OPER_MSI_ARD_TL_VGS4_20210505T024121_A030644_T53LRJ_N03.00/ARD-METADATA.yaml \
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-18/S2A_OPER_MSI_ARD_TL_VGS4_20210518T025201_A030830_T53KLV_N03.00/ARD-METADATA.yaml \
-			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/ARD-METADATA.yaml
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-18/S2A_OPER_MSI_ARD_TL_VGS4_20210618T022813_A031273_T54LXJ_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-20/S2B_OPER_MSI_ARD_TL_VGS4_20210620T015752_A022393_T55LBC_N03.00/ARD-METADATA.yaml
 
 quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2a index-s2a product-s2be index-s2be
 
@@ -156,7 +158,7 @@ dnbr-one:
 bai-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_bai_s2be.yaml \
-		--uuid e3c0c325-1736-4d9e-9555-38b451e90f35
+		--uuid 8ed63ad1-875e-4823-87f4-8431bbd1e899
 
 wofs-one-of-each:
 	docker-compose exec alchemist \

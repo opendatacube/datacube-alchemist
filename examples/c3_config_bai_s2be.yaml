@@ -13,7 +13,7 @@ specification:
 output:
   location: /tmp/alchemist
   preview_image_singleband:
-    measurement: ba_unsupervised
+    measurement: ba_unsupervised_model_2
     bit: 1
   explorer_url: https://explorer.dev.dea.ga.gov.au
   write_data_settings:
@@ -23,7 +23,7 @@ output:
   inherit_geometry: True
 
   metadata:
-    product_family: ba
+    product_family: ba_usm
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3

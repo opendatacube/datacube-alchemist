@@ -9,7 +9,7 @@ botocore
 fc==1.3.4
 fsspec==0.8.7
 hdstats
-nrt-predict@git+https://github.com/daleroberts/nrt-predict
+nrt-predict==0.1.0
 numpy
 odc-algo
 odc-apps-cloud
