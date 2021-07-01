@@ -23,6 +23,7 @@ from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
 from datacube.utils.aws import configure_s3_access
+from odc.index.stac import stac_transform
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import (
@@ -139,23 +140,34 @@ class Alchemist:
 
         # Allow specifying a single product out of multiple input products
         query_product = query.get("product", None)
-        if query_product:
+        if query_product is not None:
             query.pop("product")
-            if query_product not in self.input_products:
+
+            if query_product not in [p.name for p in self.input_products]:
                 raise ValueError(
                     f"Query included product {query_product} but this is not in input_products"
                 )
-            products = [query_product]
+            for p in self.input_products:
+                if p.name == query_product:
+                    products = [p]
+                    break
 
         for product in products:
             datasets = self.dc.index.datasets.search(
                 limit=product_limit, product=product.name, **query
             )
-            for dataset in datasets:
-                yield dataset
-                count += 1
-                if limit is not None and count >= limit:
-                    return
+
+            try:
+                for dataset in datasets:
+                    yield dataset
+                    count += 1
+                    if limit is not None and count >= limit:
+                        return
+            except ValueError as e:
+                _LOG.warning(
+                    f"Error searching for datasets, maybe it returned no datasets. Error was {e}"
+                )
+                continue
 
     def _deterministic_uuid(self, task, algorithm_version=None, **other_tags):
         if algorithm_version is None:
@@ -357,7 +369,15 @@ class Alchemist:
                     f"Your transform doesn't match the transform in the message. Ignoring {uuid}"
                 )
                 continue
-            task = self.generate_task_by_uuid(message_body["id"])
+
+            try:
+                # First try the simple case that the JSON object has an ODC ID
+                task = self.generate_task_by_uuid(message_body["id"])
+            except ValueError:
+                # If that fails, try doing a standard STAC transform and getting an ID from that
+                _LOG.info("Couldn't find dataset by UUID, trying another way")
+                message_transformed = stac_transform(message_body)
+                task = self.generate_task_by_uuid(message_transformed["id"])
             if task:
                 yield task, message
 
