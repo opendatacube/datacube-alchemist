@@ -148,8 +148,6 @@ fc-one:
 		datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml \
 		--uuid 600645a5-5256-4632-a13d-fa13d1c11a8f
 
-# Specific test dataset
-# f9a66dde-d423-47b5-8421-a71cfb1d8883 = https://data.dea.ga.gov.au/?prefix=L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/
 dnbr-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \

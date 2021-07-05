@@ -27,11 +27,6 @@ services:
     volumes:
       - .:/code
       - ./output:/tmp/alchemist
-    expose:
-      #Open Dask Dashboard port in dev
-      - "8787"
-    ports:
-      - 8787:8787
     depends_on:
       - postgres
     command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 180 ; done"]

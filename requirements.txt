@@ -1,8 +1,6 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
 
 aiobotocore[awscli]
-# Dev env only
-bokeh
 boto3
 botocore
 # Pinned for production DEA run
