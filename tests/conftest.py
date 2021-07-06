@@ -45,3 +45,13 @@ def config_file_resampling():
 @pytest.fixture
 def remote_config_file():
     return "https://raw.githubusercontent.com/opendatacube/datacube-alchemist/main/examples/c3_config_wo.yaml"
+
+
+@pytest.fixture
+def config_file_bai_s2be():
+    return Path(__file__).absolute().parent / "c3_config_bai_s2be.yaml"
+
+
+@pytest.fixture
+def config_file_3band_s2be():
+    return Path(__file__).absolute().parent / "c3_config_dnbr_3band_s2be.yaml"
