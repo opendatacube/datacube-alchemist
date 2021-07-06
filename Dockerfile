@@ -51,9 +51,12 @@ RUN datacube-alchemist --version
 # These ENVIRONMENT flags make this a bit complex, but basically, if we are in dev
 # then we want to link the source (with the -e flag) and if we're in prod, we
 # want to delete the stuff in the /code folder to keep it simple.
-RUN if [ "$ENVIRONMENT" = "deployment" ] ; then rm -rf $APPDIR ; \
-    else pip install --extra-index-url="https://packages.dea.ga.gov.au" \
-    -c /code/constraints.txt --editable .[$ENVIRONMENT] ; \
+
+RUN if [ "$ENVIRONMENT" = "deployment" ] ; then\
+        rm -rf $APPDIR ;\
+    else \
+        pip install --extra-index-url="https://packages.dea.ga.gov.au" \
+        -c /code/constraints.txt --editable .[$ENVIRONMENT] ; \
     fi
 
 RUN datacube-alchemist --version

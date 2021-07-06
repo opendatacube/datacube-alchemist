@@ -31,6 +31,7 @@ dataclasses==0.8
 decorator==4.4.2
 distributed==2021.5.0
 docutils==0.15.2
+hdstats==0.1.8.post1
 HeapDict==1.0.1
 idna==2.10
 idna-ssl==1.1.0

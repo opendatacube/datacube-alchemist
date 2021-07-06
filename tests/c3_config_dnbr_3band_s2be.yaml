@@ -4,11 +4,10 @@ specification:
     - s2b_nrt_granule
   measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red']
   measurement_renames:
-    nbart_nir_1: nbart_nir_1
     nbart_red_edge_1: nbart_swir_2
 
   aws_unsigned: True
-  transform: datacube_alchemist.transforms.DeltaNBR_3band
+  transform: datacube_alchemist.transforms.DeltaNBR_3band_s2be
 
   override_product_family: ard
   basis: nbart_nir_1
@@ -28,7 +27,7 @@ output:
   inherit_geometry: True
 
   metadata:
-    product_family: bs
+    product_family: ba_bm
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3

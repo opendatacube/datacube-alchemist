@@ -63,12 +63,43 @@ index:
 			s3://dea-public-data/baseline/ga_ls7e_ard_3/100/075/2003/10/15/ga_ls7e_ard_3-0-0_100075_2003-10-15_final.odc-metadata.yaml \
 			s3://dea-public-data/baseline/ga_ls8c_ard_3/091/089/2019/01/20/ga_ls8c_ard_3-0-0_091089_2019-01-20_final.odc-metadata.yaml
 
+# Landsat geomedian
 index-geomedian:
 	docker-compose exec alchemist \
 		bash -c "\
 			datacube product add https://data.dea.ga.gov.au/geomedian-australia/v2.1.0/product-definition.yaml;\
 			s3-to-dc --no-sign-request 's3://dea-public-data/geomedian-australia/v2.1.0/L8/**/*.yaml' ls8_nbart_geomedian_annual\
 		"
+
+# s2a required for on-the-fly gm calculation
+product-s2a:
+	docker-compose exec alchemist \
+		datacube product add \
+		https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/s2_ard_granule.odc-product.yaml
+
+index-s2a:
+	docker-compose exec alchemist \
+		bash -c "\
+			s3-to-dc --no-sign-request 's3://dea-public-data/baseline/s2a_ard_granule/**/*.yaml' s2a_ard_granule\
+		"
+
+# Barest Earth required for NRT calculation
+product-s2be:
+	docker-compose exec alchemist \
+		datacube product add \
+		https://explorer.dev.dea.ga.gov.au/products/s2_barest_earth.odc-product.yaml
+
+index-s2be:
+	docker-compose exec alchemist \
+		bash -c "\
+			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*odc-metadata.yaml' s2_barest_earth\
+		"
+
+# Specific BE dataset for local testing
+index-one-s2be:
+	docker-compose exec alchemist \
+		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+			https://dea-public-data-dev.s3.ap-southeast-2.amazonaws.com/s2be/s2be-SG5006.odc-metadata.yaml
 
 metadata-s2-nrt:
 	docker-compose exec alchemist \
@@ -78,13 +109,7 @@ metadata-s2-nrt:
 product-s2-nrt:
 	docker-compose exec alchemist \
 		datacube product add \
-			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/nrt/sentinel/s2_nrt.products.yaml \
-			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/dev/services/alchemist/s2_nrt_bs/s2_nrt_bs.alchemist.yaml
-
-product-s2a_ard_granule:
-	docker-compose exec alchemist \
-		datacube product add \
-			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/ga_s2_ard_nbar/ga_s2_ard_nbar_granule.yaml
+			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/nrt/sentinel/s2_nrt.products.yaml
 
 metadata-eo_plus:
 	docker-compose exec alchemist \
@@ -94,7 +119,16 @@ metadata-eo_plus:
 index-s2-nrt:
 	docker-compose exec alchemist \
 		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
-			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-12/S2B_OPER_MSI_ARD_TL_VGS4_20210512T014256_A021835_T56JKM_N03.00/ARD-METADATA.yaml
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-12/S2B_OPER_MSI_ARD_TL_VGS4_20210512T014256_A021835_T56JKM_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-05/S2B_OPER_MSI_ARD_TL_VGS4_20210506T011341_A021749_T56GMA_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-05/S2A_OPER_MSI_ARD_TL_VGS4_20210505T024121_A030644_T53LRJ_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-18/S2A_OPER_MSI_ARD_TL_VGS4_20210518T025201_A030830_T53KLV_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-18/S2A_OPER_MSI_ARD_TL_VGS4_20210618T022813_A031273_T54LXJ_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-20/S2B_OPER_MSI_ARD_TL_VGS4_20210620T015752_A022393_T55LBC_N03.00/ARD-METADATA.yaml
+
+quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2a index-s2a product-s2be index-s2be
+
 
 # Landsat 8, 7 and 5 respectively
 THREE_SCENES=600645a5-5256-4632-a13d-fa13d1c11a8f 8b215983-ae1b-45bd-ad63-7245248bd41b 3fda2741-e810-4d3e-a54a-279fc3cd795f
@@ -116,8 +150,13 @@ fc-one:
 
 dnbr-one:
 	docker-compose exec alchemist \
-		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band.yaml \
-		--uuid 078a80c4-f61d-41c8-89c3-0341da75a108
+		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \
+		--uuid f9a66dde-d423-47b5-8421-a71cfb1d8883
+
+bai-one:
+	docker-compose exec alchemist \
+		datacube-alchemist run-one --config-file ./examples/c3_config_bai_s2be.yaml \
+		--uuid 8ed63ad1-875e-4823-87f4-8431bbd1e899
 
 wofs-one-of-each:
 	docker-compose exec alchemist \
