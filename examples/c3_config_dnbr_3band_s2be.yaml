@@ -2,7 +2,7 @@ specification:
   products:
     - s2a_nrt_granule
     - s2b_nrt_granule
-  measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red']
+  measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red', 'fmask']
   measurement_renames:
     nbart_red_edge_1: nbart_swir_2
 
