@@ -7,7 +7,7 @@ botocore
 fc==1.3.4
 fsspec==0.8.7
 hdstats
-nrt-predict==0.1.0
+nrt-predict==0.1.2
 numpy
 odc-algo
 odc-apps-cloud
