@@ -451,9 +451,8 @@ class Alchemist:
 
         uuid, _ = self._deterministic_uuid(task)
 
-        temp_metadata_path = Path(tempfile.gettempdir()) / f"{task.dataset.id}.yaml"
         with DatasetAssembler(
-            metadata_path=temp_metadata_path,
+            dataset_location=Path("tmp_output"),
             naming_conventions=self.naming_convention,
             dataset_id=uuid,
         ) as dataset_assembler:
@@ -465,7 +464,6 @@ class Alchemist:
                     inherit_geometry=task.settings.output.inherit_geometry,
                     classifier=task.settings.specification.override_product_family,
                 )
-
             # Copy in metadata and properties
             for k, v in task.settings.output.metadata.items():
                 setattr(dataset_assembler, k, v)
@@ -497,9 +495,10 @@ class Alchemist:
             with tempfile.TemporaryDirectory() as temp_dir:
                 # Set up a temporary directory
                 dataset_assembler.collection_location = Path(temp_dir)
-                # Dodgy hack!
-                dataset_assembler._metadata_path = None
 
+                print(dataset_assembler.names.dataset_location)
+                print(dataset_assembler.names.dataset_path)
+                print(dataset_assembler._work_path)
                 # Write out the data
                 dataset_assembler.write_measurements_odc_xarray(
                     output_data,
@@ -523,7 +522,7 @@ class Alchemist:
                     stac = _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
-                relative_path = dataset_assembler._dataset_location.relative_to(
+                relative_path = dataset_assembler.names.dataset_location.relative_to(
                     temp_dir
                 )
                 if s3_destination:
@@ -536,7 +535,7 @@ class Alchemist:
                         "sync",
                         "--only-show-errors",
                         "--acl bucket-owner-full-control",
-                        str(dataset_assembler._dataset_location),
+                        str(dataset_assembler.names.dataset_location),
                         s3_location,
                     ]
 
@@ -558,7 +557,7 @@ class Alchemist:
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
                         shutil.copytree(
-                            dataset_assembler._dataset_location, dest_directory
+                            dataset_assembler.names.dataset_location, dest_directory
                         )
                     else:
                         log.warning(
