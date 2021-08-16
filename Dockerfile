@@ -1,9 +1,8 @@
-ARG py_env_path=/env
 ARG V_BASE=3.3.0
 
 FROM opendatacube/geobase-builder:${V_BASE} as env_builder
 ENV LC_ALL=C.UTF-8
-ARG py_env_path
+ARG py_env_path=/env
 
 COPY requirements.txt constraints.txt /tmp/
 RUN env-build-tool new /tmp/requirements.txt /tmp/constraints.txt ${py_env_path}
