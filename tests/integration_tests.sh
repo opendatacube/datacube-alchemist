@@ -33,7 +33,8 @@ TEST_SCENES='642e14bd-9ebb-48f0-ac6c-543aebc538c8 7e96b76a-6b02-4427-9a1d-3c9104
 echo ${TEST_SCENES} | AWS_NO_SIGN_REQUEST=YES xargs -n1 datacube-alchemist run-one --config-file ./examples/c3_config_wo.yaml --dryrun --uuid
 echo ${TEST_SCENES} | AWS_NO_SIGN_REQUEST=YES xargs -n1 datacube-alchemist run-one --config-file ./examples/c3_config_fc.yaml --dryrun --uuid
 
-aws s3 sync --help
+# Make sure the AWS CLI is there
+aws s3 sync help
 
 # Index and test loading data from both? This needs a way to
 # run decimated process, so it's fast, and that doesn't delete
