@@ -2,8 +2,6 @@ from datacube_alchemist.worker import Alchemist
 from moto import mock_sqs
 import boto3
 
-from datacube_alchemist.cli import run_from_queue
-
 TEST_QUEUE_NAME = 'alchemist-test-queue'
 
 
