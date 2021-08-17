@@ -40,7 +40,7 @@ GDAL==3.3.1
 greenlet==1.1.1
 hdstats==0.2.1
 HeapDict==1.0.1
-idna==3.2
+idna==2.10
 imageio==2.9.0
 importlib-metadata==4.6.4
 iniconfig==1.1.1
@@ -99,7 +99,7 @@ PyWavelets==1.1.1
 PyYAML==5.4.1
 rasterio==1.2.6
 regex==2021.8.3
-requests==2.26.0
+requests==2.25.1
 requests-cache==0.7.3
 responses==0.13.4
 ruamel.yaml==0.17.10
