@@ -40,7 +40,7 @@ GDAL==3.3.1
 greenlet==1.1.1
 hdstats==0.2.1
 HeapDict==1.0.1
-idna==3.2
+idna==2.10
 imageio==2.9.0
 importlib-metadata==4.6.4
 iniconfig==1.1.1
