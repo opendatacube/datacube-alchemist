@@ -466,6 +466,8 @@ class Alchemist:
                 dataset_id=uuid,
             ) as p:
 
+                # if not set this value, eodataset will run temp_dir again
+                # and save data in its temp_dir
                 p._tmp_work_path = Path(temp_dir)
 
                 if task.settings.output.reference_source_dataset:
@@ -516,31 +518,20 @@ class Alchemist:
                 log.info("Wrote thumbnail")
 
                 # Do all the deferred work from above
-                #dataset_id, metadata_path = p.done()
-
-                
-
-                metadata_path = p._work_path / p.names.metadata_file
-
-                dataset = p.to_dataset_doc(
-                    dataset_location=metadata_path.as_uri(),
-                    embed_location=False
-                )
-
-                p._write_yaml(
-                    serialise.to_formatted_doc(dataset),
-                    metadata_path,
-                )
-
+                dataset_id, metadata_path = p.done()
                 log.info("Assembled dataset", metadata_path=metadata_path)
-
-                # TODO: not dump anything about the checksum
+                
                 # Write STAC, because it depends on this being .done()
                 # Conveniently, this also checks that files are there!
                 stac = None
                 if task.settings.output.write_stac:
                     stac = _write_stac(metadata_path, task, p)
                     log.info("STAC file written")
+                
+
+                # the p.names.dataset_location become uri format
+                # change it to full path
+                source_folder = unquote(urlparse(p.names.dataset_location).path)
 
                 if s3_destination:
                     s3_location = (
@@ -552,7 +543,7 @@ class Alchemist:
                         "sync",
                         "--only-show-errors",
                         "--acl bucket-owner-full-control",
-                        str(p.names.dataset_folder),
+                        str(source_folder),
                         s3_location,
                     ]
 
@@ -568,12 +559,10 @@ class Alchemist:
                     # log.debug("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
-                    time.sleep(40)
                     dest_directory = fs_destination / p.names.dataset_folder
                     if not dryrun:
                         log.info("Writing files to disk", location=dest_directory)
-                        source_folder = unquote(urlparse(p.names.dataset_location).path)
-                        print("source", source_folder)
+
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
                         shutil.copytree(
@@ -581,7 +570,7 @@ class Alchemist:
                         )
                     else:
                         log.warning(
-                            f"NOT moving data from {temp_dir} to {dest_directory}"
+                            f"NOT moving data from {source_folder} to {dest_directory}"
                         )
 
                 log.info("Task complete")
