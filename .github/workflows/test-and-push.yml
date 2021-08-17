@@ -64,7 +64,7 @@ jobs:
         docker-compose exec -T alchemist bash ./tests/integration_tests.sh
 
   push:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     needs: test
 
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
       if: github.event_name != 'release'
       run: |
         git fetch --all --tags
-        echo "RELEASE=$(git describe --tags)" >> $GITHUB_ENV
+        echo "GITHASH=$(git describe --tags)" >> $GITHUB_ENV
 
     - name: Build and Push unstable Docker Image for push to main
       uses: whoan/docker-build-with-cache-action@v4
