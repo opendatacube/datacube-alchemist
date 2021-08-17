@@ -9,14 +9,20 @@ on:
       - 'tests/**'
       - '.github/workflows/push-and-test.yml'
       - 'Dockerfile'
+      - 'requirements.txt'
+      - 'constraints.txt'
       - 'setup.py'
 
   pull_request:
+    branches:
+      - main
     paths:
       - 'datacube_alchemist/**'
       - 'tests/**'
       - '.github/workflows/push-and-test.yml'
       - 'Dockerfile'
+      - 'requirements.txt'
+      - 'constraints.txt'
       - 'setup.py'
 
   release:
