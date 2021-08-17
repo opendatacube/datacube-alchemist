@@ -7,7 +7,9 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Type, Union, Mapping
+from urllib.parse import unquote, urlparse
 import os
+import time
 
 import cattr
 import datacube
@@ -315,21 +317,21 @@ class Alchemist:
         with DatasetAssembler(
             metadata_path="/fake/path",
             naming_conventions=self.naming_convention,
-        ) as dataset_assembler:
-            dataset_assembler.add_source_dataset(
+        ) as p:
+            p.add_source_dataset(
                 source_doc,
                 auto_inherit_properties=True,
                 inherit_geometry=self.config.output.inherit_geometry,
                 classifier=self.config.specification.override_product_family,
             )
             for k, v in self.config.output.metadata.items():
-                setattr(dataset_assembler, k, v)
+                setattr(p, k, v)
             for k, v in self.config.output.properties.items():
-                dataset_assembler.properties[k] = v
-            dataset_assembler.processed = datetime.utcnow()
+                p.properties[k] = v
+            p.processed = datetime.utcnow()
 
-            output_product = dataset_assembler.names.product_name
-            dataset_assembler.cancel()
+            output_product = p.names.product_name
+            p.cancel()
 
         # This is actual valuable work
         _LOG.info("Querying database, please wait...")
@@ -453,92 +455,82 @@ class Alchemist:
 
         uuid, _ = self._deterministic_uuid(task)
 
-        with DatasetAssembler(
-            dataset_location=Path("/home/ubuntu/alchemist-output"),
-            naming_conventions=self.naming_convention,
-            dataset_id=uuid,
-        ) as dataset_assembler:
-            if task.settings.output.reference_source_dataset:
-                source_doc = _munge_dataset_to_eo3(task.dataset)
-                dataset_assembler.add_source_dataset(
-                    source_doc,
-                    auto_inherit_properties=True,
-                    inherit_geometry=task.settings.output.inherit_geometry,
-                    classifier=task.settings.specification.override_product_family,
-                )
-            # Copy in metadata and properties
-            for k, v in task.settings.output.metadata.items():
-                setattr(dataset_assembler, k, v)
+        # Write it all to a tempdir root, and then either shift or s3 sync it into place
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Set up a temporary directory
 
-            if task.settings.output.properties:
-                for k, v in task.settings.output.properties.items():
-                    dataset_assembler.properties[k] = v
+            with DatasetAssembler(
+                dataset_location=Path(temp_dir),
+                collection_location=Path(temp_dir),
+                naming_conventions=self.naming_convention,
+                dataset_id=uuid,
+            ) as p:
 
-            # Update the GSD
-            dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
+                p._tmp_work_path = Path(temp_dir)
 
-            dataset_assembler.processed = datetime.utcnow()
-
-            dataset_assembler.note_software_version(
-                "datacube-alchemist",
-                "https://github.com/opendatacube/datacube-alchemist",
-                __version__,
-            )
-
-            # Software Version of Transformer
-            version_url = self._get_transform_info()
-            dataset_assembler.note_software_version(
-                name=task.settings.specification.transform,
-                url=version_url["url"],
-                version=version_url["version"],
-            )
-
-            Path("/home/ubuntu/alchemist-output").mkdir(parents=True, exist_ok=True)
-
-            # Write it all to a tempdir root, and then either shift or s3 sync it into place
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Set up a temporary directory
-                dataset_assembler.collection_location = Path("/home/ubuntu/alchemist-output")
-
-                grid_spec = images.GridSpec.from_odc_xarray(output_data)
-
-                # Write out the data
-                for name, dataarray in output_data.data_vars.items():
-                    out_path = Path("/home/ubuntu/alchemist-output") / dataset_assembler.names.measurement_filename(name, "tif")
-                    print(out_path)
-                    name: str
-                    dataset_assembler._write_measurement(
-                        name,
-                        dataarray.data,
-                        grid_spec,
-                        out_path,
-                        nodata=task.settings.output.nodata,
-                        **task.settings.output.write_data_settings,
-                        expand_valid_data=True,
-                        overviews=images.DEFAULT_OVERVIEWS
+                if task.settings.output.reference_source_dataset:
+                    source_doc = _munge_dataset_to_eo3(task.dataset)
+                    p.add_source_dataset(
+                        source_doc,
+                        auto_inherit_properties=True,
+                        inherit_geometry=task.settings.output.inherit_geometry,
+                        classifier=task.settings.specification.override_product_family,
                     )
+                # Copy in metadata and properties
+                for k, v in task.settings.output.metadata.items():
+                    setattr(p, k, v)
 
+                if task.settings.output.properties:
+                    for k, v in task.settings.output.properties.items():
+                        p.properties[k] = v
+
+                # Update the GSD
+                p.properties["eo:gsd"] = self._native_resolution(task)
+
+                p.processed = datetime.utcnow()
+
+                p.note_software_version(
+                    "datacube-alchemist",
+                    "https://github.com/opendatacube/datacube-alchemist",
+                    __version__,
+                )
+
+                # Software Version of Transformer
+                version_url = self._get_transform_info()
+                p.note_software_version(
+                    name=task.settings.specification.transform,
+                    url=version_url["url"],
+                    version=version_url["version"],
+                )
+        
+                # Write out the data
+                p.write_measurements_odc_xarray(
+                    output_data,
+                    nodata=task.settings.output.nodata,
+                    **task.settings.output.write_data_settings,
+                )
                 log.info("Finished writing measurements")
 
-                # TODO: Write out the thumbnail
-                _write_thumbnail(task, dataset_assembler)
+                # Write out the thumbnail
+                _write_thumbnail(task, p)
                 log.info("Wrote thumbnail")
 
                 # Do all the deferred work from above
-                #dataset_id, metadata_path = dataset_assembler.done()
+                #dataset_id, metadata_path = p.done()
 
-                metadata_path = Path("/home/ubuntu/alchemist-output") / dataset_assembler.names.metadata_file
-                print('dump to', metadata_path)
-                dataset = dataset_assembler.to_dataset_doc(
+                
+
+                metadata_path = p._work_path / p.names.metadata_file
+
+                dataset = p.to_dataset_doc(
                     dataset_location=metadata_path.as_uri(),
                     embed_location=False
                 )
 
-                dataset_assembler._write_yaml(
+                p._write_yaml(
                     serialise.to_formatted_doc(dataset),
                     metadata_path,
                 )
-
 
                 log.info("Assembled dataset", metadata_path=metadata_path)
 
@@ -547,20 +539,12 @@ class Alchemist:
                 # Conveniently, this also checks that files are there!
                 stac = None
                 if task.settings.output.write_stac:
-                    stac = _write_stac(metadata_path, task, dataset_assembler)
+                    stac = _write_stac(metadata_path, task, p)
                     log.info("STAC file written")
-
-                #dataset_folder.parent.mkdir(parents=True, exist_ok=True)
-
-                relative_path = Path(dataset_assembler.names.dataset_location).relative_to(
-                    temp_dir
-                )
-
-                print('relative_path', relative_path)
 
                 if s3_destination:
                     s3_location = (
-                        f"{task.settings.output.location.rstrip('/')}/{relative_path}"
+                        f"{task.settings.output.location.rstrip('/')}/{p.names.dataset_folder}"
                     )
                     s3_command = [
                         "aws",
@@ -568,7 +552,7 @@ class Alchemist:
                         "sync",
                         "--only-show-errors",
                         "--acl bucket-owner-full-control",
-                        str(dataset_assembler.names.dataset_location),
+                        str(p.names.dataset_folder),
                         s3_location,
                     ]
 
@@ -584,13 +568,16 @@ class Alchemist:
                     # log.debug("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
-                    dest_directory = fs_destination / relative_path
+                    time.sleep(40)
+                    dest_directory = fs_destination / p.names.dataset_folder
                     if not dryrun:
                         log.info("Writing files to disk", location=dest_directory)
+                        source_folder = unquote(urlparse(p.names.dataset_location).path)
+                        print("source", source_folder)
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
                         shutil.copytree(
-                            dataset_assembler.names.dataset_location, dest_directory
+                            source_folder, dest_directory
                         )
                     else:
                         log.warning(
