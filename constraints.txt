@@ -99,7 +99,7 @@ PyWavelets==1.1.1
 PyYAML==5.4.1
 rasterio==1.2.6
 regex==2021.8.3
-requests==2.26.0
+requests==2.25.1
 requests-cache==0.7.3
 responses==0.13.4
 ruamel.yaml==0.17.10
