@@ -12,8 +12,6 @@ on:
       - 'setup.py'
 
   pull_request:
-    branches:
-      - main
     paths:
       - 'datacube_alchemist/**'
       - 'tests/**'
