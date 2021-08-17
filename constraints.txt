@@ -27,7 +27,7 @@ cryptography==3.4.7
 cycler==0.10.0
 dask==2021.8.0
 dask-image==0.6.0
-datacube<=1.8.4
+datacube==1.8.4
 DAWG==0.8.0
 defusedxml==0.7.1
 digitalearthau==20180116+437.g805c962
