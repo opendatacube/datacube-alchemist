@@ -7,6 +7,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Type, Union, Mapping
+import os
 
 import cattr
 import datacube
@@ -19,6 +20,7 @@ from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
 from datacube.virtual import Transformation
 from eodatasets3.assemble import DatasetAssembler
+from eodatasets3 import serialise, images
 from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
@@ -452,7 +454,7 @@ class Alchemist:
         uuid, _ = self._deterministic_uuid(task)
 
         with DatasetAssembler(
-            dataset_location=Path("tmp_output"),
+            dataset_location=Path("/home/ubuntu/alchemist-output"),
             naming_conventions=self.naming_convention,
             dataset_id=uuid,
         ) as dataset_assembler:
@@ -491,30 +493,56 @@ class Alchemist:
                 version=version_url["version"],
             )
 
+            Path("/home/ubuntu/alchemist-output").mkdir(parents=True, exist_ok=True)
+
             # Write it all to a tempdir root, and then either shift or s3 sync it into place
             with tempfile.TemporaryDirectory() as temp_dir:
                 # Set up a temporary directory
-                dataset_assembler.collection_location = Path(temp_dir)
+                dataset_assembler.collection_location = Path("/home/ubuntu/alchemist-output")
 
-                print(dataset_assembler.names.dataset_location)
-                print(dataset_assembler.names.dataset_path)
-                print(dataset_assembler._work_path)
+                grid_spec = images.GridSpec.from_odc_xarray(output_data)
+
                 # Write out the data
-                dataset_assembler.write_measurements_odc_xarray(
-                    output_data,
-                    nodata=task.settings.output.nodata,
-                    **task.settings.output.write_data_settings,
-                )
+                for name, dataarray in output_data.data_vars.items():
+                    out_path = Path("/home/ubuntu/alchemist-output") / dataset_assembler.names.measurement_filename(name, "tif")
+                    print(out_path)
+                    name: str
+                    dataset_assembler._write_measurement(
+                        name,
+                        dataarray.data,
+                        grid_spec,
+                        out_path,
+                        nodata=task.settings.output.nodata,
+                        **task.settings.output.write_data_settings,
+                        expand_valid_data=True,
+                        overviews=images.DEFAULT_OVERVIEWS
+                    )
+
                 log.info("Finished writing measurements")
 
-                # Write out the thumbnail
+                # TODO: Write out the thumbnail
                 _write_thumbnail(task, dataset_assembler)
                 log.info("Wrote thumbnail")
 
                 # Do all the deferred work from above
-                dataset_id, metadata_path = dataset_assembler.done()
+                #dataset_id, metadata_path = dataset_assembler.done()
+
+                metadata_path = Path("/home/ubuntu/alchemist-output") / dataset_assembler.names.metadata_file
+                print('dump to', metadata_path)
+                dataset = dataset_assembler.to_dataset_doc(
+                    dataset_location=metadata_path.as_uri(),
+                    embed_location=False
+                )
+
+                dataset_assembler._write_yaml(
+                    serialise.to_formatted_doc(dataset),
+                    metadata_path,
+                )
+
+
                 log.info("Assembled dataset", metadata_path=metadata_path)
 
+                # TODO: not dump anything about the checksum
                 # Write STAC, because it depends on this being .done()
                 # Conveniently, this also checks that files are there!
                 stac = None
@@ -522,9 +550,14 @@ class Alchemist:
                     stac = _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
-                relative_path = dataset_assembler.names.dataset_location.relative_to(
+                #dataset_folder.parent.mkdir(parents=True, exist_ok=True)
+
+                relative_path = Path(dataset_assembler.names.dataset_location).relative_to(
                     temp_dir
                 )
+
+                print('relative_path', relative_path)
+
                 if s3_destination:
                     s3_location = (
                         f"{task.settings.output.location.rstrip('/')}/{relative_path}"
