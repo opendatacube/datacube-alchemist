@@ -6,8 +6,20 @@ on:
       - main
     paths:
       - 'datacube_alchemist/**'
-      - '.github/workflows/push.yml'
+      - 'tests/**'
+      - '.github/workflows/push-and-test.yml'
       - 'Dockerfile'
+      - 'setup.py'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'datacube_alchemist/**'
+      - 'tests/**'
+      - '.github/workflows/push-and-test.yml'
+      - 'Dockerfile'
+      - 'setup.py'
 
   release:
     types: [created, edited]
@@ -16,7 +28,45 @@ env:
   IMAGE_NAME: opendatacube/datacube-alchemist
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build the docker container
+      run: |
+        docker-compose build
+
+    - name: Bring up the docker container
+      run: |
+        docker-compose up -d
+        sleep 5
+        docker-compose exec -T alchemist datacube system init
+
+    - name: Run linting
+      run: |
+        docker-compose exec -T alchemist black --check datacube_alchemist
+
+    - name: Run tests
+      run: |
+        docker-compose exec -T alchemist pytest --cov=./datacube_alchemist --cov-report=xml tests/
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: false
+
+    - name: Integration tests
+      run: |
+        docker-compose exec -T alchemist bash ./tests/integration_tests.sh
+
   push:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+
     runs-on: ubuntu-latest
 
     steps:
