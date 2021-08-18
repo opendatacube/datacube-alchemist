@@ -82,19 +82,19 @@ def _write_stac(
 
     with stac_path.open("w") as f:
         json.dump(stac, f, default=json_fallback)
-    print('stac_path', stac_path)
+
     dataset_assembler.add_accessory_file("metadata:stac", stac_path)
 
-    # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
+    dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
     # Need a new checksummer because EODatasets is insane
-    #checksummer = PackageChecksum()
-    #checksum_file = (
-    #    dataset_assembler.names.dataset_folder
-    #    / dataset_assembler._accessories["checksum:sha1"].name
-    #)
-    #checksummer.read(checksum_file)
-    #checksummer.add_file(stac_path)
-    #checksummer.write(checksum_file)
+    checksummer = PackageChecksum()
+    checksum_file = (
+        dataset_assembler.names.dataset_folder
+        / dataset_assembler._accessories["checksum:sha1"].name
+    )
+    checksummer.read(checksum_file)
+    checksummer.add_file(stac_path)
+    checksummer.write(checksum_file)
     return stac
 
 
