@@ -13,3 +13,5 @@ odc-aws
 odc-index
 wofs==1.6.4
 xarray
+eodatasets3
+h5py

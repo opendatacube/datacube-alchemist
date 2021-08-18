@@ -66,17 +66,15 @@ def _write_stac(
 ):
     out_dataset = serialise.from_path(metadata_path)
     stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
-    # Madness in deferred destination logic
-    uri_base = dataset_assembler.names.destination_folder(
-        Path(task.settings.output.location)
+    dest_folder = (
+        Path(task.settings.output.location) / dataset_assembler.names.dataset_folder
     )
-    uri_base = str(uri_base) + "/"
 
     stac = dc_to_stac(
         out_dataset,
         metadata_path,
         stac_path,
-        uri_base.replace("s3:/", "s3://"),
+        str(dest_folder),
         task.settings.output.explorer_url,
         False,
     )
@@ -85,13 +83,12 @@ def _write_stac(
         json.dump(stac, f, default=json_fallback)
     dataset_assembler.add_accessory_file("metadata:stac", stac_path)
 
-    # dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
-    # Need a new checksummer because EODatasets is insane
     checksummer = PackageChecksum()
     checksum_file = (
-        dataset_assembler._dataset_location
+        Path(dataset_assembler.names.dataset_location.lstrip("file:"))
         / dataset_assembler._accessories["checksum:sha1"].name
     )
+
     checksummer.read(checksum_file)
     checksummer.add_file(stac_path)
     checksummer.write(checksum_file)

@@ -451,54 +451,50 @@ class Alchemist:
 
         uuid, _ = self._deterministic_uuid(task)
 
-        temp_metadata_path = Path(tempfile.gettempdir()) / f"{task.dataset.id}.yaml"
-        with DatasetAssembler(
-            metadata_path=temp_metadata_path,
-            naming_conventions=self.naming_convention,
-            dataset_id=uuid,
-        ) as dataset_assembler:
-            if task.settings.output.reference_source_dataset:
-                source_doc = _munge_dataset_to_eo3(task.dataset)
-                dataset_assembler.add_source_dataset(
-                    source_doc,
-                    auto_inherit_properties=True,
-                    inherit_geometry=task.settings.output.inherit_geometry,
-                    classifier=task.settings.specification.override_product_family,
+        # Write it all to a tempdir root, and then either shift or s3 sync it into place
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with DatasetAssembler(
+                collection_location=Path(temp_dir),
+                naming_conventions=self.naming_convention,
+                dataset_id=uuid,
+            ) as dataset_assembler:
+                if task.settings.output.reference_source_dataset:
+                    source_doc = _munge_dataset_to_eo3(task.dataset)
+                    dataset_assembler.add_source_dataset(
+                        source_doc,
+                        auto_inherit_properties=True,
+                        inherit_geometry=task.settings.output.inherit_geometry,
+                        classifier=task.settings.specification.override_product_family,
+                    )
+
+                # Copy in metadata and properties
+                for k, v in task.settings.output.metadata.items():
+                    setattr(dataset_assembler, k, v)
+
+                if task.settings.output.properties:
+                    for k, v in task.settings.output.properties.items():
+                        dataset_assembler.properties[k] = v
+
+                # Update the GSD
+                dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
+
+                dataset_assembler.processed = datetime.utcnow()
+
+                dataset_assembler.note_software_version(
+                    "datacube-alchemist",
+                    "https://github.com/opendatacube/datacube-alchemist",
+                    __version__,
                 )
 
-            # Copy in metadata and properties
-            for k, v in task.settings.output.metadata.items():
-                setattr(dataset_assembler, k, v)
+                # Software Version of Transformer
+                version_url = self._get_transform_info()
+                dataset_assembler.note_software_version(
+                    name=task.settings.specification.transform,
+                    url=version_url["url"],
+                    version=version_url["version"],
+                )
 
-            if task.settings.output.properties:
-                for k, v in task.settings.output.properties.items():
-                    dataset_assembler.properties[k] = v
-
-            # Update the GSD
-            dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
-
-            dataset_assembler.processed = datetime.utcnow()
-
-            dataset_assembler.note_software_version(
-                "datacube-alchemist",
-                "https://github.com/opendatacube/datacube-alchemist",
-                __version__,
-            )
-
-            # Software Version of Transformer
-            version_url = self._get_transform_info()
-            dataset_assembler.note_software_version(
-                name=task.settings.specification.transform,
-                url=version_url["url"],
-                version=version_url["version"],
-            )
-
-            # Write it all to a tempdir root, and then either shift or s3 sync it into place
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Set up a temporary directory
-                dataset_assembler.collection_location = Path(temp_dir)
-                # Dodgy hack!
-                dataset_assembler._metadata_path = None
+                # dataset_assembler._tmp_work_path = Path(temp_dir)
 
                 # Write out the data
                 dataset_assembler.write_measurements_odc_xarray(
@@ -523,9 +519,8 @@ class Alchemist:
                     stac = _write_stac(metadata_path, task, dataset_assembler)
                     log.info("STAC file written")
 
-                relative_path = dataset_assembler._dataset_location.relative_to(
-                    temp_dir
-                )
+                relative_path = dataset_assembler.names.dataset_folder
+                dataset_location = Path(temp_dir) / relative_path
                 if s3_destination:
                     s3_location = (
                         f"{task.settings.output.location.rstrip('/')}/{relative_path}"
@@ -536,7 +531,7 @@ class Alchemist:
                         "sync",
                         "--only-show-errors",
                         "--acl bucket-owner-full-control",
-                        str(dataset_assembler._dataset_location),
+                        str(dataset_location),
                         s3_location,
                     ]
 
@@ -545,24 +540,23 @@ class Alchemist:
                     else:
                         s3_command.append("--dryrun")
                         log.warning(
-                            "PRETENDING to sync files to S3", s3_location=s3_location
+                            "DRYRUN: pretending to sync files to S3",
+                            s3_location=s3_location,
                         )
 
                     log.info("Writing files to s3", location=s3_location)
-                    # log.debug("S3 command: ", command=s3_command)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
                     dest_directory = fs_destination / relative_path
                     if not dryrun:
                         log.info("Writing files to disk", location=dest_directory)
+                        # This should perhaps be couched in a warning as it delete important files
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
-                        shutil.copytree(
-                            dataset_assembler._dataset_location, dest_directory
-                        )
+                        shutil.copytree(dataset_location, dest_directory)
                     else:
                         log.warning(
-                            f"NOT moving data from {temp_dir} to {dest_directory}"
+                            f"DRYRUN: not moving data from {temp_dir} to {dest_directory}"
                         )
 
                 log.info("Task complete")
