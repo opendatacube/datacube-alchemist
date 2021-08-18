@@ -88,8 +88,9 @@ def _write_stac(
     dataset_assembler._checksum.write(dataset_assembler._accessories["checksum:sha1"])
     # Need a new checksummer because EODatasets is insane
     checksummer = PackageChecksum()
+    # The checksum is under temp_dir now, so use _work_path to get it
     checksum_file = (
-        dataset_assembler.names.dataset_folder
+        dataset_assembler._work_path
         / dataset_assembler._accessories["checksum:sha1"].name
     )
     checksummer.read(checksum_file)
