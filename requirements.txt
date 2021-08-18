@@ -13,3 +13,5 @@ odc-aws
 odc-index
 wofs==1.6.4
 xarray
+git+https://github.com/GeoscienceAustralia/eo-datasets.git
+h5py

@@ -52,6 +52,7 @@ output:
     red: bs
     green: pv
     blue: npv
+    static_stretch: [0,100]
   write_data_settings:
     overview_resampling: nearest
   reference_source_dataset: True
