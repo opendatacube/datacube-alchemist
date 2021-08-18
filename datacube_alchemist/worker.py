@@ -540,7 +540,8 @@ class Alchemist:
                     else:
                         s3_command.append("--dryrun")
                         log.warning(
-                            "DRYRUN: pretending to sync files to S3", s3_location=s3_location
+                            "DRYRUN: pretending to sync files to S3",
+                            s3_location=s3_location,
                         )
 
                     log.info("Writing files to s3", location=s3_location)
@@ -552,9 +553,7 @@ class Alchemist:
                         # This should perhaps be couched in a warning as it delete important files
                         if dest_directory.exists():
                             shutil.rmtree(dest_directory)
-                        shutil.copytree(
-                            dataset_location, dest_directory
-                        )
+                        shutil.copytree(dataset_location, dest_directory)
                     else:
                         log.warning(
                             f"DRYRUN: not moving data from {temp_dir} to {dest_directory}"
