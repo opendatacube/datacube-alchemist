@@ -12,7 +12,7 @@ from eodatasets3.model import DatasetDoc, ProductDoc
 from eodatasets3.properties import StacPropertyView
 from eodatasets3.scripts.tostac import dc_to_stac, json_fallback
 from eodatasets3.verify import PackageChecksum
-from toolz import dicttoolz
+from toolz.dicttoolz import get_in
 
 from datacube_alchemist.settings import AlchemistTask
 
@@ -100,7 +100,7 @@ def _stac_to_sns(sns_arn, stac):
     Publish our STAC document to an SNS
     """
     bbox = stac["bbox"]
-    product_name = dicttoolz.get_in(["properties", "odc:product"], stac, None)
+    product_name = get_in(["properties", "odc:product"], stac, None)
     if product_name is None:
         product_name = stac.get("collection", None)
 
@@ -111,21 +111,21 @@ def _stac_to_sns(sns_arn, stac):
         "action": {"DataType": "String", "StringValue": "ADDED"},
         "datetime": {
             "DataType": "String",
-            "StringValue": str(dicttoolz.get_in(["properties", "datetime"], stac)),
+            "StringValue": str(get_in(["properties", "datetime"], stac)),
         },
         "product": {
             "DataType": "String",
             "StringValue": product_name,
         },
-        "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox.left)},
-        "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox.bottom)},
-        "bbox.ur_lon": {"DataType": "Number", "StringValue": str(bbox.right)},
-        "bbox.ur_lat": {"DataType": "Number", "StringValue": str(bbox.top)},
+        "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox[0])},
+        "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox[1])},
+        "bbox.ur_lon": {"DataType": "Number", "StringValue": str(bbox[2])},
+        "bbox.ur_lat": {"DataType": "Number", "StringValue": str(bbox[3])},
     }
 
-    maturity = dicttoolz.get_in(["properties", "dea:dataset_maturity"], stac)
+    maturity = get_in(["properties", "dea:dataset_maturity"], stac)
 
-    if maturity:
+    if maturity is not None:
         attributes["maturity"] = {"DataType": "String", "StringValue": maturity}
 
     client = boto3.client("sns")
