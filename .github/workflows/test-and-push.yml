@@ -40,6 +40,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - uses: rickstaa/action-black@v1
+      with:
+        black_args: "--check datacube_alchemist"
+
     - name: Build the docker container
       run: |
         docker-compose build
@@ -49,10 +53,6 @@ jobs:
         docker-compose up -d
         sleep 5
         docker-compose exec -T alchemist datacube system init
-
-    - name: Run linting
-      run: |
-        docker-compose exec -T alchemist black --check datacube_alchemist
 
     - name: Run tests
       run: |
