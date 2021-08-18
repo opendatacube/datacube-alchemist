@@ -1,6 +1,8 @@
 from datacube_alchemist.worker import Alchemist
-from moto import mock_sqs
+from moto import mock_sqs, mock_sns
 import boto3
+
+from datacube_alchemist._utils import _stac_to_sns
 
 TEST_QUEUE_NAME = "alchemist-test-queue"
 
@@ -22,6 +24,15 @@ def test_alchemist_remote_config(remote_config_file):
     alchemist = Alchemist(config_file=remote_config_file)
 
     assert alchemist.transform_name == "wofs.virtualproduct.WOfSClassifier"
+
+
+@mock_sns
+def test_message_publish(stac_example):
+    sns = boto3.client("sns")
+    topic_name = "test-topic"
+    topic_arn = sns.create_topic(Name=topic_name)["TopicArn"]
+
+    _stac_to_sns(topic_arn, stac_example)
 
 
 @mock_sqs

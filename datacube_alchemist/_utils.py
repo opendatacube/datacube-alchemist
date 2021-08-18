@@ -100,6 +100,12 @@ def _stac_to_sns(sns_arn, stac):
     Publish our STAC document to an SNS
     """
     bbox = stac["bbox"]
+    product_name = dicttoolz.get_in(["properties", "odc:product"], stac, None)
+    if product_name is None:
+        product_name = stac.get("collection", None)
+
+    if product_name is None:
+        raise ValueError("No 'odc:product_name' or 'collection' found in STAC doc")
 
     attributes = {
         "action": {"DataType": "String", "StringValue": "ADDED"},
@@ -109,7 +115,7 @@ def _stac_to_sns(sns_arn, stac):
         },
         "product": {
             "DataType": "String",
-            "StringValue": dicttoolz.get_in(["properties", "odc:product"], stac),
+            "StringValue": product_name,
         },
         "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox.left)},
         "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox.bottom)},
