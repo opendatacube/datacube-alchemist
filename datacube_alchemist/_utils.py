@@ -66,7 +66,9 @@ def _write_stac(
 ):
     out_dataset = serialise.from_path(metadata_path)
     stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
-    dest_folder = Path(task.settings.output.location) / dataset_assembler.names.dataset_folder
+    dest_folder = (
+        Path(task.settings.output.location) / dataset_assembler.names.dataset_folder
+    )
 
     stac = dc_to_stac(
         out_dataset,
