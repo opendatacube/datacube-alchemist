@@ -33,7 +33,7 @@ defusedxml==0.7.1
 digitalearthau==20180116+437.g805c962
 distributed==2021.8.0
 docutils==0.15.2
-# eodatasets3==0.21.1
+eodatasets3==0.22.0
 ephem==4.0.0.2
 fc==1.3.5
 fsspec==2021.7.0
