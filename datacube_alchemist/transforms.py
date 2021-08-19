@@ -324,7 +324,7 @@ class DeltaNBR_3band_s2be(Transformation):
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
         dc = Datacube()
         gm_query = dc.find_datasets(
-            product=["s2_barest_earth"],
+            product="s2_barest_earth",
             time=gm_base_year,
             like=data.geobox,
         )
