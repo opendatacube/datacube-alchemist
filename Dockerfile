@@ -49,6 +49,8 @@ RUN if [ "$ENVIRONMENT" = "deployment" ] ; then\
         pip install -c /code/constraints.txt --editable .[$ENVIRONMENT] ; \
     fi
 
+RUN pip freeze
+
 # Check it works
 RUN datacube-alchemist --version
 
