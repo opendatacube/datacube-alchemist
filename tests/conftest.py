@@ -1,8 +1,9 @@
+import json
+from pathlib import Path
+
+import datacube_alchemist.cli
 import pytest
 from click.testing import CliRunner
-
-from pathlib import Path
-import datacube_alchemist.cli
 
 
 @pytest.fixture
@@ -30,6 +31,15 @@ def run_alchemist():
         return result
 
     return _run_cli
+
+
+@pytest.fixture
+def stac_example():
+    stac_file = (
+        Path(__file__).absolute().parent / "data/fc_ls_159069_2021-07-17.stac-item.json"
+    )
+    with open(stac_file) as f:
+        return json.loads(f.read())
 
 
 @pytest.fixture
