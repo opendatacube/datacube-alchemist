@@ -520,7 +520,9 @@ class Alchemist:
                 #
                 relative_path = dataset_assembler.names.dataset_folder
                 dataset_location = Path(temp_dir) / relative_path
-                destination_path = f"{task.settings.output.location.rstrip('/')}/{relative_path}"
+                destination_path = (
+                    f"{task.settings.output.location.rstrip('/')}/{relative_path}"
+                )
 
                 # Write STAC, because it depends on this being .done()
                 # Conveniently, this also checks that files are there!
@@ -530,7 +532,7 @@ class Alchemist:
                         metadata_path,
                         destination_path,
                         task.settings.output.explorer_url,
-                        dataset_assembler
+                        dataset_assembler,
                     )
                     log.info("STAC file written")
 
