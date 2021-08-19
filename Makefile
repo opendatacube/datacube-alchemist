@@ -161,7 +161,7 @@ fc-one:
 dnbr-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \
-		--uuid f9a66dde-d423-47b5-8421-a71cfb1d8883
+		--uuid 5c70a4a2-cf36-4779-92a8-b35b8039cb0a
 
 bai-one:
 	docker-compose exec alchemist \

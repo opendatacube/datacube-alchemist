@@ -27,7 +27,7 @@ output:
   inherit_geometry: True
 
   metadata:
-    product_family: ba_bm
+    product_family: ba
     producer: ga.gov.au
     dataset_version: 1.6.0
     collection_number: 3
