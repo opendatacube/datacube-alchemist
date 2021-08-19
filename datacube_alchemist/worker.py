@@ -399,7 +399,7 @@ class Alchemist:
             s3_url_parse(task.settings.output.location)
             s3_destination = True
         except ValueError:
-            fs_destination = Path(task.settings.output.location)
+            pass
 
         # Load and process data in a decimated array
         if dryrun:
@@ -458,6 +458,9 @@ class Alchemist:
                 naming_conventions=self.naming_convention,
                 dataset_id=uuid,
             ) as dataset_assembler:
+                #
+                # Organise metadata
+                #
                 if task.settings.output.reference_source_dataset:
                     source_doc = _munge_dataset_to_eo3(task.dataset)
                     dataset_assembler.add_source_dataset(
@@ -494,9 +497,9 @@ class Alchemist:
                     version=version_url["version"],
                 )
 
-                # dataset_assembler._tmp_work_path = Path(temp_dir)
-
-                # Write out the data
+                #
+                # Write out the data and ancillaries
+                #
                 dataset_assembler.write_measurements_odc_xarray(
                     output_data,
                     nodata=task.settings.output.nodata,
@@ -512,19 +515,28 @@ class Alchemist:
                 dataset_id, metadata_path = dataset_assembler.done()
                 log.info("Assembled dataset", metadata_path=metadata_path)
 
+                #
+                # Organise paths for final output information
+                #
+                relative_path = dataset_assembler.names.dataset_folder
+                dataset_location = Path(temp_dir) / relative_path
+                destination_path = (
+                    f"{task.settings.output.location.rstrip('/')}/{relative_path}"
+                )
+
                 # Write STAC, because it depends on this being .done()
                 # Conveniently, this also checks that files are there!
                 stac = None
                 if task.settings.output.write_stac:
-                    stac = _write_stac(metadata_path, task, dataset_assembler)
+                    stac = _write_stac(
+                        metadata_path,
+                        destination_path,
+                        task.settings.output.explorer_url,
+                        dataset_assembler,
+                    )
                     log.info("STAC file written")
 
-                relative_path = dataset_assembler.names.dataset_folder
-                dataset_location = Path(temp_dir) / relative_path
                 if s3_destination:
-                    s3_location = (
-                        f"{task.settings.output.location.rstrip('/')}/{relative_path}"
-                    )
                     s3_command = [
                         "aws",
                         "s3",
@@ -532,31 +544,31 @@ class Alchemist:
                         "--only-show-errors",
                         "--acl bucket-owner-full-control",
                         str(dataset_location),
-                        s3_location,
+                        destination_path,
                     ]
 
                     if not dryrun:
-                        log.info(f"Syncing files to {s3_location}")
+                        log.info(f"Syncing files to {destination_path}")
                     else:
                         s3_command.append("--dryrun")
                         log.warning(
                             "DRYRUN: pretending to sync files to S3",
-                            s3_location=s3_location,
+                            destination_path=destination_path,
                         )
 
-                    log.info("Writing files to s3", location=s3_location)
+                    log.info("Writing files to s3", location=destination_path)
                     subprocess.run(" ".join(s3_command), shell=True, check=True)
                 else:
-                    dest_directory = fs_destination / relative_path
+                    destination_path = Path(destination_path)
                     if not dryrun:
-                        log.info("Writing files to disk", location=dest_directory)
+                        log.info("Writing files to disk", location=destination_path)
                         # This should perhaps be couched in a warning as it delete important files
-                        if dest_directory.exists():
-                            shutil.rmtree(dest_directory)
-                        shutil.copytree(dataset_location, dest_directory)
+                        if destination_path.exists():
+                            shutil.rmtree(destination_path)
+                        shutil.copytree(dataset_location, destination_path)
                     else:
                         log.warning(
-                            f"DRYRUN: not moving data from {temp_dir} to {dest_directory}"
+                            f"DRYRUN: not moving data from {dataset_location} to {destination_path}"
                         )
 
                 log.info("Task complete")
