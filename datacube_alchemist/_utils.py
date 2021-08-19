@@ -61,21 +61,20 @@ def _write_thumbnail(task: AlchemistTask, dataset_assembler: DatasetAssembler):
 
 def _write_stac(
     metadata_path: Path,
-    task: AlchemistTask,
+    destination_path: str,
+    explorer_url: str,
     dataset_assembler: DatasetAssembler,
 ):
     out_dataset = serialise.from_path(metadata_path)
     stac_path = Path(str(metadata_path).replace("odc-metadata.yaml", "stac-item.json"))
-    dest_folder = (
-        Path(task.settings.output.location) / dataset_assembler.names.dataset_folder
-    )
 
+    # Make sure destination path has a / at the end. Clumsy, but necessary.
     stac = dc_to_stac(
         out_dataset,
         metadata_path,
         stac_path,
-        str(dest_folder),
-        task.settings.output.explorer_url,
+        destination_path.rstrip("/") + "/",
+        explorer_url,
         False,
     )
 

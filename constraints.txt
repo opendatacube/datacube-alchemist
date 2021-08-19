@@ -131,7 +131,7 @@ typing-extensions==3.10.0.0
 url-normalize==1.4.3
 urllib3==1.26.6
 Werkzeug==2.0.1
-wofs==1.6.4
+wofs==1.6.5
 wrapt==1.12.1
 xarray==0.19.0
 xmltodict==0.12.0
