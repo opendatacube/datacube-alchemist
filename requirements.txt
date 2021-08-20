@@ -13,6 +13,7 @@ odc-apps-dc-tools
 odc-aws
 odc-index
 wofs==1.6.5
-xarray
+# We MUST pin xarray, because otherwise masking doesn't work properly
+xarray==0.16.1
 eodatasets3
 h5py
