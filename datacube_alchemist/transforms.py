@@ -211,22 +211,21 @@ class DeltaNBR_3band(Transformation):
             .astype(numpy.single)
         )
 
-        # Burn Scar Index (BSI) = ((B11 + B04) - (B08 - B02)) / ((B11 + B04) + (B08 - B02))
+        # Bare Soil Index (Rikimaru, Miyatake 2002)
+        # (BSI) = ((Swir2 + red) - (nir + Blue)) / ((Swir2 + red) + (nir + Blue))
         logger.info("Starting BSI calculation")
         pre_bsi = (
-            (gm_data.nbart_swir_2 / 10000 + gm_data.nbart_red / 10000)
-            - (gm_data.nbart_nir_1 / 10000 - gm_data.nbart_blue / 10000)
+            (gm_data.nbart_swir_2 + gm_data.nbart_red)
+            - (gm_data.nbart_nir_1 + gm_data.nbart_blue)
         ) / (
-            (gm_data.nbart_swir_2 / 10000 + gm_data.nbart_red / 10000)
-            + (gm_data.nbart_nir_1 / 10000 - gm_data.nbart_blue / 10000)
+            (gm_data.nbart_swir_2 + gm_data.nbart_red)
+            + (gm_data.nbart_nir_1 + gm_data.nbart_blue)
         )
         data = xr.merge([data, {"pre_bsi": pre_bsi}])
         data["post_bsi"] = (
-            (data.nbart_swir_2 / 10000 + data.nbart_red / 10000)
-            - (data.nbart_nir_1 / 10000 - data.nbart_blue / 10000)
+            (data.nbart_swir_2 + data.nbart_red) - (data.nbart_nir_1 + data.nbart_blue)
         ) / (
-            (data.nbart_swir_2 / 10000 + data.nbart_red / 10000)
-            + (data.nbart_nir_1 / 10000 - data.nbart_blue / 10000)
+            (data.nbart_swir_2 + data.nbart_red) + (data.nbart_nir_1 + data.nbart_blue)
         )
 
         # TODO - Review NaN handling on BSI data here
@@ -236,6 +235,9 @@ class DeltaNBR_3band(Transformation):
             .where(data.nbart_nir1 != numpy.NaN)
             .astype(numpy.single)
         )
+        data["delta_bsi"] = (
+            data.delta_bsi * -1
+        )  # multiply by -1 to scale the same as other models
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
         logger.info("Starting NDVI calculation")
@@ -248,7 +250,7 @@ class DeltaNBR_3band(Transformation):
         )
 
         # TODO - Review NaN handling on NDVI data here
-        data["delta_ndvi"] = data.post_ndvi - data.pre_ndvi
+        data["delta_ndvi"] = data.pre_ndvi - data.post_ndvi
         data["delta_ndvi"] = (
             data.delta_ndvi.where(data.nbart_nir_1 != -999)
             .where(data.nbart_nir1 != numpy.NaN)
@@ -324,7 +326,7 @@ class DeltaNBR_3band_s2be(Transformation):
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
         dc = Datacube()
         gm_query = dc.find_datasets(
-            product=["s2_barest_earth"],
+            product="s2_barest_earth",
             time=gm_base_year,
             like=data.geobox,
         )
@@ -392,7 +394,7 @@ class DeltaNBR_3band_s2be(Transformation):
 
         logger.debug("starting dnbr calculations\n")
 
-        # Delta Normalised Burn Ratio (dNBR) = (B08 - B11)/(B08 + B11)
+        # Normalised Burn Ratio (NBR) = (B08 - B11)/(B08 + B11)
         pre_nbr = (gm_data.s2be_nir_1 - gm_data.s2be_swir_2) / (
             gm_data.s2be_nir_1 + gm_data.s2be_swir_2
         )
@@ -402,7 +404,7 @@ class DeltaNBR_3band_s2be(Transformation):
         data["post_nbr"] = (data.nbart_nir_1 - data.nbart_swir_2) / (
             data.nbart_nir_1 + data.nbart_swir_2
         )
-
+        # Delta NBR preNBR - postNBR
         data["delta_nbr"] = data.pre_nbr - data.post_nbr
         # Filter output NBR data based on:
         # 1. contiguity layer instead of nir_1
@@ -418,24 +420,23 @@ class DeltaNBR_3band_s2be(Transformation):
             numpy.single
         )
 
-        # Burn Scar Index (BSI) = ((B11 + B04) - (B08 - B02)) / ((B11 + B04) + (B08 - B02))
+        # Bare Soil Index (Rikimaru, Miyatake 2002)
+        # (BSI) = ((Swir2 + red) - (nir + Blue)) / ((Swir2 + red) + (nir + Blue))
         logger.info("Starting BSI calculation")
         pre_bsi = (
-            (gm_data.s2be_swir_2 / 10000 + gm_data.s2be_red / 10000)
-            - (gm_data.s2be_nir_1 / 10000 - gm_data.s2be_blue / 10000)
+            (gm_data.s2be_swir_2 + gm_data.s2be_red)
+            - (gm_data.s2be_nir_1 + gm_data.s2be_blue)
         ) / (
-            (gm_data.s2be_swir_2 / 10000 + gm_data.s2be_red / 10000)
-            + (gm_data.s2be_nir_1 / 10000 - gm_data.s2be_blue / 10000)
+            (gm_data.s2be_swir_2 + gm_data.s2be_red)
+            + (gm_data.s2be_nir_1 + gm_data.s2be_blue)
         )
         data = xr.merge([data, {"pre_bsi": pre_bsi}])
         data["post_bsi"] = (
-            (data.nbart_swir_2 / 10000 + data.nbart_red / 10000)
-            - (data.nbart_nir_1 / 10000 - data.nbart_blue / 10000)
+            (data.nbart_swir_2 + data.nbart_red) - (data.nbart_nir_1 + data.nbart_blue)
         ) / (
-            (data.nbart_swir_2 / 10000 + data.nbart_red / 10000)
-            + (data.nbart_nir_1 / 10000 - data.nbart_blue / 10000)
+            (data.nbart_swir_2 + data.nbart_red) + (data.nbart_nir_1 + data.nbart_blue)
         )
-
+        # delta BSI preBSI - post BSI
         data["delta_bsi"] = data.pre_bsi - data.post_bsi
         # Filter output BSI data based on:
         # 1. contiguity layer instead of nir_1
@@ -450,6 +451,9 @@ class DeltaNBR_3band_s2be(Transformation):
         data["delta_bsi"] = data.delta_bsi.where(data.nbart_nir_1 != numpy.NaN).astype(
             numpy.single
         )
+        data["delta_bsi"] = (
+            data.delta_bsi * -1
+        )  # multiply by -1 to scale the same as other models
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
         logger.info("Starting NDVI calculation")
@@ -465,7 +469,7 @@ class DeltaNBR_3band_s2be(Transformation):
         # 1. contiguity layer instead of nir_1
         # 2. barest earth nodata value
         # 3. only keep finite values on output band.
-        data["delta_ndvi"] = data.post_ndvi - data.pre_ndvi
+        data["delta_ndvi"] = data.pre_ndvi - data.post_ndvi
         data["delta_ndvi"] = data.delta_ndvi.where(data.nbart_nir_1 != -999).astype(
             numpy.single
         )

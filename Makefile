@@ -95,6 +95,20 @@ index-s2be:
 			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*odc-metadata.yaml' s2_barest_earth\
 		"
 
+# Add s2 c3 datasets
+product-s2-c3:
+	docker-compose exec alchemist \
+		datacube product add \
+		https://explorer.dev.dea.ga.gov.au/products/ga_s2am_ard_provisional_3.odc-product.yaml
+	docker-compose exec alchemist \
+		datacube product add \
+		https://explorer.dev.dea.ga.gov.au/products/ga_s2bm_ard_provisional_3.odc-product.yaml
+
+index-s2-c3:
+	docker-compose exec alchemist \
+		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+			s3://dea-public-data/baseline/ga_s2am_ard_provisional_3/51/KWV/2021/08/18_nrt/20210818T033715/ga_s2am_ard_provisional_3-2-1_51KWV_2021-08-18_nrt.odc-metadata.yaml \
+
 # Specific BE dataset for local testing
 index-one-s2be:
 	docker-compose exec alchemist \
@@ -125,10 +139,20 @@ index-s2-nrt:
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-18/S2A_OPER_MSI_ARD_TL_VGS4_20210518T025201_A030830_T53KLV_N03.00/ARD-METADATA.yaml \
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-05-16/S2A_OPER_MSI_ARD_TL_VGS1_20210516T054329_A030802_T50JMS_N03.00/ARD-METADATA.yaml \
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-18/S2A_OPER_MSI_ARD_TL_VGS4_20210618T022813_A031273_T54LXJ_N03.00/ARD-METADATA.yaml \
-			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-20/S2B_OPER_MSI_ARD_TL_VGS4_20210620T015752_A022393_T55LBC_N03.00/ARD-METADATA.yaml
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-06-20/S2B_OPER_MSI_ARD_TL_VGS4_20210620T015752_A022393_T55LBC_N03.00/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-07-02/S2B_OPER_MSI_ARD_TL_VGS1_20210702T024204_A022565_T53KNT_N03.01/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-07-07/S2B_OPER_MSI_ARD_TL_VGS1_20210707T014852_A022636_T54HWC_N03.01/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-07-08/S2A_OPER_MSI_ARD_TL_VGS4_20210708T022548_A031559_T54HTJ_N03.01/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-07-03/S2A_OPER_MSI_ARD_TL_VGS4_20210703T013119_A031487_T55HFB_N03.01/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-07-31/S2B_OPER_MSI_ARD_TL_VGS4_20210731T011212_A022979_T56JKT_N03.01/ARD-METADATA.yaml \
+			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-08-05/S2A_OPER_MSI_ARD_TL_VGS4_20210805T013351_A031959_T56JKT_N03.01/ARD-METADATA.yaml
 
 quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2a index-s2a product-s2be index-s2be
 
+index-ba-bm-s2:
+    docker-compose exec alchemist \
+	    datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+		    s3://dea-public-data/derivative/ga_s2_ba_bm_3/1-6-0/54/HVE/2021/07/22/20210722T015557/ga_s2_ba_bm_3_54HVE_2021-07-22_interim.odc-metadata.yaml
 
 # Landsat 8, 7 and 5 respectively
 THREE_SCENES=600645a5-5256-4632-a13d-fa13d1c11a8f 8b215983-ae1b-45bd-ad63-7245248bd41b 3fda2741-e810-4d3e-a54a-279fc3cd795f
@@ -151,7 +175,12 @@ fc-one:
 dnbr-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \
-		--uuid f9a66dde-d423-47b5-8421-a71cfb1d8883
+		--uuid 5c70a4a2-cf36-4779-92a8-b35b8039cb0a
+
+ba-bm-one:
+	docker-compose exec alchemist \
+		datacube-alchemist run-one --config-file ./examples/c3_config_bm_provisional.yaml \
+		--uuid d7a7f9d1-8d89-409c-b478-5d02da6cb90a
 
 bai-one:
 	docker-compose exec alchemist \
