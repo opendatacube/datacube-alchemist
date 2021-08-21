@@ -95,6 +95,20 @@ index-s2be:
 			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*odc-metadata.yaml' s2_barest_earth\
 		"
 
+# Add s2 c3 datasets
+product-s2-c3:
+	docker-compose exec alchemist \
+		datacube product add \
+		https://explorer.dev.dea.ga.gov.au/products/ga_s2am_ard_provisional_3.odc-product.yaml
+	docker-compose exec alchemist \
+		datacube product add \
+		https://explorer.dev.dea.ga.gov.au/products/ga_s2bm_ard_provisional_3.odc-product.yaml
+
+index-s2-c3:
+	docker-compose exec alchemist \
+		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+			s3://dea-public-data/baseline/ga_s2am_ard_provisional_3/51/KWV/2021/08/18_nrt/20210818T033715/ga_s2am_ard_provisional_3-2-1_51KWV_2021-08-18_nrt.odc-metadata.yaml \
+
 # Specific BE dataset for local testing
 index-one-s2be:
 	docker-compose exec alchemist \
@@ -162,6 +176,11 @@ dnbr-one:
 	docker-compose exec alchemist \
 		datacube-alchemist run-one --config-file ./examples/c3_config_dnbr_3band_s2be.yaml \
 		--uuid 5c70a4a2-cf36-4779-92a8-b35b8039cb0a
+
+ba-bm-one:
+	docker-compose exec alchemist \
+		datacube-alchemist run-one --config-file ./examples/c3_config_bm_provisional.yaml \
+		--uuid d7a7f9d1-8d89-409c-b478-5d02da6cb90a
 
 bai-one:
 	docker-compose exec alchemist \
