@@ -72,7 +72,7 @@ odc-algo==0.2.1.dev2263
 odc-apps-cloud==0.2.1.dev2263
 odc-apps-dc-tools==0.2.1.dev2263
 odc-aws==0.2.1.dev2263
-odc-index==0.2.1.dev2263
+odc-stac==0.2.0a2
 odc-io==0.2.1.dev2263
 odc-ppt==0.2.1.dev2263
 packaging==21.0
