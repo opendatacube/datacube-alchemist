@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 import sys
 import time
+from subprocess import CalledProcessError
 
 import click
-from datacube.ui import click as ui
-
-from datacube_alchemist._utils import _configure_logger
-from datacube_alchemist import __version__
 import structlog
+from botocore.exceptions import ClientError
+from datacube.ui import click as ui
+from odc.aws.queue import get_messages, get_queue
 
-from odc.aws.queue import get_queue
-
-from datacube_alchemist.worker import Alchemist, get_messages
+from datacube_alchemist import __version__
+from datacube_alchemist._utils import _configure_logger
+from datacube_alchemist.worker import Alchemist
 
 _LOG = structlog.get_logger()
 
@@ -147,9 +147,13 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
             message.delete()
             successes += 1
 
+        # CalledProcessError from aws cli subprocess and ClientError from sns publishing
+        except (CalledProcessError, ClientError):
+            _LOG.exception("Access denied or other AWS error, stopping execution")
+            break
         except Exception as e:
             errors += 1
-            _LOG.error(
+            _LOG.exception(
                 f"Failed to run transform {alchemist.transform_name} on dataset {task.dataset.id} with error {e}"
             )
 
