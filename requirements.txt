@@ -11,7 +11,7 @@ odc-algo
 odc-apps-cloud
 odc-apps-dc-tools
 odc-aws
-odc-index
+odc-stac
 wofs==1.6.5
 # We MUST pin xarray, because otherwise masking doesn't work properly
 xarray==0.16.1
