@@ -1,7 +1,7 @@
 specification:
   products:
-    - s2a_nrt_granule
-    - s2b_nrt_granule
+    - ga_s2am_ard_provisional_3
+    - ga_s2bm_ard_provisional_3
   measurements: ['nbart_nir_1', 'nbart_red_edge_1', 'nbart_blue', 'nbart_red', 'fmask']
   measurement_renames:
     nbart_red_edge_1: nbart_swir_2
@@ -13,7 +13,7 @@ specification:
   basis: nbart_nir_1
 
 output:
-  location: /tmp/alchemist
+  location: s3://dea-public-data-dev/derivative/
   preview_image:
     red: delta_nbr
     green: delta_ndvi
@@ -35,6 +35,8 @@ output:
   properties:
     dea:dataset_maturity: interim
     dea:product_maturity: provisional
+    eo:instrument: MSI
+    odc:file_format: GeoTIFF
 
 processing:
   dask_chunks:

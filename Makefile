@@ -92,7 +92,7 @@ product-s2be:
 index-s2be:
 	docker-compose exec alchemist \
 		bash -c "\
-			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*odc-metadata.yaml' s2_barest_earth\
+			s3-to-dc --no-sign-request 's3://dea-public-data-dev/s2be/*/*odc-metadata.yaml' s2_barest_earth\
 		"
 
 # Add s2 c3 datasets
@@ -147,7 +147,27 @@ index-s2-nrt:
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-07-31/S2B_OPER_MSI_ARD_TL_VGS4_20210731T011212_A022979_T56JKT_N03.01/ARD-METADATA.yaml \
 			s3://dea-public-data/L2/sentinel-2-nrt/S2MSIARD/2021-08-05/S2A_OPER_MSI_ARD_TL_VGS4_20210805T013351_A031959_T56JKT_N03.01/ARD-METADATA.yaml
 
-quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2a index-s2a product-s2be index-s2be
+metadata-s2-c3-prov:
+	docker-compose exec alchemist \
+		datacube metadata add \
+			https://raw.githubusercontent.com/GeoscienceAustralia/dea-config/master/products/nrt/sentinel/eo_s2_nrt.odc-type.yaml
+
+product-s2-c3-prov:
+	docker-compose exec alchemist \
+		datacube product add \
+			https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2a_provisional.odc-product.yaml
+	docker-compose exec alchemist \
+		datacube product add \
+			https://raw.githubusercontent.com/GeoscienceAustralia/digitalearthau/develop/digitalearthau/config/eo3/products-aws/ard_s2b_provisional.odc-product.yaml
+
+index-s2-c3-prov:
+	docker-compose exec alchemist \
+		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
+			s3://dea-public-data/baseline/ga_s2bm_ard_provisional_3/51/KWR/2021/09/02_nrt/20210902T033620/ga_s2bm_ard_provisional_3-2-1_51KWR_2021-09-02_nrt.odc-metadata.yaml \
+			
+
+
+quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2be index-s2be product-s2-c3 
 
 index-ba-bm-s2:
     docker-compose exec alchemist \
