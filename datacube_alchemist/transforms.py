@@ -419,6 +419,10 @@ class DeltaNBR_3band_s2be(Transformation):
         data["delta_nbr"] = data.delta_nbr.where(data.nbart_nir_1 != numpy.NaN).astype(
             numpy.single
         )
+        # FMask filter:
+        data["delta_nbr"] = data.delta_nbr.where(data.fmask == 1, numpy.NaN).astype(
+            numpy.single
+        )
 
         # Bare Soil Index (Rikimaru, Miyatake 2002)
         # (BSI) = ((Swir2 + red) - (nir + Blue)) / ((Swir2 + red) + (nir + Blue))
@@ -454,6 +458,10 @@ class DeltaNBR_3band_s2be(Transformation):
         data["delta_bsi"] = (
             data.delta_bsi * -1
         )  # multiply by -1 to scale the same as other models
+        # FMask filter:
+        data["delta_bsi"] = data.delta_bsi.where(data.fmask == 1, numpy.NaN).astype(
+            numpy.single
+        )
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
         logger.info("Starting NDVI calculation")
@@ -479,6 +487,10 @@ class DeltaNBR_3band_s2be(Transformation):
         data["delta_ndvi"] = data.delta_ndvi.where(
             data.nbart_nir_1 != numpy.NaN
         ).astype(numpy.single)
+        # FMask filter:
+        data["delta_ndvi"] = data.delta_ndvi.where(data.fmask == 1, numpy.NaN).astype(
+            numpy.single
+        )
 
         logger.info("Exporting data")
 
