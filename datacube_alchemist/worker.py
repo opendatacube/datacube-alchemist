@@ -23,7 +23,7 @@ from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 from odc.index import odc_uuid
 from datacube.utils.aws import configure_s3_access
-from odc.index.stac import stac_transform
+from odc.stac.transform import stac_transform
 
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import (
