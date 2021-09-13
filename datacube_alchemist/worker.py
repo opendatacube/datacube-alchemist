@@ -311,7 +311,7 @@ class Alchemist:
         source_doc = _munge_dataset_to_eo3(dataset[0])
 
         with DatasetAssembler(
-            metadata_path="/fake/path",
+            metadata_path=Path("/tmp/fake"),
             naming_conventions=self.naming_convention,
         ) as dataset_assembler:
             dataset_assembler.add_source_dataset(
@@ -322,8 +322,9 @@ class Alchemist:
             )
             for k, v in self.config.output.metadata.items():
                 setattr(dataset_assembler, k, v)
-            for k, v in self.config.output.properties.items():
-                dataset_assembler.properties[k] = v
+            if self.config.output.properties:
+                for k, v in self.config.output.properties.items():
+                    dataset_assembler.properties[k] = v
             dataset_assembler.processed = datetime.utcnow()
 
             output_product = dataset_assembler.names.product_name
