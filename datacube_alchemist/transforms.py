@@ -250,7 +250,10 @@ class DeltaNBR_3band(Transformation):
         )
 
         # TODO - Review NaN handling on NDVI data here
-        data["delta_ndvi"] = data.pre_ndvi - data.post_ndvi
+        data["delta_ndvi"] = data.post_ndvi - data.pre_ndvi
+        # intentional calculation as post - pre (rather than pre - post)
+        # to ensure align with other metrics. 
+        # Where a larger value shows higher characteristics of burn. 
         data["delta_ndvi"] = (
             data.delta_ndvi.where(data.nbart_nir_1 != -999)
             .where(data.nbart_nir1 != numpy.NaN)
@@ -477,7 +480,11 @@ class DeltaNBR_3band_s2be(Transformation):
         # 1. contiguity layer instead of nir_1
         # 2. barest earth nodata value
         # 3. only keep finite values on output band.
-        data["delta_ndvi"] = data.pre_ndvi - data.post_ndvi
+        data["delta_ndvi"] = data.post_ndvi - data.pre_ndvi
+        # intentional calculation as post - pre (rather than pre - post)
+        # to ensure align with other metrics. 
+        # Where a larger value shows higher characteristics of burn. 
+
         data["delta_ndvi"] = data.delta_ndvi.where(data.nbart_nir_1 != -999).astype(
             numpy.single
         )
