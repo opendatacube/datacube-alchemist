@@ -1,10 +1,12 @@
+import os
 from typing import Dict
 
 import numpy
+import structlog
 import xarray as xr
-
-# import pandas
+from dask.distributed import Client
 from datacube import Datacube
+from datacube.utils.rio import configure_s3_access
 from datacube.virtual import Measurement, Transformation
 from nrtmodels import (
     UnsupervisedBurnscarDetect2,
@@ -12,12 +14,6 @@ from nrtmodels import (
     SupervisedBurnscarDetect1,
 )
 from odc.algo import int_geomedian
-from datacube.utils.rio import configure_s3_access
-import structlog
-
-# import datetime
-import os
-
 
 logger = structlog.get_logger()
 
@@ -94,7 +90,6 @@ class DeltaNBR_3band(Transformation):
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
-
         """
         Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
         """
@@ -121,12 +116,7 @@ class DeltaNBR_3band(Transformation):
             "timedelta64[ns]"
         )
 
-        logger.debug(
-            "Geomedian will be generated over timeframe from "
-            + str(gm_start_date)
-            + " to "
-            + str(gm_end_date)
-        )
+        logger.debug(f"Geomedian will be generated over timeframe from {gm_start_date} to {gm_end_date}")
 
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
         dc = Datacube()
@@ -136,9 +126,7 @@ class DeltaNBR_3band(Transformation):
             like=data.geobox,
         )
         logger.info(
-            "Found "
-            + str(len(gm_query))
-            + " matching datasets for geomedian computation"
+            f"Found {len(gm_query)} matching datasets for geomedian computation"
         )
 
         # Find the data for geomedian calculation.
@@ -163,18 +151,14 @@ class DeltaNBR_3band(Transformation):
         if not gm_datasets:
             raise ValueError("No geomedian data for this location.")
 
-        logger.debug(gm_datasets)
-        logger.info("starting geomedian calculation\n")
+        logger.debug(f"Geomedian Datasets: {gm_datasets}")
+        logger.info("starting geomedian calculation")
 
         gm_data = int_geomedian(gm_datasets, num_threads=1)
-        logger.debug("\ngm_data:")
-        logger.debug(gm_data)
-        logger.debug("\ndata:")
-        logger.debug(data)
+        logger.debug(f"gm_data: {gm_data} data: {data}")
 
         # Compose the computed gm data
         # refer to https://github.com/opendatacube/datacube-wps/blob/master/datacube_wps/processes/__init__.py#L426
-        from dask.distributed import Client
 
         with Client(
             n_workers=8, processes=True, threads_per_worker=1, memory_limit="24GB"
@@ -194,7 +178,7 @@ class DeltaNBR_3band(Transformation):
         pre_nbr = (gm_data.nbart_nir_1 - gm_data.nbart_swir_2) / (
             gm_data.nbart_nir_1 + gm_data.nbart_swir_2
         )
-        logger.info(pre_nbr)
+        logger.info(f"pre_nbr: {pre_nbr}")
 
         time_dim = data.time
 
@@ -265,7 +249,7 @@ class DeltaNBR_3band(Transformation):
 
         logger.info("Exporting data")
 
-        data = data.drop(
+        data = data.drop_vars(
             [
                 "nbart_nir_1",
                 "nbart_swir_2",
@@ -331,9 +315,7 @@ class DeltaNBR_3band_s2be(Transformation):
             like=data.geobox,
         )
         logger.info(
-            "Found "
-            + str(len(gm_query))
-            + " matching datasets for geomedian computation"
+            f"Found {len(gm_query)} matching datasets for geomedian computation"
         )
 
         # Find the data for geomedian calculation.
@@ -353,44 +335,17 @@ class DeltaNBR_3band_s2be(Transformation):
         if not gm_data:
             raise ValueError("No geomedian data for this location.")
 
+        # Filter Bands
         # Filter bad S2 BE data
-        gm_data["s2be_blue"] = gm_data.s2be_blue.where(
-            gm_data.s2be_blue != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_blue), numpy.NaN)
-
-        gm_data["s2be_red"] = gm_data.s2be_red.where(
-            gm_data.s2be_red != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_red), numpy.NaN)
-
-        gm_data["s2be_nir_1"] = gm_data.s2be_nir_1.where(
-            gm_data.s2be_nir_1 != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_nir_1), numpy.NaN)
-
-        gm_data["s2be_swir_2"] = gm_data.s2be_swir_2.where(
-            gm_data.s2be_swir_2 != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_swir_2), numpy.NaN)
-
         # Filter bad S2 NRT data
-        data["nbart_blue"] = data.nbart_blue.where(
-            data.nbart_blue != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_blue), numpy.NaN)
+        filter_bands = ["s2be_blue", "s2be_red", "s2be_nir_1", "s2be_swir_2", "nbart_blue", "nbart_red",
+                        "nbart_nir_1", "nbart_swir_2"]
+        for band in filter_bands:
+            gm_data[band] = gm_data[band].where(
+                gm_data[band] != -999, numpy.NaN
+            ).where(numpy.isfinite(gm_data[band]), numpy.NaN)
 
-        data["nbart_red"] = data.nbart_red.where(
-            data.nbart_red != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_red), numpy.NaN)
-
-        data["nbart_nir_1"] = data.nbart_nir_1.where(
-            data.nbart_nir_1 != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_nir_1), numpy.NaN)
-
-        data["nbart_swir_2"] = data.nbart_swir_2.where(
-            data.nbart_swir_2 != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_swir_2), numpy.NaN)
-
-        logger.debug("\ngm_data:")
-        logger.debug(gm_data)
-        logger.debug("\ndata:")
-        logger.debug(data)
+        logger.debug(f"gm_data: {gm_data} data: {data}")
 
         logger.debug("starting dnbr calculations\n")
 
@@ -398,7 +353,7 @@ class DeltaNBR_3band_s2be(Transformation):
         pre_nbr = (gm_data.s2be_nir_1 - gm_data.s2be_swir_2) / (
             gm_data.s2be_nir_1 + gm_data.s2be_swir_2
         )
-        logger.info(pre_nbr)
+        logger.info(f"pre_nbr: {pre_nbr}")
 
         data = xr.merge([data.isel(time=0, drop=True), {"pre_nbr": pre_nbr}])
         data["post_nbr"] = (data.nbart_nir_1 - data.nbart_swir_2) / (
@@ -420,8 +375,14 @@ class DeltaNBR_3band_s2be(Transformation):
             numpy.single
         )
         # FMask filter:
+        # Keep pixels tagged 'valid' or 'water', remove pixels tagged 'snow', 'invalid', 'cloud' and 'cloud shadow'
+        # Water can have a similar signature to fire/burn, and so needs to be tested using a different water algorithm
+        # at a later stage
+        #
+        # Ref: https://cmi.ga.gov.au/data-products/dea/404/dea-surface-reflectance-oa-landsat-8-oli-tirs#details
+        fmask_filter = (data.fmask == 1) | (data.fmask == 5)
         data["delta_nbr"] = data.delta_nbr.where(
-            (data.fmask == 1) | (data.fmask == 5), numpy.NaN
+            fmask_filter, numpy.NaN
         ).astype(numpy.single)
 
         # Bare Soil Index (Rikimaru, Miyatake 2002)
@@ -460,7 +421,7 @@ class DeltaNBR_3band_s2be(Transformation):
         )  # multiply by -1 to scale the same as other models
         # FMask filter:
         data["delta_bsi"] = data.delta_bsi.where(
-            (data.fmask == 1) | (data.fmask == 5), numpy.NaN
+            fmask_filter, numpy.NaN
         ).astype(numpy.single)
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
@@ -488,13 +449,11 @@ class DeltaNBR_3band_s2be(Transformation):
             data.nbart_nir_1 != numpy.NaN
         ).astype(numpy.single)
         # FMask filter:
-        data["delta_ndvi"] = data.delta_ndvi.where(
-            (data.fmask == 1) | (data.fmask == 5), numpy.NaN
-        ).astype(numpy.single)
+        data["delta_ndvi"] = data.delta_ndvi.where(fmask_filter, numpy.NaN).astype(numpy.single)
 
         logger.info("Exporting data")
 
-        data = data.drop(
+        data = data.drop_vars(
             [
                 "nbart_nir_1",
                 "nbart_swir_2",
@@ -540,7 +499,7 @@ class BAUnsupervised_s2be(Transformation):
             like=data.geobox,
         )
         logger.info(
-            "Found " + str(len(gm_query)) + " matching S2 barest earth datasets"
+            f"Found {len(gm_query)} matching S2 barest earth datasets"
         )
 
         # Find the data for geomedian calculation.
@@ -641,23 +600,23 @@ class BAUnsupervised_s2be(Transformation):
         data = data.load()
 
         logger.debug(data.B02.values)
-        logger.debug("B02 min:" + str(data.B02.min()))
-        logger.debug("B02 max:" + str(data.B02.max()))
-        logger.debug("B04 min:" + str(data.B04.min()))
-        logger.debug("B04 max:" + str(data.B04.max()))
-        logger.debug("B08 min:" + str(data.B08.min()))
-        logger.debug("B08 max:" + str(data.B08.max()))
-        logger.debug("B11 min:" + str(data.B11.min()))
-        logger.debug("B11 max:" + str(data.B11.max()))
+        logger.debug(f"B02 min:{str(data.B02.min())}")
+        logger.debug(f"B02 max:{str(data.B02.max())}")
+        logger.debug(f"B04 min:{str(data.B04.min())}")
+        logger.debug(f"B04 max:{str(data.B04.max())}")
+        logger.debug(f"B08 min:{str(data.B08.min())}")
+        logger.debug(f"B08 max:{str(data.B08.max())}")
+        logger.debug(f"B11 min:{str(data.B11.min())}")
+        logger.debug(f"B11 max:{str(data.B11.max())}")
 
-        logger.debug("be B02 min:" + str(gm_data.B02.min()))
-        logger.debug("be B02 max:" + str(gm_data.B02.max()))
-        logger.debug("be B04 min:" + str(gm_data.B04.min()))
-        logger.debug("be B04 max:" + str(gm_data.B04.max()))
-        logger.debug("be B08 min:" + str(gm_data.B08.min()))
-        logger.debug("be B08 max:" + str(gm_data.B08.max()))
-        logger.debug("be B11 min:" + str(gm_data.B11.min()))
-        logger.debug("be B11 max:" + str(gm_data.B11.max()))
+        logger.debug(f"be B02 min:{str(gm_data.B02.min())}")
+        logger.debug(f"be B02 max:{str(gm_data.B02.max())}")
+        logger.debug(f"be B04 min:{str(gm_data.B04.min())}")
+        logger.debug(f"be B04 max:{str(gm_data.B04.max())}")
+        logger.debug(f"be B08 min:{str(gm_data.B08.min())}")
+        logger.debug(f"be B08 max:{str(gm_data.B08.max())}")
+        logger.debug(f"be B11 min:{str(gm_data.B11.min())}")
+        logger.debug(f"be B11 max:{str(gm_data.B11.max())}")
 
         gm_data = gm_data.isel(time=0, drop=True)
         post_data = data.isel(time=0, drop=True)
@@ -749,7 +708,7 @@ class BurntArea_Unsupervised(Transformation):
         gm_base_year = data.time.dt.year.values[0] - 1
         if gm_base_year == 2021:
             gm_base_year = 2020
-        # 2011 was a bad year for ladsat data, so we use 2013 instead.
+        # 2011 was a bad year for landsat data, so we use 2013 instead.
         if gm_base_year == 2012:
             gm_base_year = 2013
 
