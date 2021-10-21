@@ -420,7 +420,7 @@ class DeltaNBR_3band_s2be(Transformation):
             numpy.single
         )
         # FMask filter:
-        data["delta_nbr"] = data.delta_nbr.where(data.fmask == 1, numpy.NaN).astype(
+        data["delta_nbr"] = data.delta_nbr.where((data.fmask == 1)|(data.fmask == 5), numpy.NaN).astype(
             numpy.single
         )
 
@@ -459,7 +459,7 @@ class DeltaNBR_3band_s2be(Transformation):
             data.delta_bsi * -1
         )  # multiply by -1 to scale the same as other models
         # FMask filter:
-        data["delta_bsi"] = data.delta_bsi.where(data.fmask == 1, numpy.NaN).astype(
+        data["delta_bsi"] = data.delta_bsi.where((data.fmask == 1)|(data.fmask == 5), numpy.NaN).astype(
             numpy.single
         )
 
@@ -488,7 +488,7 @@ class DeltaNBR_3band_s2be(Transformation):
             data.nbart_nir_1 != numpy.NaN
         ).astype(numpy.single)
         # FMask filter:
-        data["delta_ndvi"] = data.delta_ndvi.where(data.fmask == 1, numpy.NaN).astype(
+        data["delta_ndvi"] = data.delta_ndvi.where((data.fmask == 1)|(data.fmask == 5), numpy.NaN).astype(
             numpy.single
         )
 
@@ -600,7 +600,7 @@ class BAUnsupervised_s2be(Transformation):
         )
 
         # Select/compute the mask array
-        mask = xr.where(data.fmask == 1, 0, 1).astype(numpy.int8)
+        mask = xr.where(data.fmask == 1, 0, 1).astype(numpy.int8)  # update fmask mask if use models
         mask = mask.isel(time=0, drop=True)
         logger.debug("uniques:")
         logger.debug(numpy.unique(mask))
