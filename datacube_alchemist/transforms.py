@@ -116,7 +116,9 @@ class DeltaNBR_3band(Transformation):
             "timedelta64[ns]"
         )
 
-        logger.debug(f"Geomedian will be generated over timeframe from {gm_start_date} to {gm_end_date}")
+        logger.debug(
+            f"Geomedian will be generated over timeframe from {gm_start_date} to {gm_end_date}"
+        )
 
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
         dc = Datacube()
@@ -338,12 +340,22 @@ class DeltaNBR_3band_s2be(Transformation):
         # Filter Bands
         # Filter bad S2 BE data
         # Filter bad S2 NRT data
-        filter_bands = ["s2be_blue", "s2be_red", "s2be_nir_1", "s2be_swir_2", "nbart_blue", "nbart_red",
-                        "nbart_nir_1", "nbart_swir_2"]
+        filter_bands = [
+            "s2be_blue",
+            "s2be_red",
+            "s2be_nir_1",
+            "s2be_swir_2",
+            "nbart_blue",
+            "nbart_red",
+            "nbart_nir_1",
+            "nbart_swir_2",
+        ]
         for band in filter_bands:
-            gm_data[band] = gm_data[band].where(
-                gm_data[band] != -999, numpy.NaN
-            ).where(numpy.isfinite(gm_data[band]), numpy.NaN)
+            gm_data[band] = (
+                gm_data[band]
+                .where(gm_data[band] != -999, numpy.NaN)
+                .where(numpy.isfinite(gm_data[band]), numpy.NaN)
+            )
 
         logger.debug(f"gm_data: {gm_data} data: {data}")
 
@@ -381,9 +393,9 @@ class DeltaNBR_3band_s2be(Transformation):
         #
         # Ref: https://cmi.ga.gov.au/data-products/dea/404/dea-surface-reflectance-oa-landsat-8-oli-tirs#details
         fmask_filter = (data.fmask == 1) | (data.fmask == 5)
-        data["delta_nbr"] = data.delta_nbr.where(
-            fmask_filter, numpy.NaN
-        ).astype(numpy.single)
+        data["delta_nbr"] = data.delta_nbr.where(fmask_filter, numpy.NaN).astype(
+            numpy.single
+        )
 
         # Bare Soil Index (Rikimaru, Miyatake 2002)
         # (BSI) = ((Swir2 + red) - (nir + Blue)) / ((Swir2 + red) + (nir + Blue))
@@ -420,9 +432,9 @@ class DeltaNBR_3band_s2be(Transformation):
             data.delta_bsi * -1
         )  # multiply by -1 to scale the same as other models
         # FMask filter:
-        data["delta_bsi"] = data.delta_bsi.where(
-            fmask_filter, numpy.NaN
-        ).astype(numpy.single)
+        data["delta_bsi"] = data.delta_bsi.where(fmask_filter, numpy.NaN).astype(
+            numpy.single
+        )
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
         logger.info("Starting NDVI calculation")
@@ -449,7 +461,9 @@ class DeltaNBR_3band_s2be(Transformation):
             data.nbart_nir_1 != numpy.NaN
         ).astype(numpy.single)
         # FMask filter:
-        data["delta_ndvi"] = data.delta_ndvi.where(fmask_filter, numpy.NaN).astype(numpy.single)
+        data["delta_ndvi"] = data.delta_ndvi.where(fmask_filter, numpy.NaN).astype(
+            numpy.single
+        )
 
         logger.info("Exporting data")
 
@@ -498,9 +512,7 @@ class BAUnsupervised_s2be(Transformation):
             time=gm_base_year,
             like=data.geobox,
         )
-        logger.info(
-            f"Found {len(gm_query)} matching S2 barest earth datasets"
-        )
+        logger.info(f"Found {len(gm_query)} matching S2 barest earth datasets")
 
         # Find the data for geomedian calculation.
         gm_data = dc.load(
