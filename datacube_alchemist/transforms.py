@@ -340,17 +340,27 @@ class DeltaNBR_3band_s2be(Transformation):
         # Filter Bands
         # Filter bad S2 BE data
         # Filter bad S2 NRT data
-        filter_bands = [
-            "s2be_blue",
-            "s2be_red",
-            "s2be_nir_1",
-            "s2be_swir_2",
+        filter_ard_bands = (
             "nbart_blue",
             "nbart_red",
             "nbart_nir_1",
             "nbart_swir_2",
-        ]
-        for band in filter_bands:
+        )
+
+        for band in filter_ard_bands:
+            data[band] = (
+                data[band]
+                .where(gm_data[band] != -999, numpy.NaN)
+                .where(numpy.isfinite(gm_data[band]), numpy.NaN)
+            )
+
+        filter_gm_bands = (
+            "s2be_blue",
+            "s2be_red",
+            "s2be_nir_1",
+            "s2be_swir_2",
+        )
+        for band in filter_gm_bands:
             gm_data[band] = (
                 gm_data[band]
                 .where(gm_data[band] != -999, numpy.NaN)
