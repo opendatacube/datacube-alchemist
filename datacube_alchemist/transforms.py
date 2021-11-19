@@ -350,8 +350,8 @@ class DeltaNBR_3band_s2be(Transformation):
         for band in filter_ard_bands:
             data[band] = (
                 data[band]
-                .where(gm_data[band] != -999, numpy.NaN)
-                .where(numpy.isfinite(gm_data[band]), numpy.NaN)
+                .where(data[band] != -999, numpy.NaN)
+                .where(numpy.isfinite(data[band]), numpy.NaN)
             )
 
         filter_gm_bands = (
