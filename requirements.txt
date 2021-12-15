@@ -2,7 +2,7 @@
 
 datacube
 aiobotocore[awscli]==1.3.3
-fc==1.3.5
+fc==1.3.6
 fsspec
 hdstats
 nrt-predict==0.1.2
@@ -17,3 +17,7 @@ wofs==1.6.5
 xarray==0.16.1
 eodatasets3
 h5py
+
+--no-binary rasterio
+--no-binary shapely
+--no-binary fiona

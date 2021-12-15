@@ -24,6 +24,7 @@ specification:
       c2_scaling: True
     ls8_sr:
       c2_scaling: True
+      clip_after_regression: True
       regression_coefficients:
         blue:
           - 4.1
@@ -62,7 +63,7 @@ output:
   metadata:
     product_family: fc
     producer: digitalearthafrica.org
-    dataset_version: 0.0.1
+    dataset_version: 0.0.2
     naming_conventions: deafrica
 
 processing:
