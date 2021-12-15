@@ -12,7 +12,6 @@ RUN apt-get update && \
       git \
       vim \
       nano \
-      tini \
       wget \
       python3-pip \
       # For FC
