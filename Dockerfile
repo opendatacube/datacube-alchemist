@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-3.3.1
+FROM osgeo/gdal:ubuntu-small-3.3.3
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
@@ -12,7 +12,6 @@ RUN apt-get update && \
       git \
       vim \
       nano \
-      tini \
       wget \
       python3-pip \
       # For FC
@@ -54,5 +53,4 @@ RUN pip freeze
 # Check it works
 RUN datacube-alchemist --version
 
-ENTRYPOINT ["/bin/tini", "--"]
 CMD ["datacube-alchemist", "--help"]
