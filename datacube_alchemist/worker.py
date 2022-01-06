@@ -6,7 +6,7 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Type, Union, Mapping
+from typing import Iterable, Mapping, Type, Union
 
 import cattr
 import datacube
@@ -17,21 +17,17 @@ import structlog
 import yaml
 from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
+from datacube.utils.aws import configure_s3_access
 from datacube.virtual import Transformation
 from eodatasets3.assemble import DatasetAssembler
+from odc.apps.dc_tools._docs import odc_uuid
+from odc.apps.dc_tools._stac import stac_transform
 from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
-from odc.index import odc_uuid
-from datacube.utils.aws import configure_s3_access
-from odc.stac.transform import stac_transform
 
 from datacube_alchemist import __version__
-from datacube_alchemist._utils import (
-    _munge_dataset_to_eo3,
-    _stac_to_sns,
-    _write_stac,
-    _write_thumbnail,
-)
+from datacube_alchemist._utils import (_munge_dataset_to_eo3, _stac_to_sns,
+                                       _write_stac, _write_thumbnail)
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()

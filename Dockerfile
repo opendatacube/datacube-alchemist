@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-3.3.3
+FROM osgeo/gdal:ubuntu-small-3.4.1
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
@@ -29,8 +29,8 @@ RUN echo "Environment is: $ENVIRONMENT"
 
 # Pip installation
 RUN mkdir -p /conf
-COPY requirements.txt constraints.txt /conf/
-RUN pip install -r /conf/requirements.txt -c /conf/constraints.txt
+COPY requirements.txt /conf/
+RUN pip install -r /conf/requirements.txt
 
 # Set up a nice workdir and add the live code
 ENV APPDIR=/code
@@ -42,10 +42,10 @@ ADD . $APPDIR
 # then we want to link the source (with the -e flag) and if we're in prod, we
 # want to delete the stuff in the /code folder to keep it simple.
 RUN if [ "$ENVIRONMENT" = "deployment" ] ; then\
-        pip install -c /code/constraints.txt . ; \
-        rm -rf /code/* ; \
+        pip install . ; \
+        rm -rf $APPDIR/* ; \
     else \
-        pip install -c /code/constraints.txt --editable .[$ENVIRONMENT] ; \
+        pip install --editable .[$ENVIRONMENT] ; \
     fi
 
 RUN pip freeze
