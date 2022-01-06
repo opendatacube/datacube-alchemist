@@ -26,8 +26,12 @@ from odc.aws import s3_url_parse
 from odc.aws.queue import get_messages, get_queue
 
 from datacube_alchemist import __version__
-from datacube_alchemist._utils import (_munge_dataset_to_eo3, _stac_to_sns,
-                                       _write_stac, _write_thumbnail)
+from datacube_alchemist._utils import (
+    _munge_dataset_to_eo3,
+    _stac_to_sns,
+    _write_stac,
+    _write_thumbnail,
+)
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
 
 _LOG = structlog.get_logger()
