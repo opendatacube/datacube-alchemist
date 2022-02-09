@@ -15,13 +15,13 @@ affine==2.3.0
     #   eodatasets3
     #   odc-algo
     #   rasterio
-aiobotocore[awscli,boto3]==2.0.1
+aiobotocore[awscli,boto3]==2.1.0
     # via
     #   -r requirements.in
     #   odc-cloud
 aiohttp==3.8.1
     # via aiobotocore
-aioitertools==0.8.0
+aioitertools==0.9.0
     # via aiobotocore
 aiosignal==1.2.0
     # via aiohttp
@@ -40,7 +40,7 @@ attrs==21.4.0
     #   jsonschema
     #   rasterio
     #   requests-cache
-awscli==1.21.8
+awscli==1.22.24
     # via aiobotocore
 billiard==3.6.4.0
     # via celery
@@ -48,12 +48,12 @@ boltons==21.0.0
     # via
     #   digitalearthau
     #   eodatasets3
-boto3==1.19.8
+boto3==1.20.24
     # via
     #   aiobotocore
     #   datacube
     #   odc-cloud
-botocore==1.22.8
+botocore==1.23.24
     # via
     #   aiobotocore
     #   awscli
@@ -75,9 +75,9 @@ certifi==2021.10.8
     #   pyproj
     #   rasterio
     #   requests
-cftime==1.5.1.1
+cftime==1.5.2
     # via netcdf4
-charset-normalizer==2.0.10
+charset-normalizer==2.0.11
     # via
     #   aiohttp
     #   requests
@@ -108,7 +108,7 @@ colorama==0.4.3
     # via
     #   awscli
     #   digitalearthau
-dask[array]==2021.12.0
+dask[array]==2022.1.1
     # via
     #   dask-image
     #   datacube
@@ -133,13 +133,13 @@ deprecated==1.2.13
     # via redis
 digitalearthau==20180116+437.g805c962
     # via fc
-distributed==2021.12.0
+distributed==2022.1.1
     # via
     #   datacube
     #   odc-algo
 docutils==0.15.2
     # via awscli
-eodatasets3==0.24.0
+eodatasets3==0.24.1
     # via
     #   -r requirements.in
     #   digitalearthau
@@ -147,11 +147,11 @@ ephem==4.1.3
     # via wofs
 fc==1.3.6
     # via -r requirements.in
-frozenlist==1.2.0
+frozenlist==1.3.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2021.11.1
+fsspec==2022.1.0
     # via
     #   -r requirements.in
     #   dask
@@ -172,7 +172,7 @@ idna==3.3
     # via
     #   requests
     #   yarl
-imageio==2.13.5
+imageio==2.15.0
     # via scikit-image
 jinja2==3.0.3
     # via distributed
@@ -184,7 +184,7 @@ joblib==1.1.0
     # via
     #   nrt-predict
     #   scikit-learn
-jsonschema==4.3.3
+jsonschema==4.4.0
     # via
     #   datacube
     #   eodatasets3
@@ -203,7 +203,7 @@ markupsafe==2.0.1
     # via jinja2
 msgpack==1.0.3
     # via distributed
-multidict==5.2.0
+multidict==6.0.2
     # via
     #   aiohttp
     #   yarl
@@ -217,7 +217,7 @@ numexpr==2.8.1
     # via
     #   fc
     #   odc-algo
-numpy==1.22.0
+numpy==1.22.2
     # via
     #   -r requirements.in
     #   cftime
@@ -260,17 +260,18 @@ odc-io==0.2.1
 packaging==21.3
     # via
     #   dask
+    #   distributed
     #   numexpr
     #   redis
     #   scikit-image
-pandas==1.3.5
+pandas==1.4.0
     # via
     #   datacube
     #   fc
     #   xarray
 partd==1.2.0
     # via dask
-pillow==9.0.0
+pillow==9.0.1
     # via
     #   imageio
     #   scikit-image
@@ -286,7 +287,7 @@ pyasn1==0.4.8
     # via rsa
 pydash==5.1.0
     # via digitalearthau
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via
     #   packaging
     #   snuggs
@@ -294,7 +295,7 @@ pyproj==3.3.0
     # via
     #   datacube
     #   eodatasets3
-pyrsistent==0.18.0
+pyrsistent==0.18.1
     # via jsonschema
 pystac==1.2.0
     # via
@@ -302,7 +303,7 @@ pystac==1.2.0
     #   odc-apps-dc-tools
     #   pystac-client
     #   rio-stac
-pystac-client==0.3.1
+pystac-client==0.3.2
     # via odc-apps-dc-tools
 python-dateutil==2.8.2
     # via
@@ -333,14 +334,14 @@ rasterio==1.2.10
     #   eodatasets3
     #   odc-algo
     #   rio-stac
-redis==4.1.0
+redis==4.1.3
     # via datacube
 requests==2.27.1
     # via
     #   nrt-predict
     #   pystac-client
     #   requests-cache
-requests-cache==0.9.0
+requests-cache==0.9.1
     # via eodatasets3
 rio-stac==0.3.2
     # via odc-apps-dc-tools
@@ -350,7 +351,7 @@ ruamel.yaml==0.17.20
     # via eodatasets3
 ruamel.yaml.clib==0.2.6
     # via ruamel.yaml
-s3transfer==0.5.0
+s3transfer==0.5.1
     # via
     #   awscli
     #   boto3
@@ -360,7 +361,7 @@ scikit-image==0.19.1
     #   odc-algo
 scikit-learn==1.0.2
     # via nrt-predict
-scipy==1.7.3
+scipy==1.8.0
     # via
     #   dask-image
     #   eodatasets3
@@ -384,7 +385,7 @@ snuggs==1.4.7
     # via rasterio
 sortedcontainers==2.4.0
     # via distributed
-sqlalchemy==1.4.29
+sqlalchemy==1.4.31
     # via datacube
 structlog==21.5.0
     # via
@@ -392,9 +393,9 @@ structlog==21.5.0
     #   eodatasets3
 tblib==1.7.0
     # via distributed
-threadpoolctl==3.0.0
+threadpoolctl==3.1.0
     # via scikit-learn
-tifffile==2021.11.2
+tifffile==2022.2.2
     # via scikit-image
 toolz==0.11.2
     # via
@@ -406,9 +407,11 @@ toolz==0.11.2
     #   partd
 tornado==6.1
     # via distributed
+typing-extensions==4.0.1
+    # via aioitertools
 url-normalize==1.4.3
     # via requests-cache
-urllib3==1.26.7
+urllib3==1.26.8
     # via
     #   botocore
     #   requests
