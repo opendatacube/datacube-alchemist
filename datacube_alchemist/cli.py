@@ -199,6 +199,30 @@ def add_to_queue(config_file, queue, expressions, limit, product_limit, dryrun):
 @config_file_option
 @queue_option
 @dryrun_option
+@click.argument("ids", nargs=-1)
+def add_ids_to_queue(config_file, queue, dryrun, ids):
+    """
+    Add Datasets by ID to the queue.
+    """
+    _LOG.info(f"Adding {len(ids)} Datasets to the queue.")
+
+    start_time = time.time()
+
+    alchemist = Alchemist(config_file=config_file)
+
+    datasets = alchemist.dc.index.datasets.bulk_get(ids)
+    if not dryrun:
+        n_messages = alchemist._datasets_to_queue(queue, datasets)
+        _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
+    else:
+        n_messages = sum(1 for _ in datasets)
+        _LOG.info(f"DRYRUN! Would have pushed {n_messages} items.")
+
+
+@cli.command()
+@config_file_option
+@queue_option
+@dryrun_option
 def add_missing_to_queue(config_file, queue, dryrun):
     """
     Search for datasets that don't have a target product dataset and add them to the queue

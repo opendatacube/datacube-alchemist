@@ -15,6 +15,9 @@ run-prod:
 test-local:
 	pytest tests
 
+pip-compile:
+	pip-compile --upgrade --output-file requirements.txt requirements.in
+
 
 # Docker Compose environment
 build:
