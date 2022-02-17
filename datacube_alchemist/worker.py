@@ -9,22 +9,17 @@ from pathlib import Path
 from typing import Iterable, Mapping, Type, Union
 
 import cattr
-import datacube
 import fsspec
 import numpy as np
 import psycopg2
 import structlog
 import yaml
+
+import datacube
 from datacube.model import Dataset
 from datacube.testutils.io import native_geobox, native_load
 from datacube.utils.aws import configure_s3_access
 from datacube.virtual import Transformation
-from eodatasets3.assemble import DatasetAssembler
-from odc.apps.dc_tools._docs import odc_uuid
-from odc.apps.dc_tools._stac import stac_transform
-from odc.aws import s3_url_parse
-from odc.aws.queue import get_messages, get_queue
-
 from datacube_alchemist import __version__
 from datacube_alchemist._utils import (
     _munge_dataset_to_eo3,
@@ -33,6 +28,11 @@ from datacube_alchemist._utils import (
     _write_thumbnail,
 )
 from datacube_alchemist.settings import AlchemistSettings, AlchemistTask
+from eodatasets3.assemble import DatasetAssembler
+from odc.apps.dc_tools._docs import odc_uuid
+from odc.apps.dc_tools._stac import stac_transform
+from odc.aws import s3_url_parse
+from odc.aws.queue import get_messages, get_queue
 
 _LOG = structlog.get_logger()
 cattr.register_structure_hook(np.dtype, np.dtype)
@@ -219,7 +219,7 @@ class Alchemist:
             "url": self.config.specification.transform_url,
         }
 
-    def _datasets_to_queue(self, queue, datasets):
+    def datasets_to_queue(self, queue, datasets):
         alive_queue = get_queue(queue)
 
         def post_messages(messages, count):
@@ -276,40 +276,62 @@ class Alchemist:
     ):
         datasets = self._find_datasets(query, limit, product_limit)
         if not dryrun:
-            return self._datasets_to_queue(queue, datasets)
+            return self.datasets_to_queue(queue, datasets)
         else:
             return sum(1 for _ in datasets)
 
-    def find_fill_missing(self, queue, dryrun):
+    def find_unprocessed_datasets(self, queue, dryrun):
+        """
+        Find any datasets
+        """
         query = """
-            select d.id
-            from agdc.dataset as d
-            join agdc.dataset_type as t
-            on d.dataset_type_ref = t.id
+            select source_dataset.id
+            from agdc.dataset as source_dataset
+            join agdc.dataset_type as source_product
+            on source_dataset.dataset_type_ref = source_product.id
             left join (
                 select
-                    sub_s.dataset_ref,
-                    sub_s.source_dataset_ref
-                from agdc.dataset_source as sub_s
-                join agdc.dataset as sub_d
-                on sub_d.id = sub_s.dataset_ref
-                join agdc.dataset_type as sub_t
-                on sub_d.dataset_type_ref = sub_t.id
-                where sub_t.name = %(output_product)s
-            ) as s
-            on d.id = s.source_dataset_ref
-            where t.name in %(input_products)s
-            and s.dataset_ref is null
-            and d.archived is null
+                    lineage.dataset_ref,
+                    lineage.source_dataset_ref
+                from agdc.dataset_source as lineage
+                join agdc.dataset as source_dataset
+                on source_dataset.id = lineage.dataset_ref
+                join agdc.dataset_type as output_product
+                on source_dataset.dataset_type_ref = output_product.id
+                where output_product.name = %(output_product)s
+            ) as lineage
+            on source_dataset.id = lineage.source_dataset_ref
+            where source_product.name in %(input_products)s
+            and lineage.dataset_ref is null
+            and source_dataset.archived is null
         """
 
-        # Most of this guff is just to get a destination product name...
         input_products = tuple(p.name for p in self.input_products)
-        output_product = ""
+        output_product = self._determine_output_product()
 
+        # This is actual valuable work
+        _LOG.info("Querying database, please wait...")
+        conn = psycopg2.connect(str(self.dc.index.url))
+        cur = conn.cursor()
+
+        query_args = dict(input_products=input_products, output_product=output_product)
+        cur.execute(query, query_args)
+        results = cur.fetchall()
+        _LOG.info(
+            (
+                f"Found {len(results)} datasets from {len(self.input_products)} input products"
+                f" missing in the output product {output_product}"
+            )
+        )
+
+        datasets = [self.dc.index.datasets.get(row[0]) for row in results]
+        return datasets
+
+    def _determine_output_product(self):
+        # Most of this guff is just to get a destination product name...
+        output_product = ""
         dataset = self.dc.find_datasets(product=self.input_products[0].name, limit=1)
         source_doc = _munge_dataset_to_eo3(dataset[0])
-
         with DatasetAssembler(
             metadata_path=Path("/tmp/fake"),
             naming_conventions=self.naming_convention,
@@ -329,27 +351,7 @@ class Alchemist:
 
             output_product = dataset_assembler.names.product_name
             dataset_assembler.cancel()
-
-        # This is actual valuable work
-        _LOG.info("Querying database, please wait...")
-        conn = psycopg2.connect(str(self.dc.index.url))
-        cur = conn.cursor()
-
-        query_args = dict(input_products=input_products, output_product=output_product)
-        cur.execute(query, query_args)
-        results = cur.fetchall()
-        _LOG.info(
-            (
-                f"Found {len(results)} datasets from {len(self.input_products)} input products"
-                f" missing in the output product {output_product}"
-            )
-        )
-
-        if not dryrun:
-            datasets = [self.dc.index.datasets.get(row[0]) for row in results]
-            return self._datasets_to_queue(queue, datasets)
-        else:
-            return len(results)
+        return output_product
 
     def get_tasks_from_queue(self, queue, limit, queue_timeout):
         """Retrieve messages from the named queue, returning an iterable of (AlchemistTasks, SQS Messages)"""

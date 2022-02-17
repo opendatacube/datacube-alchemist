@@ -220,22 +220,39 @@ def add_ids_to_queue(config_file, queue, dryrun, ids):
 
 
 @cli.command()
+@click.option(
+    "--predicate",
+    help='Python predicate to filter datasets. Dataset is available as "d"',
+)
 @config_file_option
 @queue_option
 @dryrun_option
-def add_missing_to_queue(config_file, queue, dryrun):
+def add_missing_to_queue(config_file, queue, predicate, dryrun):
     """
     Search for datasets that don't have a target product dataset and add them to the queue
+
+    If a predicate is supplied, datasets which do not match are filtered out.
+
+    Example predicate:
+     - 'd.metadata.gqa_iterative_mean_xy <= 1'
     """
 
     alchemist = Alchemist(config_file=config_file)
 
-    n_messages = alchemist.find_fill_missing(queue, dryrun)
+    datasets = alchemist.find_unprocessed_datasets(queue, dryrun)
+
+    if predicate:
+        code_obj = compile(predicate, "<string>", "eval")
+        datasets = [d for d in datasets if eval(code_obj)]
+        _LOG.info(f'After filtering with "{predicate}", {len(datasets)} remain.')
 
     if not dryrun:
-        _LOG.info(f"Pushed {n_messages} items.")
+        alchemist.datasets_to_queue(queue, datasets)
+        _LOG.info(f"Pushed {len(datasets)} items.")
     else:
-        _LOG.info(f"DRYRUN! Would have pushed {n_messages} items.")
+        _LOG.info(f"DRYRUN! Would have pushed {len(datasets)} alchemist tasks.")
+        for dataset in datasets:
+            _LOG.info(f"Transform: {alchemist.transform_name}; Dataset: {dataset}")
 
 
 @cli.command()
