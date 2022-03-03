@@ -99,6 +99,10 @@ def _stac_to_sns(sns_arn, stac):
     Publish our STAC document to an SNS
     """
     bbox = stac["bbox"]
+    links = stac.get("links", None)
+    if links is not None:
+        link_ref = links[0].get("href", "")
+
     product_name = get_in(["properties", "odc:product"], stac, None)
     if product_name is None:
         product_name = stac.get("collection", None)
@@ -115,6 +119,14 @@ def _stac_to_sns(sns_arn, stac):
         "product": {
             "DataType": "String",
             "StringValue": product_name,
+        },
+        "version": {
+            "DataType": "String",
+            "StringValue": str(get_in(["properties", "odc:dataset_version"], stac, None)),
+        },
+        "path": {
+            "DataType": "String",
+            "StringValue": link_ref,
         },
         "bbox.ll_lon": {"DataType": "Number", "StringValue": str(bbox[0])},
         "bbox.ll_lat": {"DataType": "Number", "StringValue": str(bbox[1])},
