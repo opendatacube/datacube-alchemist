@@ -122,7 +122,9 @@ def _stac_to_sns(sns_arn, stac):
         },
         "version": {
             "DataType": "String",
-            "StringValue": str(get_in(["properties", "odc:dataset_version"], stac, None)),
+            "StringValue": str(
+                get_in(["properties", "odc:dataset_version"], stac, None)
+            ),
         },
         "path": {
             "DataType": "String",
