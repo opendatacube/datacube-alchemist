@@ -145,7 +145,7 @@ eodatasets3==0.24.1
     #   digitalearthau
 ephem==4.1.3
     # via wofs
-fc==1.3.6
+fc==1.3.8
     # via -r requirements.in
 frozenlist==1.3.0
     # via
