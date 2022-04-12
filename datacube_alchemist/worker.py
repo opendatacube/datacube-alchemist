@@ -431,9 +431,6 @@ class Alchemist:
         if "time" in output_data.dims:
             output_data = output_data.squeeze("time")
 
-        import xarray as xr
-        for var in output_data.data_vars:
-            log.debug("attribute of", var=var, attrs=output_data[var].attrs, xarray=xr.__version__)
         log.info("Prepared lazy transformation", output_data=output_data)
 
         output_data = output_data.compute()
