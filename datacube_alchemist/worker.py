@@ -350,13 +350,13 @@ class Alchemist:
             if self.config.output.properties:
                 for k, v in self.config.output.properties.items():
                     dataset_assembler.properties[k] = v
+            # changes here
             # add dataset and product maturity properties from original dataset rather than output config
-            source_properties =  source_doc.properties
-            if not source_properties.get(self.DATASET_MATURITY) or not source_properties.get(self.PRODUCT_MATURITY):
+            source_properties = source_doc.properties
+            if not source_properties.get(self.PRODUCT_MATURITY):
                 _LOG.error(
-                    "Dataset must include properties dea:dataset_maturity and dea:product_maturity"
+                    "Dataset must include property dea:product_maturity"
                 )
-            dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
             dataset_assembler.properties[self.PRODUCT_MATURITY] = source_properties[self.PRODUCT_MATURITY]
             dataset_assembler.processed = datetime.utcnow()
 
@@ -483,6 +483,12 @@ class Alchemist:
                         inherit_geometry=task.settings.output.inherit_geometry,
                         classifier=task.settings.specification.override_product_family,
                     )
+                    source_properties = source_doc.properties
+                    if not source_properties.get(self.DATASET_MATURITY):
+                        _LOG.error(
+                            "Dataset must include property dea:dataset_maturity"
+                        )
+                    dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
 
                 # Copy in metadata and properties
                 for k, v in task.settings.output.metadata.items():
