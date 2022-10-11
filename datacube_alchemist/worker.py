@@ -39,6 +39,9 @@ cattr.register_structure_hook(np.dtype, np.dtype)
 
 
 class Alchemist:
+    DATASET_MATURITY = 'dea:dataset_maturity'
+    PRODUCT_MATURITY = 'dea:product_maturity'
+
     def __init__(self, *, config=None, config_file=None, dc_env=None):
         if config is not None:
             self.config = config
@@ -347,6 +350,14 @@ class Alchemist:
             if self.config.output.properties:
                 for k, v in self.config.output.properties.items():
                     dataset_assembler.properties[k] = v
+            # add dataset and product maturity properties from original dataset rather than output config
+            source_properties =  source_doc.properties
+            if not source_properties.get(self.DATASET_MATURITY) or not source_properties.get(self.PRODUCT_MATURITY):
+                _LOG.error(
+                    "Dataset must include properties dea:dataset_maturity and dea:product_maturity"
+                )
+            dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
+            dataset_assembler.properties[self.PRODUCT_MATURITY] = source_properties[self.PRODUCT_MATURITY]
             dataset_assembler.processed = datetime.utcnow()
 
             output_product = dataset_assembler.names.product_name
