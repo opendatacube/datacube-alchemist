@@ -352,12 +352,10 @@ class Alchemist:
                     dataset_assembler.properties[k] = v
             # add dataset and product maturity properties from original dataset rather than output config
             source_properties = source_doc.properties
-            if not source_properties.get(self.DATASET_MATURITY) or not source_properties.get(self.PRODUCT_MATURITY):
-                _LOG.error(
-                    "Dataset must include properties dea:dataset_maturity and dea:product_maturity"
-                )
-            dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
-            dataset_assembler.properties[self.PRODUCT_MATURITY] = source_properties[self.PRODUCT_MATURITY]
+            if source_properties.get(self.DATASET_MATURITY):
+                dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
+            if source_properties.get(self.PRODUCT_MATURITY):
+                dataset_assembler.properties[self.PRODUCT_MATURITY] = source_properties[self.PRODUCT_MATURITY]
             dataset_assembler.processed = datetime.utcnow()
 
             output_product = dataset_assembler.names.product_name
@@ -485,12 +483,10 @@ class Alchemist:
                     )
                     # also extract maturity properties
                     source_properties = source_doc.properties
-                    if not source_properties.get(self.DATASET_MATURITY) or not source_properties.get(self.PRODUCT_MATURITY):
-                        _LOG.error(
-                            "Dataset must include properties dea:dataset_maturity and dea:product_maturity"
-                        )
-                    dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
-                    dataset_assembler.properties[self.PRODUCT_MATURITY] = source_properties[self.PRODUCT_MATURITY]
+                    if source_properties.get(self.DATASET_MATURITY):
+                        dataset_assembler.properties[self.DATASET_MATURITY] = source_properties[self.DATASET_MATURITY]
+                    if source_properties.get(self.PRODUCT_MATURITY):
+                        dataset_assembler.properties[self.PRODUCT_MATURITY] = source_properties[self.PRODUCT_MATURITY]
 
                 # Copy in metadata and properties
                 for k, v in task.settings.output.metadata.items():
