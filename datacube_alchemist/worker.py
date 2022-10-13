@@ -344,15 +344,14 @@ class Alchemist:
             )
             for k, v in self.config.output.metadata.items():
                 setattr(dataset_assembler, k, v)
-            # add dataset maturity property from original dataset rather than output config
-            if "dea:dataset_maturity" in source_doc.properties:
-                dataset_assembler.properties[
-                    "dea:dataset_maturity"
-                ] = source_doc.properties["dea:dataset_maturity"]
             if self.config.output.properties:
                 for k, v in self.config.output.properties.items():
                     dataset_assembler.properties[k] = v
-
+            # add dataset and product maturity properties from original dataset rather than output config
+            if "dea:dataset_maturity" in source_doc.properties:
+                dataset_assembler.properties["dea:dataset_maturity"] = source_doc.properties["dea:dataset_maturity"]
+            if "dea:product_maturity" in source_doc.properties:
+                dataset_assembler.properties["dea:product_maturity"] = source_doc.properties["dea:product_maturity"]
             dataset_assembler.processed = datetime.utcnow()
 
             output_product = dataset_assembler.names.product_name
@@ -478,11 +477,11 @@ class Alchemist:
                         inherit_geometry=task.settings.output.inherit_geometry,
                         classifier=task.settings.specification.override_product_family,
                     )
-                    # also extract maturity
+                    # also extract maturity properties
                     if "dea:dataset_maturity" in source_doc.properties:
-                        dataset_assembler.properties[
-                            "dea:dataset_maturity"
-                        ] = source_doc.properties["dea:dataset_maturity"]
+                        dataset_assembler.properties["dea:dataset_maturity"] = source_doc.properties["dea:dataset_maturity"]
+                    if "dea:product_maturity" in source_doc.properties:
+                        dataset_assembler.properties["dea:product_maturity"] = source_doc.properties["dea:product_maturity"]
 
                 # Copy in metadata and properties
                 for k, v in task.settings.output.metadata.items():

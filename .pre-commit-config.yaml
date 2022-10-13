@@ -1,0 +1,30 @@
+repos:
+    - repo: https://github.com/adrienverge/yamllint.git
+      rev: v1.25.0
+      hooks:
+        - id: yamllint
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v3.2.0
+      hooks:
+        - id: end-of-file-fixer
+        - id: check-docstring-first
+        - id: check-json
+        - id: check-yaml
+        - id: debug-statements
+        - id: name-tests-test
+          args: ['--django']
+        - id: requirements-txt-fixer
+        - id: check-added-large-files
+        - id: check-merge-conflict
+    - repo: https://github.com/pre-commit/mirrors-pylint
+      rev: 'v2.6.0'  # Use the sha / tag you want to point at
+      hooks:
+      - id: pylint
+    - repo: https://gitlab.com/pycqa/flake8
+      rev: '3.8.4'
+      hooks:
+        - id: flake8
+    - repo: https://github.com/psf/black
+      rev: 20.8b1
+      hooks:
+      - id: black
