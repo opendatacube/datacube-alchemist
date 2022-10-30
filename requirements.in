@@ -1,8 +1,8 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
 
 datacube[s3]==1.8.6
-aiobotocore[awscli, boto3]==2.1.0
-fc==1.3.8
+aiobotocore[awscli, boto3]==2.2.0
+fc==1.3.9
 kombu==4.6.11
 fsspec
 hdstats
@@ -11,9 +11,8 @@ numpy
 odc-algo
 odc-apps-cloud
 odc-apps-dc-tools
-wofs==1.6.5
-# We MUST pin xarray, because otherwise masking doesn't work properly
-xarray==0.16.1
+wofs==1.6.6
+xarray
 eodatasets3
 h5py
 
