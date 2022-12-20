@@ -16,7 +16,7 @@ specification:
   resampling:
     pixel_quality: nearest
     "*": bilinear
-  basis: blue 
+  basis: blue
 
   aws_unsigned: True
   transform: wofs.virtualproduct.WOfSClassifier
