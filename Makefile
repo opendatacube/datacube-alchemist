@@ -167,10 +167,10 @@ index-s2-c3-prov:
 	docker-compose exec alchemist \
 		datacube dataset add --ignore-lineage --confirm-ignore-lineage \
 			s3://dea-public-data/baseline/ga_s2bm_ard_provisional_3/51/KWR/2021/09/02_nrt/20210902T033620/ga_s2bm_ard_provisional_3-2-1_51KWR_2021-09-02_nrt.odc-metadata.yaml \
-			
 
 
-quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2be index-s2be product-s2-c3 
+
+quickstart: initdb metadata product index index-geomedian metadata-s2-nrt product-s2-nrt metadata-eo_plus index-s2-nrt product-s2be index-s2be product-s2-c3
 
 index-ba-bm-s2:
     docker-compose exec alchemist \

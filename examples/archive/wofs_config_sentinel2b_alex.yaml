@@ -1,6 +1,6 @@
 specification:
   product: ga_s2b_ard_nbar_granule
-  measurements: 
+  measurements:
     - 'nbar_blue'
     - 'nbar_green'
     - 'nbar_red'
