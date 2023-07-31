@@ -302,7 +302,6 @@ class DeltaNBR_3band_s2be(Transformation):
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
-
         """
         Implementation ported from https://github.com/daleroberts/nrt-predict/blob/main/nrtmodels/burnscar.py#L39
         """
@@ -512,7 +511,6 @@ class BAUnsupervised_s2be(Transformation):
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
-
         gm_base_year = 2018
 
         # TODO - remove this section, for debugging only. Find the S2 data for the geomedian
@@ -725,7 +723,6 @@ class BurntArea_Unsupervised(Transformation):
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
-
         # Load base Geomedian from datacube
         gm_base_year = data.time.dt.year.values[0] - 1
         if gm_base_year == 2021:
