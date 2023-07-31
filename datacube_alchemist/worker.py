@@ -79,7 +79,6 @@ class Alchemist:
 
     @property
     def transform(self) -> Type[Transformation]:
-
         module_name, class_name = self.transform_name.rsplit(".", maxsplit=1)
         module = importlib.import_module(name=module_name)
         imported_class = getattr(module, class_name)
