@@ -6,7 +6,7 @@
 ![Push](https://github.com/opendatacube/datacube-alchemist/workflows/Push/badge.svg)
 [![codecov](https://codecov.io/gh/opendatacube/datacube-alchemist/branch/main/graph/badge.svg?token=8dsJGc99qY)](https://codecov.io/gh/opendatacube/datacube-alchemist)
 
-## PURPOSE
+## Purpose
 
 Datacube Alchemist is a command line application for performing Dataset to Dataset transformations in the context
 of an Open Data Cube system.
@@ -25,7 +25,7 @@ Features
 * Configurable thumbnail generation
 * Pass any command line options as Environment Variables
 
-## INSTALLATION
+## Installation
 
 You can build the docker image locally with Docker or Docker Compose. The commands are
 `docker build --tag opendatacube/datacube-alchemist .` or `docker-compose build`.
@@ -33,7 +33,7 @@ You can build the docker image locally with Docker or Docker Compose. The comman
 There's a Python setup file, so you can do `pip3 install .` in the root folder. You will
 need to ensure that the Open Data Cube and all its dependencies happily install though.
 
-## USAGE
+## Usage
 
 ### Development environment
 
@@ -49,6 +49,19 @@ To start the workspace and run an example, you can do the following:
 * `make wofs-one` or `make fc-one` will process a single Fractional Cover or Water
 Observations from Space scene and output the results to the ./examples folder in this project directory
 
+## Production Usage
+
+Datacube Alchemist is used in production by the [Digital Earth Australia](https://dea.ga.gov.au/) and [Digital Earth
+Africa](https://www.digitalearthafrica.org/) programs
+
+### Queues
+
+Notes on queues. To run jobs from an SQS queue, good practice is to create a deadletter queue
+as well as a main queue. Jobs (messages) get picked up off the main queue, and if they're successful,
+then they're deleted. If they aren't successful, they're not deleted, and they go back on the
+main queue after a defined amount of time. If this happens more than the defined number of times
+then the message is moved to the deadletter queue. In this way, you can track work completion.
+
 ## Commands
 
 Note that the `--config-file` can be a local path or a URI.
@@ -56,6 +69,7 @@ Note that the `--config-file` can be a local path or a URI.
 ### datacube-alchemist run-one
 
 <!-- [[[cog
+# Regenerate this embedded CLI documentation by running `python -m cogapp -r README.md`
 import cog
 from datacube_alchemist import cli
 from click.testing import CliRunner
@@ -196,6 +210,9 @@ datacube-alchemist run-from-queue \
 
 ### datacube-alchemist add-to-queue
 
+Search for Datasets and enqueue Tasks into an AWS SQS Queue for later processing.
+
+
 The `--limit` is the total number of datasets to limit to, whereas the `--product-limit` is
 the number of datasets per product, in the case that you have multiple input products.
 
@@ -256,9 +273,13 @@ datacube-alchemist add-to-queue \
 
 ### datacube-alchemist redrive-to-queue
 
-This will get items from a deadletter queue and push them to an
-alive queue. Be careful, because it doesn't know what queue is what.
-You need to know that!
+Redrives messages from an SQS queue.
+
+All the messages in the specified queue are re-transmitted to either their original queue
+or the specified TO-QUEUE.
+
+Be careful when manually specifying TO-QUEUE, as it's easy to mistakenly push tasks to the
+wrong queue, eg. One that will process them with an incorrect configuration file.
 
 <!-- [[[cog
 print_help("redrive-to-queue")
@@ -287,6 +308,106 @@ datacube-alchemist redrive-to-queue \
   --queue example-from-queue \
   --to-queue example-to-queue
 ```
+
+### datacube-alchemist add-missing-to-queue
+
+Search for datasets that don't have a target product dataset and add them to the queue
+
+If a predicate is supplied, datasets which do not match are filtered out.
+
+The predicate is a Python expression that should return True or False, which has a single
+dataset available as the variable `d`.
+
+Example predicates:
+ - `d.metadata.gqa_iterative_mean_xy <= 1`
+ - `d.metadata.gqa_iterative_mean_xy and ('2022-06-30' <= str(d.center_time.date()) <= '2023-07-01')`
+ - `d.metadata.dataset_maturity == "final"`
+
+<!-- [[[cog
+print_help("add-missing-to-queue")
+]]] -->
+```
+Usage: datacube-alchemist add-missing-to-queue [OPTIONS]
+
+  Search for datasets that don't have a target product dataset and add them to
+  the queue
+
+  If a predicate is supplied, datasets which do not match are filtered out.
+
+  Example predicate:  - 'd.metadata.gqa_iterative_mean_xy <= 1'
+
+Options:
+  --predicate TEXT        Python predicate to filter datasets. Dataset is
+                          available as "d"
+  -c, --config-file TEXT  The path (URI or file) to a config file to use for the
+                          job  [required]
+  -q, --queue TEXT        Name of an AWS SQS Message Queue  [required]
+  --dryrun, --no-dryrun   Don't actually do real work
+  --help                  Show this message and exit.
+
+```
+<!-- [[[end]]] -->
+
+## Configuration File
+
+A YAML file with 3 sections:
+
+- [`specification`](#specification-of-inputs) - Define the inputs and algorithm
+- [`output`](#specification-of-inputs) - Output location and format options
+- [`processing`](#) - Optimise CPU/Memory requirements
+
+Datacube Alchemist requires a configuration file in YAML format, to setup the Algorithm or Transformation,
+the input Dataset/s, as well as details of the outputs including metadata, destination and preview image generation.
+
+The configuration file has 3 sections. `specification` sets up the input ODC product, data bands and
+configured algorithm  to run . `output` sets where the output files will be written, how the preview image will be
+created, and what extra metadata to include. `processing` can help configure the tasks memory and CPU requirements..
+
+### Specification (of inputs)
+
+Defines the input data and the algorithm to process it.
+
+**product** or **products**
+Names of the
+
+**measurements:** [list] of measurement names to load from the input products
+
+**measurement_renames:** [map] rename measurements from the input data before passing to the transform
+
+**transform:** [string] fully qualified name of a Python class implementing the transform
+
+**transform_url:** [string] Reference URL for the Transform, to record in the output metadata
+
+**override_product_family:**  Override part of the metadata (should be in <output>)
+
+**basis:** ????
+
+**transform_args:** [map] Named arguments to pass to the Transformer class
+
+
+### Full example specification
+
+```yaml
+specification:
+  products:
+    - ga_ls5t_ard_3
+    - ga_ls7e_ard_3
+    - ga_ls8c_ard_3
+  measurements: ['nbart_blue', 'nbart_green', 'nbart_red', 'nbart_nir', 'nbart_swir_1', 'nbart_swir_2', 'oa_fmask']
+  measurement_renames:
+    oa_fmask: fmask
+
+  aws_unsigned: False
+  transform: wofs.virtualproduct.WOfSClassifier
+  transform_url: 'https://github.com/GeoscienceAustralia/wofs/'
+  override_product_family: ard
+  basis: nbart_green
+
+  transform_args:
+    dsm_path:  's3://dea-non-public-data/dsm/dsm1sv1_0_Clean.tiff'
+```
+
+### Transform Class Implementation
 
 ## License
 
