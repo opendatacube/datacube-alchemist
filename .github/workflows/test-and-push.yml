@@ -87,7 +87,7 @@ jobs:
         echo "GITHASH=$(git describe --tags)" >> $GITHUB_ENV
 
     - name: Build and Push unstable Docker Image for push to main
-      uses: whoan/docker-build-with-cache-action@v6.0.0
+      uses: whoan/docker-build-with-cache-action@v8.0.0
       if: github.event_name != 'release'
       with:
         image_name: ${{ env.IMAGE_NAME }}
@@ -123,7 +123,7 @@ jobs:
         echo "RELEASE=${GITHUB_REF/refs\/tags\/}" >> $GITHUB_ENV
 
     - name: Build and Push semver tagged Docker Image for Release
-      uses: whoan/docker-build-with-cache-action@v6.0.0
+      uses: whoan/docker-build-with-cache-action@v8.0.0
       if: github.event_name == 'release'
       with:
         image_name: ${{ env.IMAGE_NAME }}
