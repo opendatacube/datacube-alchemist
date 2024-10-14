@@ -345,9 +345,9 @@ class Alchemist:
                 setattr(dataset_assembler, k, v)
             # add dataset maturity property from original dataset rather than output config
             if "dea:dataset_maturity" in source_doc.properties:
-                dataset_assembler.properties[
-                    "dea:dataset_maturity"
-                ] = source_doc.properties["dea:dataset_maturity"]
+                dataset_assembler.properties["dea:dataset_maturity"] = (
+                    source_doc.properties["dea:dataset_maturity"]
+                )
             if self.config.output.properties:
                 for k, v in self.config.output.properties.items():
                     dataset_assembler.properties[k] = v
@@ -478,9 +478,9 @@ class Alchemist:
                     )
                     # also extract dataset maturity
                     if "dea:dataset_maturity" in source_doc.properties:
-                        dataset_assembler.properties[
-                            "dea:dataset_maturity"
-                        ] = source_doc.properties["dea:dataset_maturity"]
+                        dataset_assembler.properties["dea:dataset_maturity"] = (
+                            source_doc.properties["dea:dataset_maturity"]
+                        )
 
                 # Copy in metadata and properties
                 for k, v in task.settings.output.metadata.items():
