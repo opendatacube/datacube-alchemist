@@ -1,6 +1,6 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
 
-datacube[s3]
+datacube[s3]>=1.9.0
 aiobotocore[awscli, boto3]==2.2.0
 fc
 kombu
