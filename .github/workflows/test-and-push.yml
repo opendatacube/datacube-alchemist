@@ -40,9 +40,12 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: rickstaa/action-black@v1
+    - uses: psf/black@stable
       with:
-        black_args: "--check datacube_alchemist"
+        options: "--check"
+        src: "./datacube_alchemist"
+        # Enable when dependencies are specified in pyproject.toml.
+        # use_pyproject: true
 
     - name: Build the docker container
       run: |
