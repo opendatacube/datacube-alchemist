@@ -46,17 +46,17 @@ jobs:
 
     - name: Build the docker container
       run: |
-        docker-compose build
+        docker compose build
 
     - name: Bring up the docker container
       run: |
-        docker-compose up -d
+        docker compose up -d
         sleep 5
-        docker-compose exec -T alchemist datacube system init
+        docker compose exec -T alchemist datacube system init
 
     - name: Run tests
       run: |
-        docker-compose exec -T alchemist pytest --cov=./datacube_alchemist --cov-report=xml tests/
+        docker compose exec -T alchemist pytest --cov=./datacube_alchemist --cov-report=xml tests/
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -65,7 +65,7 @@ jobs:
 
     - name: Integration tests
       run: |
-        docker-compose exec -T alchemist bash ./tests/integration_tests.sh
+        docker compose exec -T alchemist bash ./tests/integration_tests.sh
 
   push:
     if: github.ref == 'refs/heads/main' || github.event_name == 'release'

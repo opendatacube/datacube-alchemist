@@ -28,7 +28,7 @@ Features
 ## Installation
 
 You can build the docker image locally with Docker or Docker Compose. The commands are
-`docker build --tag opendatacube/datacube-alchemist .` or `docker-compose build`.
+`docker build --tag opendatacube/datacube-alchemist .` or `docker compose build`.
 
 There's a Python setup file, so you can do `pip3 install .` in the root folder. You will
 need to ensure that the Open Data Cube and all its dependencies happily install though.
@@ -41,7 +41,7 @@ To run some example processes you can use the Docker Compose file to create a lo
 To start the workspace and run an example, you can do the following:
 
 * Export the environment variables `ODC_ACCESS_KEY` and `ODC_SECRET_KEY` with valid AWS credentials
-* Run `make up` or `docker-compose up` to start the postgres and datacube-alchemist Docker containers
+* Run `make up` or `docker compose up` to start the postgres and datacube-alchemist Docker containers
 * `make initdb` to initialise the ODC database (or see the Makefile for the specific command)
 * `make metadata` will add the metadata that the Landsat example product needs
 * `make product` will add the Landsat product definitions
