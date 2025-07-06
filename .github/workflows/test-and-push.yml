@@ -53,7 +53,7 @@ jobs:
 
     - name: Bring up the docker container
       run: |
-        docker compose up -d
+        docker compose up -d --quiet-pull
         sleep 5
         docker compose exec -T alchemist datacube system init
 
