@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-3.4.1
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.4.3
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Apt installation
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y \
       build-essential \
       fish \
