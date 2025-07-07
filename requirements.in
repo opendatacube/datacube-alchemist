@@ -1,11 +1,12 @@
 --extra-index-url="https://packages.dea.ga.gov.au"
+--find-links="https://packages.dea.ga.gov.au/fc"
 --no-binary fiona
 --no-binary rasterio
 --no-binary shapely
 
 datacube[s3]<1.9
 aiobotocore[awscli, boto3]
-fc
+fractional_cover
 kombu
 fsspec
 hdstats
@@ -19,10 +20,6 @@ eodatasets3
 
 
 # Match Docker image version.
-gdal==3.4.3
-# The fc package uses something removed in NumPy 1.24.
-numpy<1.24
+gdal==3.8.5
 # No SQLAlchemy 2.0 support in datacube 1.8.
 sqlalchemy<2.0
-# Shapely 2 requires more recent NumPy than Python 3.8 provides.
-shapely<2.0
