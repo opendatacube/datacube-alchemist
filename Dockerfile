@@ -1,8 +1,9 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-3.4.3
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.5
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
-    LANG=C.UTF-8
+    LANG=C.UTF-8 \
+    PATH=/root/.local/bin:$PATH
 
 # Apt installation
 RUN apt-get update && \
@@ -17,8 +18,19 @@ RUN apt-get update && \
       python3-pip \
       # For FC
       libgfortran5 \
+      # For Shapely & friends.
+      libgeos-dev \
+      libhdf5-dev \
+      libnetcdf-dev \
+      libudunits2-dev \
+      libproj-dev \
       # For Psycopg2
-      libpq-dev python-dev \
+      libpq-dev \
+      python3-dev \
+    # Fiona 1.10 does not install with older setuptools. Use user-installed
+    # pip and wheel as well to avoid confusing the package system.
+    && pip install -I --user pip wheel 'setuptools>=61.0' \
+    && apt-get purge -y python3-setuptools python3-pip python3-wheel \
     && apt-get autoclean && \
     apt-get autoremove && \
     rm -rf /var/lib/{apt,dpkg,cache,log}
