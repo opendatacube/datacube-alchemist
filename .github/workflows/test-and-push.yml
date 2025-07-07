@@ -7,7 +7,7 @@ on:
     paths:
       - 'datacube_alchemist/**'
       - 'tests/**'
-      - '.github/workflows/push-and-test.yml'
+      - '.github/workflows/test-and-push.yml'
       - 'Dockerfile'
       - 'requirements.txt'
       - 'constraints.txt'
@@ -19,7 +19,7 @@ on:
     paths:
       - 'datacube_alchemist/**'
       - 'tests/**'
-      - '.github/workflows/push-and-test.yml'
+      - '.github/workflows/test-and-push.yml'
       - 'Dockerfile'
       - 'requirements.txt'
       - 'constraints.txt'
