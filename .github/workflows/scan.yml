@@ -42,7 +42,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Notify Slack for Failures
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.3.3
         if: failure()
         env:
           SLACK_CHANNEL: ga-wms-ops
