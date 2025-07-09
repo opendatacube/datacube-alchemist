@@ -36,7 +36,7 @@ test:
 	docker compose exec alchemist pytest tests
 
 lint:
-	docker compose exec alchemist black --check datacube_alchemist
+	docker compose exec alchemist ruff --check datacube_alchemist
 
 integration-test:
 	docker compose up -d

@@ -16,7 +16,7 @@ def run_alchemist():
         *opts,
         catch_exceptions=False,
         expect_success=True,
-        cli_method=datacube_alchemist.cli.cli
+        cli_method=datacube_alchemist.cli.cli,
     ):
         exe_opts = []
         exe_opts.extend(opts)
