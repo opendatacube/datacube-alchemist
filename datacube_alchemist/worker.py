@@ -209,8 +209,7 @@ class Alchemist:
             version_major_minor = ".".join(version.split(".")[0:2])
         except (AttributeError, ModuleNotFoundError):
             _LOG.info(
-                "algorithm_version not set and "
-                "not used to generate deterministic uuid"
+                "algorithm_version not set and not used to generate deterministic uuid"
             )
         return {
             "version": version,

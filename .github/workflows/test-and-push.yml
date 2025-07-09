@@ -40,12 +40,9 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: psf/black@stable
+    - uses: astral-sh/ruff-action@v3
       with:
-        options: "--check"
-        src: "./datacube_alchemist"
-        # Enable when dependencies are specified in pyproject.toml.
-        # use_pyproject: true
+        args: 'format --check --diff'
 
     - name: Build the docker container
       run: |
