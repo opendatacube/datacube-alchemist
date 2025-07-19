@@ -1,10 +1,9 @@
-from typing import Optional, Mapping, Sequence, Any, Union
+from typing import Any, Mapping, Optional, Sequence, Union
 
 import attr
 import cattr
-from rasterio.enums import Resampling
-
 from datacube.model import Dataset
+from rasterio.enums import Resampling
 
 
 def _convert_union_mapping(obj, typ):
