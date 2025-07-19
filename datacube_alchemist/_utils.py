@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Dict
 
 import boto3
@@ -15,7 +15,6 @@ from eodatasets3.verify import PackageChecksum
 from toolz.dicttoolz import get_in
 
 from datacube_alchemist.settings import AlchemistTask
-
 
 # Regex for extracting region codes from tile IDs.
 RE_TILE_REGION_CODE = re.compile(r".*A\d{6}_T(\w{5})_N\d{2}\.\d{2}")

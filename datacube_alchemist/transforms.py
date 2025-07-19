@@ -9,9 +9,9 @@ from datacube import Datacube
 from datacube.utils.rio import configure_s3_access
 from datacube.virtual import Measurement, Transformation
 from nrtmodels import (
-    UnsupervisedBurnscarDetect2,
     # UnsupervisedBurnscarDetect1,
     SupervisedBurnscarDetect1,
+    UnsupervisedBurnscarDetect2,
 )
 from odc.algo import int_geomedian
 
