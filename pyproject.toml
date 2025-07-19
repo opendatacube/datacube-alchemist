@@ -1,5 +1,10 @@
 [build-system]
 requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
 
+[tool.ruff.lint]
+select = [
+    "I",  # isort
+]
+
 [tool.setuptools_scm]
 write_to = "datacube_alchemist/_version.py"

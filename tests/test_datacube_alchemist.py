@@ -1,8 +1,8 @@
-from datacube_alchemist.worker import Alchemist
-from moto import mock_sqs, mock_sns
 import boto3
+from moto import mock_sns, mock_sqs
 
 from datacube_alchemist._utils import _stac_to_sns
+from datacube_alchemist.worker import Alchemist
 
 TEST_QUEUE_NAME = "alchemist-test-queue"
 

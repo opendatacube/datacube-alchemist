@@ -1,9 +1,10 @@
 import json
 from pathlib import Path
 
-import datacube_alchemist.cli
 import pytest
 from click.testing import CliRunner
+
+import datacube_alchemist.cli
 
 
 @pytest.fixture
