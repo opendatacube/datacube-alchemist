@@ -12,6 +12,7 @@ select = [
     "N",  # pep8-naming
     "RUF", # Ruff-specific rules
     "T10", # flake8-debugger
+    "UP", # pyupgrade
     "W",  # pycodestyle warnings
 ]
 
