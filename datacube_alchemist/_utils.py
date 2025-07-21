@@ -1,7 +1,6 @@
 import json
 import re
 from pathlib import Path
-from typing import Dict
 
 import boto3
 import structlog
@@ -25,7 +24,7 @@ class FakeTransformation(Transformation):
     Only writes input to output
     """
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return input_measurements
 
     def compute(self, data) -> Dataset:

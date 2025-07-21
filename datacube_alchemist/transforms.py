@@ -1,5 +1,4 @@
 import os
-from typing import Dict
 
 import numpy
 import structlog
@@ -26,7 +25,7 @@ class DeltaNBR(Transformation):
             "dnbr": {"name": "dnbr", "dtype": "float", "nodata": numpy.nan, "units": ""}
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -86,7 +85,7 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
             },
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -298,7 +297,7 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
             },
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -507,7 +506,7 @@ class BAUnsupervised_s2be(Transformation):  # noqa: N801
             }
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -719,7 +718,7 @@ class BurntArea_Unsupervised(Transformation):  # noqa: N801
             }
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:

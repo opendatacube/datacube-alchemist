@@ -4,9 +4,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterable, Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Mapping, Optional, Type, Union
+from typing import Optional, Union
 
 import cattr
 import datacube
@@ -78,7 +79,7 @@ class Alchemist:
         return self.config.specification.resampling
 
     @property
-    def transform(self) -> Type[Transformation]:
+    def transform(self) -> type[Transformation]:
         module_name, class_name = self.transform_name.rsplit(".", maxsplit=1)
         module = importlib.import_module(name=module_name)
         imported_class = getattr(module, class_name)

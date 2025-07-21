@@ -4,8 +4,9 @@
 
 import queue
 import threading
+from collections.abc import Iterable
 from random import randint
-from typing import Any, Iterable
+from typing import Any
 
 import dask.bag
 import structlog
