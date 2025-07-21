@@ -67,7 +67,7 @@ def cli_with_envvar_handling():
     cli(auto_envvar_prefix="ALCHEMIST")
 
 
-@click.group(context_settings=dict(max_content_width=120), invoke_without_command=True)
+@click.group(context_settings={"max_content_width": 120}, invoke_without_command=True)
 @click.option("--version", is_flag=True, default=False)
 def cli(version):
     """

@@ -312,7 +312,10 @@ class Alchemist:
         conn = psycopg2.connect(str(self.dc.index.url))
         cur = conn.cursor()
 
-        query_args = dict(input_products=input_products, output_product=output_product)
+        query_args = {
+            "input_products": input_products,
+            "output_product": output_product,
+        }
         cur.execute(query, query_args)
         results = cur.fetchall()
         _LOG.info(
