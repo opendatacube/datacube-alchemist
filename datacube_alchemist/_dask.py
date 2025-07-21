@@ -19,7 +19,7 @@ _LOG = structlog.get_logger()
 
 
 def _randomize(prefix):
-    return "{}-{:08x}".format(prefix, randint(0, 0xFFFFFFFF))
+    return f"{prefix}-{randint(0, 0xFFFFFFFF):08x}"
 
 
 def seq_to_bags(its: Iterable[Any], chunk_sz: int, name: str = "data"):

@@ -25,9 +25,8 @@ def run_alchemist():
         runner = CliRunner()
         result = runner.invoke(cli_method, exe_opts, catch_exceptions=catch_exceptions)
         if expect_success:
-            assert 0 == result.exit_code, "Error for %r. output: %r" % (
-                opts,
-                result.output,
+            assert 0 == result.exit_code, (
+                f"Error for {opts!r}. output: {result.output!r}"
             )
         return result
 

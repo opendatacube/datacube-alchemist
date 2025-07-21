@@ -196,7 +196,7 @@ def _guess_region_code(ds: Dataset) -> str:
     # The region code is 50JPP.
     tile_match = RE_TILE_REGION_CODE.match(ds.metadata_doc["tile_id"])
     if not tile_match:
-        raise ValueError("No region code for dataset {}".format(ds.id))
+        raise ValueError(f"No region code for dataset {ds.id}")
     return tile_match.group(1)
 
 
