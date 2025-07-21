@@ -61,7 +61,7 @@ class DeltaNBR(Transformation):
         return data
 
 
-class DeltaNBR_3band(Transformation):
+class DeltaNBR_3band(Transformation):  # noqa: N801
     """Return 3-Band NBR"""
 
     def __init__(self):
@@ -273,7 +273,7 @@ class DeltaNBR_3band(Transformation):
         return data
 
 
-class DeltaNBR_3band_s2be(Transformation):
+class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
     """Return 3-Band NBR"""
 
     def __init__(self):
@@ -494,7 +494,7 @@ class DeltaNBR_3band_s2be(Transformation):
         return data
 
 
-class BAUnsupervised_s2be(Transformation):
+class BAUnsupervised_s2be(Transformation):  # noqa: N801
     """Return NRT Unsupervised Model using S2 barest earth dataset"""
 
     def __init__(self):
@@ -706,7 +706,7 @@ class BAUnsupervised_s2be(Transformation):
         return ds
 
 
-class BurntArea_Unsupervised(Transformation):
+class BurntArea_Unsupervised(Transformation):  # noqa: N801
     """Return 1-band Unsupervised Burnt Area"""
 
     def __init__(self):
