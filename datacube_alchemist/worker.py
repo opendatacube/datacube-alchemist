@@ -445,7 +445,7 @@ class Alchemist:
         # Because"/env/lib/python3.6/site-packages/eodatasets3/images.py", line 489, in write_from_ndarray
         # raise TypeError("Datatype not supported: {dt}".format(dt=dtype))
         # TODO: investigate if this is ok
-        dtypes = set(str(v.dtype) for v in output_data.data_vars.values())
+        dtypes = {str(v.dtype) for v in output_data.data_vars.values()}
         if "int8" in dtypes:
             log.info(
                 "Found dtype=int8 in output data, converting to uint8 for geotiffs"
