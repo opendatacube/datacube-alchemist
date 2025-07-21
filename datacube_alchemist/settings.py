@@ -13,7 +13,7 @@ def _convert_union_mapping(obj, typ):
     # duck-type validation for a Mapping[str, str]
     if all(isinstance(v, str) for v in obj.values()):
         return obj
-    raise ValueError(f"Expected Union[str, Mapping[str, str]]; got {repr(obj)}")
+    raise ValueError(f"Expected Union[str, Mapping[str, str]]; got {obj!r}")
 
 
 cattr.register_structure_hook(Union[str, Mapping[str, str]], _convert_union_mapping)
