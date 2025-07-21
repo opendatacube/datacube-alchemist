@@ -6,7 +6,7 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Mapping, Type, Union
+from typing import Iterable, Mapping, Optional, Type, Union
 
 import cattr
 import datacube
@@ -389,7 +389,7 @@ class Alchemist:
 
     # Task execution
     def execute_task(
-        self, task: AlchemistTask, dryrun: bool = False, sns_arn: str = None
+        self, task: AlchemistTask, dryrun: bool = False, sns_arn: Optional[str] = None
     ):
         log = _LOG.bind(task=task.dataset.id)
         log.info("Task commencing", task=task)
