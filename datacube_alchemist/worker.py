@@ -91,7 +91,7 @@ class Alchemist:
 
     def _native_resolution(self, task: AlchemistTask) -> float:
         geobox = native_geobox(
-            task.dataset, basis=list(task.dataset.measurements.keys())[0]
+            task.dataset, basis=next(iter(task.dataset.measurements.keys()))
         )
         return geobox.affine[0]
 
