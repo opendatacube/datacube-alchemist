@@ -3,8 +3,17 @@ requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
 
 [tool.ruff.lint]
 select = [
+    "D419", # No empty doc strings
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "FLY", # flynt
     "I",  # isort
+    "T10", # flake8-debugger
+    "W",  # pycodestyle warnings
 ]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 118
 
 [tool.setuptools_scm]
 write_to = "datacube_alchemist/_version.py"
