@@ -320,10 +320,8 @@ class Alchemist:
         cur.execute(query, query_args)
         results = cur.fetchall()
         _LOG.info(
-            (
-                f"Found {len(results)} datasets from {len(self.input_products)} input products"
-                f" missing in the output product {output_product}"
-            )
+            f"Found {len(results)} datasets from {len(self.input_products)} input products"
+            f" missing in the output product {output_product}"
         )
 
         datasets = [self.dc.index.datasets.get(row[0]) for row in results]
