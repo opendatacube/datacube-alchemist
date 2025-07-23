@@ -269,14 +269,12 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
     if to_queue:
         alive_queue = get_queue(to_queue)
     else:
-        count = 0
-        for q in dead_queue.dead_letter_source_queues.all():
-            alive_queue = q
-            count += 1
-            if count > 1:
+        for i, q in enumerate(dead_queue.dead_letter_source_queues.all()):
+            if i > 0:
                 raise Exception(
                     "Deadletter queue has more than one source, please specify the target queue name."
                 )
+            alive_queue = q
     messages = get_messages(dead_queue)
 
     count = 0
