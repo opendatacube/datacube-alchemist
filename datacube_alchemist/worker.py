@@ -107,8 +107,7 @@ class Alchemist:
             )
         if transform_args is not None:
             return self.transform(**transform_args)
-        else:
-            return self.transform()
+        return self.transform()
 
     def _find_dataset(self, uuid: str) -> Dataset:
         # Find a dataset for a given UUID from within the available
@@ -258,8 +257,7 @@ class Alchemist:
         dataset = self._find_dataset(uuid)
         if dataset:
             return AlchemistTask(dataset=dataset, settings=self.config)
-        else:
-            return None
+        return None
 
     def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
         # Find which datasets needs to be processed
@@ -274,8 +272,7 @@ class Alchemist:
         datasets = self._find_datasets(query, limit, product_limit)
         if not dryrun:
             return self.datasets_to_queue(queue, datasets)
-        else:
-            return sum(1 for _ in datasets)
+        return sum(1 for _ in datasets)
 
     def find_unprocessed_datasets(self, queue, dryrun):
         """
