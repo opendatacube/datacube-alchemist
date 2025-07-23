@@ -55,9 +55,7 @@ class DeltaNBR(Transformation):
 
         data["dnbr"] = data.dnbr.where(data.nbart_nir_1 != -999).astype(numpy.single)
 
-        data = data.drop(["nir", "swir2", "pre", "post"])
-
-        return data
+        return data.drop(["nir", "swir2", "pre", "post"])
 
 
 class DeltaNBR_3band(Transformation):  # noqa: N801
@@ -267,9 +265,7 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
 
         # add time dimension back to "data"
         logger.debug("Adding time dimension")
-        data = data.expand_dims({"time": time_dim})
-
-        return data
+        return data.expand_dims({"time": time_dim})
 
 
 class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
@@ -475,7 +471,7 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
 
         logger.info("Exporting data")
 
-        data = data.drop_vars(
+        return data.drop_vars(
             [
                 "nbart_nir_1",
                 "nbart_swir_2",
@@ -489,8 +485,6 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
                 "post_ndvi",
             ]
         )
-
-        return data
 
 
 class BAUnsupervised_s2be(Transformation):  # noqa: N801

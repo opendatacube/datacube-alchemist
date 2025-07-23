@@ -265,9 +265,7 @@ class Alchemist:
         # Find which datasets needs to be processed
         datasets = self._find_datasets(query, limit)
 
-        tasks = (self.generate_task(ds) for ds in datasets)
-
-        return tasks
+        return (self.generate_task(ds) for ds in datasets)
 
     # Queue related functions
     def enqueue_datasets(
@@ -324,8 +322,7 @@ class Alchemist:
             f" missing in the output product {output_product}"
         )
 
-        datasets = [self.dc.index.datasets.get(row[0]) for row in results]
-        return datasets
+        return [self.dc.index.datasets.get(row[0]) for row in results]
 
     def _determine_output_product(self):
         # Most of this guff is just to get a destination product name...
