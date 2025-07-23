@@ -4,9 +4,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterable, Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Mapping, Type, Union
+from typing import Optional, Union
 
 import cattr
 import datacube
@@ -78,7 +79,7 @@ class Alchemist:
         return self.config.specification.resampling
 
     @property
-    def transform(self) -> Type[Transformation]:
+    def transform(self) -> type[Transformation]:
         module_name, class_name = self.transform_name.rsplit(".", maxsplit=1)
         module = importlib.import_module(name=module_name)
         imported_class = getattr(module, class_name)
@@ -91,7 +92,7 @@ class Alchemist:
 
     def _native_resolution(self, task: AlchemistTask) -> float:
         geobox = native_geobox(
-            task.dataset, basis=list(task.dataset.measurements.keys())[0]
+            task.dataset, basis=next(iter(task.dataset.measurements.keys()))
         )
         return geobox.affine[0]
 
@@ -312,14 +313,15 @@ class Alchemist:
         conn = psycopg2.connect(str(self.dc.index.url))
         cur = conn.cursor()
 
-        query_args = dict(input_products=input_products, output_product=output_product)
+        query_args = {
+            "input_products": input_products,
+            "output_product": output_product,
+        }
         cur.execute(query, query_args)
         results = cur.fetchall()
         _LOG.info(
-            (
-                f"Found {len(results)} datasets from {len(self.input_products)} input products"
-                f" missing in the output product {output_product}"
-            )
+            f"Found {len(results)} datasets from {len(self.input_products)} input products"
+            f" missing in the output product {output_product}"
         )
 
         datasets = [self.dc.index.datasets.get(row[0]) for row in results]
@@ -389,7 +391,7 @@ class Alchemist:
 
     # Task execution
     def execute_task(
-        self, task: AlchemistTask, dryrun: bool = False, sns_arn: str = None
+        self, task: AlchemistTask, dryrun: bool = False, sns_arn: Optional[str] = None
     ):
         log = _LOG.bind(task=task.dataset.id)
         log.info("Task commencing", task=task)
@@ -445,7 +447,7 @@ class Alchemist:
         # Because"/env/lib/python3.6/site-packages/eodatasets3/images.py", line 489, in write_from_ndarray
         # raise TypeError("Datatype not supported: {dt}".format(dt=dtype))
         # TODO: investigate if this is ok
-        dtypes = set(str(v.dtype) for v in output_data.data_vars.values())
+        dtypes = {str(v.dtype) for v in output_data.data_vars.values()}
         if "int8" in dtypes:
             log.info(
                 "Found dtype=int8 in output data, converting to uint8 for geotiffs"

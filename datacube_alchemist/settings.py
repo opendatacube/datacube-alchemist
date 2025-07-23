@@ -1,4 +1,5 @@
-from typing import Any, Mapping, Optional, Sequence, Union
+from collections.abc import Mapping, Sequence
+from typing import Any, Optional, Union
 
 import attr
 import cattr
@@ -13,7 +14,7 @@ def _convert_union_mapping(obj, typ):
     # duck-type validation for a Mapping[str, str]
     if all(isinstance(v, str) for v in obj.values()):
         return obj
-    raise ValueError(f"Expected Union[str, Mapping[str, str]]; got {repr(obj)}")
+    raise ValueError(f"Expected Union[str, Mapping[str, str]]; got {obj!r}")
 
 
 cattr.register_structure_hook(Union[str, Mapping[str, str]], _convert_union_mapping)
@@ -64,8 +65,8 @@ class Specification:
 
 @attr.s(auto_attribs=True)
 class ProcessingSettings:
-    dask_chunks: Mapping[str, int] = attr.ib(default=dict())
-    dask_client: Optional[Mapping[str, Any]] = attr.ib(default=dict())
+    dask_chunks: Mapping[str, int] = attr.ib(default={})
+    dask_client: Optional[Mapping[str, Any]] = attr.ib(default={})
 
 
 @attr.s(auto_attribs=True)

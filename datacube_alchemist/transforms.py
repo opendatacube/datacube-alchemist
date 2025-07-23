@@ -1,5 +1,4 @@
 import os
-from typing import Dict
 
 import numpy
 import structlog
@@ -26,7 +25,7 @@ class DeltaNBR(Transformation):
             "dnbr": {"name": "dnbr", "dtype": "float", "nodata": numpy.nan, "units": ""}
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -61,7 +60,7 @@ class DeltaNBR(Transformation):
         return data
 
 
-class DeltaNBR_3band(Transformation):
+class DeltaNBR_3band(Transformation):  # noqa: N801
     """Return 3-Band NBR"""
 
     def __init__(self):
@@ -86,7 +85,7 @@ class DeltaNBR_3band(Transformation):
             },
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -273,7 +272,7 @@ class DeltaNBR_3band(Transformation):
         return data
 
 
-class DeltaNBR_3band_s2be(Transformation):
+class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
     """Return 3-Band NBR"""
 
     def __init__(self):
@@ -298,7 +297,7 @@ class DeltaNBR_3band_s2be(Transformation):
             },
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -494,7 +493,7 @@ class DeltaNBR_3band_s2be(Transformation):
         return data
 
 
-class BAUnsupervised_s2be(Transformation):
+class BAUnsupervised_s2be(Transformation):  # noqa: N801
     """Return NRT Unsupervised Model using S2 barest earth dataset"""
 
     def __init__(self):
@@ -507,7 +506,7 @@ class BAUnsupervised_s2be(Transformation):
             }
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
@@ -620,23 +619,23 @@ class BAUnsupervised_s2be(Transformation):
         data = data.load()
 
         logger.debug(data.B02.values)
-        logger.debug(f"B02 min:{str(data.B02.min())}")
-        logger.debug(f"B02 max:{str(data.B02.max())}")
-        logger.debug(f"B04 min:{str(data.B04.min())}")
-        logger.debug(f"B04 max:{str(data.B04.max())}")
-        logger.debug(f"B08 min:{str(data.B08.min())}")
-        logger.debug(f"B08 max:{str(data.B08.max())}")
-        logger.debug(f"B11 min:{str(data.B11.min())}")
-        logger.debug(f"B11 max:{str(data.B11.max())}")
+        logger.debug(f"B02 min:{data.B02.min()!s}")
+        logger.debug(f"B02 max:{data.B02.max()!s}")
+        logger.debug(f"B04 min:{data.B04.min()!s}")
+        logger.debug(f"B04 max:{data.B04.max()!s}")
+        logger.debug(f"B08 min:{data.B08.min()!s}")
+        logger.debug(f"B08 max:{data.B08.max()!s}")
+        logger.debug(f"B11 min:{data.B11.min()!s}")
+        logger.debug(f"B11 max:{data.B11.max()!s}")
 
-        logger.debug(f"be B02 min:{str(gm_data.B02.min())}")
-        logger.debug(f"be B02 max:{str(gm_data.B02.max())}")
-        logger.debug(f"be B04 min:{str(gm_data.B04.min())}")
-        logger.debug(f"be B04 max:{str(gm_data.B04.max())}")
-        logger.debug(f"be B08 min:{str(gm_data.B08.min())}")
-        logger.debug(f"be B08 max:{str(gm_data.B08.max())}")
-        logger.debug(f"be B11 min:{str(gm_data.B11.min())}")
-        logger.debug(f"be B11 max:{str(gm_data.B11.max())}")
+        logger.debug(f"be B02 min:{gm_data.B02.min()!s}")
+        logger.debug(f"be B02 max:{gm_data.B02.max()!s}")
+        logger.debug(f"be B04 min:{gm_data.B04.min()!s}")
+        logger.debug(f"be B04 max:{gm_data.B04.max()!s}")
+        logger.debug(f"be B08 min:{gm_data.B08.min()!s}")
+        logger.debug(f"be B08 max:{gm_data.B08.max()!s}")
+        logger.debug(f"be B11 min:{gm_data.B11.min()!s}")
+        logger.debug(f"be B11 max:{gm_data.B11.max()!s}")
 
         gm_data = gm_data.isel(time=0, drop=True)
         post_data = data.isel(time=0, drop=True)
@@ -706,7 +705,7 @@ class BAUnsupervised_s2be(Transformation):
         return ds
 
 
-class BurntArea_Unsupervised(Transformation):
+class BurntArea_Unsupervised(Transformation):  # noqa: N801
     """Return 1-band Unsupervised Burnt Area"""
 
     def __init__(self):
@@ -719,7 +718,7 @@ class BurntArea_Unsupervised(Transformation):
             }
         }
 
-    def measurements(self, input_measurements) -> Dict[str, Measurement]:
+    def measurements(self, input_measurements) -> dict[str, Measurement]:
         return self.output_measurements
 
     def compute(self, data) -> xr.Dataset:
