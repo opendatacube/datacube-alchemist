@@ -9,8 +9,10 @@ on:
       - 'tests/**'
       - '.github/workflows/test-and-push.yml'
       - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'requirements.in'
       - 'requirements.txt'
-      - 'constraints.txt'
+      - 'setup.cfg'
       - 'setup.py'
 
   pull_request:
@@ -21,8 +23,10 @@ on:
       - 'tests/**'
       - '.github/workflows/test-and-push.yml'
       - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'requirements.in'
       - 'requirements.txt'
-      - 'constraints.txt'
+      - 'setup.cfg'
       - 'setup.py'
 
   release:
