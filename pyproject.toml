@@ -6,6 +6,7 @@ select = [
     "A",  # Don't shadow built-ins
     "C4", # flake8-comprehensions
     "D419", # No empty doc strings
+    "DTZ", # flake8-datetimez
     "E",  # pycodestyle errors
     "F",  # pyflakes
     "FLY", # flynt

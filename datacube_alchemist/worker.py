@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Iterable, Mapping
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Union
 
@@ -346,7 +346,7 @@ class Alchemist:
             if self.config.output.properties:
                 for k, v in self.config.output.properties.items():
                     dataset_assembler.properties[k] = v
-            dataset_assembler.processed = datetime.utcnow()
+            dataset_assembler.processed = datetime.now(timezone.utc)
 
             output_product = dataset_assembler.names.product_name
             dataset_assembler.cancel()
@@ -488,7 +488,7 @@ class Alchemist:
                 # Update the GSD
                 dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
 
-                dataset_assembler.processed = datetime.utcnow()
+                dataset_assembler.processed = datetime.now(timezone.utc)
 
                 dataset_assembler.note_software_version(
                     "datacube-alchemist",
