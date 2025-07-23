@@ -21,6 +21,7 @@ select = [
     "Q", # flake8-quotes
     "RET", # flake8-ret
     "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
     "SLF", # flake8-self
     "T10", # flake8-debugger
     "UP", # pyupgrade
