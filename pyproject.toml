@@ -10,6 +10,7 @@ select = [
     "FLY", # flynt
     "I",  # isort
     "N",  # pep8-naming
+    "Q", # flake8-quotes
     "RET", # flake8-ret
     "RUF", # Ruff-specific rules
     "T10", # flake8-debugger
