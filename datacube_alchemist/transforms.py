@@ -1,6 +1,6 @@
 import os
 
-import numpy
+import numpy as np
 import structlog
 import xarray as xr
 from dask.distributed import Client
@@ -22,7 +22,7 @@ class DeltaNBR(Transformation):
 
     def __init__(self):
         self.output_measurements = {
-            "dnbr": {"name": "dnbr", "dtype": "float", "nodata": numpy.nan, "units": ""}
+            "dnbr": {"name": "dnbr", "dtype": "float", "nodata": np.nan, "units": ""}
         }
 
     def measurements(self, input_measurements) -> dict[str, Measurement]:
@@ -53,7 +53,7 @@ class DeltaNBR(Transformation):
         )
         data["dnbr"] = data.pre - data.post
 
-        data["dnbr"] = data.dnbr.where(data.nbart_nir_1 != -999).astype(numpy.single)
+        data["dnbr"] = data.dnbr.where(data.nbart_nir_1 != -999).astype(np.single)
 
         return data.drop(["nir", "swir2", "pre", "post"])
 
@@ -66,19 +66,19 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
             "delta_nbr": {
                 "name": "dnbr",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             },
             "delta_bsi": {
                 "name": "bsi",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             },
             "delta_ndvi": {
                 "name": "ndvi",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             },
         }
@@ -99,19 +99,17 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
             gm_base_year = 2013
 
         # Get time of input NRT image
-        data_time_epoch = numpy.datetime64(data["time"].item(0), "ns")
+        data_time_epoch = np.datetime64(data["time"].item(0), "ns")
 
         # Compute the relevant period for the geomedian calculation
         # GM Start date is image date minus 3 years
         #  Note that the calculation is in weeks, as delta in months/years are not constant.
-        gm_start_date = data_time_epoch - numpy.timedelta64(52 * 3, "W").astype(
+        gm_start_date = data_time_epoch - np.timedelta64(52 * 3, "W").astype(
             "timedelta64[ns]"
         )
 
         # End date is start date plus 3 months
-        gm_end_date = gm_start_date + numpy.timedelta64(4, "W").astype(
-            "timedelta64[ns]"
-        )
+        gm_end_date = gm_start_date + np.timedelta64(4, "W").astype("timedelta64[ns]")
 
         logger.debug(
             f"Geomedian will be generated over timeframe from {gm_start_date} to {gm_end_date}"
@@ -190,8 +188,8 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
         data["delta_nbr"] = data.pre_nbr - data.post_nbr
         data["delta_nbr"] = (
             data.delta_nbr.where(data.nbart_nir_1 != -999)
-            .where(data.nbart_nir1 != numpy.NaN)
-            .astype(numpy.single)
+            .where(data.nbart_nir1 != np.NaN)
+            .astype(np.single)
         )
 
         # Bare Soil Index (Rikimaru, Miyatake 2002)
@@ -215,8 +213,8 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
         data["delta_bsi"] = data.pre_bsi - data.post_bsi
         data["delta_bsi"] = (
             data.delta_bsi.where(data.nbart_nir_1 != -999)
-            .where(data.nbart_nir1 != numpy.NaN)
-            .astype(numpy.single)
+            .where(data.nbart_nir1 != np.NaN)
+            .astype(np.single)
         )
         data["delta_bsi"] = (
             data.delta_bsi * -1
@@ -236,8 +234,8 @@ class DeltaNBR_3band(Transformation):  # noqa: N801
         data["delta_ndvi"] = data.pre_ndvi - data.post_ndvi
         data["delta_ndvi"] = (
             data.delta_ndvi.where(data.nbart_nir_1 != -999)
-            .where(data.nbart_nir1 != numpy.NaN)
-            .astype(numpy.single)
+            .where(data.nbart_nir1 != np.NaN)
+            .astype(np.single)
         )
 
         # Add computed geomedian data to output
@@ -276,19 +274,19 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
             "delta_nbr": {
                 "name": "dnbr",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             },
             "delta_bsi": {
                 "name": "bsi",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             },
             "delta_ndvi": {
                 "name": "ndvi",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             },
         }
@@ -344,8 +342,8 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
         for band in filter_ard_bands:
             data[band] = (
                 data[band]
-                .where(data[band] != -999, numpy.NaN)
-                .where(numpy.isfinite(data[band]), numpy.NaN)
+                .where(data[band] != -999, np.NaN)
+                .where(np.isfinite(data[band]), np.NaN)
             )
 
         filter_gm_bands = (
@@ -357,8 +355,8 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
         for band in filter_gm_bands:
             gm_data[band] = (
                 gm_data[band]
-                .where(gm_data[band] != -999, numpy.NaN)
-                .where(numpy.isfinite(gm_data[band]), numpy.NaN)
+                .where(gm_data[band] != -999, np.NaN)
+                .where(np.isfinite(gm_data[band]), np.NaN)
             )
 
         logger.debug(f"gm_data: {gm_data} data: {data}")
@@ -382,13 +380,13 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
         # 2. barest earth nodata value
         # 3. only keep finite values on output band.
         data["delta_nbr"] = data.delta_nbr.where(data.nbart_nir_1 != -999).astype(
-            numpy.single
+            np.single
         )
         data["delta_nbr"] = data.delta_nbr.where(
-            numpy.isfinite(data.delta_nbr), numpy.NaN
-        ).astype(numpy.single)
-        data["delta_nbr"] = data.delta_nbr.where(data.nbart_nir_1 != numpy.NaN).astype(
-            numpy.single
+            np.isfinite(data.delta_nbr), np.NaN
+        ).astype(np.single)
+        data["delta_nbr"] = data.delta_nbr.where(data.nbart_nir_1 != np.NaN).astype(
+            np.single
         )
         # FMask filter:
         # Keep pixels tagged 'valid' or 'water', remove pixels tagged 'snow', 'invalid', 'cloud' and 'cloud shadow'
@@ -397,9 +395,7 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
         #
         # Ref: https://cmi.ga.gov.au/data-products/dea/404/dea-surface-reflectance-oa-landsat-8-oli-tirs#details
         fmask_filter = (data.fmask == 1) | (data.fmask == 5)
-        data["delta_nbr"] = data.delta_nbr.where(fmask_filter, numpy.NaN).astype(
-            numpy.single
-        )
+        data["delta_nbr"] = data.delta_nbr.where(fmask_filter, np.NaN).astype(np.single)
 
         # Bare Soil Index (Rikimaru, Miyatake 2002)
         # (BSI) = ((Swir2 + red) - (nir + Blue)) / ((Swir2 + red) + (nir + Blue))
@@ -424,21 +420,19 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
         # 2. barest earth nodata value
         # 3. only keep finite values on output band.
         data["delta_bsi"] = data.delta_bsi.where(data.nbart_nir_1 != -999).astype(
-            numpy.single
+            np.single
         )
         data["delta_bsi"] = data.delta_bsi.where(
-            numpy.isfinite(data.delta_bsi), numpy.NaN
-        ).astype(numpy.single)
-        data["delta_bsi"] = data.delta_bsi.where(data.nbart_nir_1 != numpy.NaN).astype(
-            numpy.single
+            np.isfinite(data.delta_bsi), np.NaN
+        ).astype(np.single)
+        data["delta_bsi"] = data.delta_bsi.where(data.nbart_nir_1 != np.NaN).astype(
+            np.single
         )
         data["delta_bsi"] = (
             data.delta_bsi * -1
         )  # multiply by -1 to scale the same as other models
         # FMask filter:
-        data["delta_bsi"] = data.delta_bsi.where(fmask_filter, numpy.NaN).astype(
-            numpy.single
-        )
+        data["delta_bsi"] = data.delta_bsi.where(fmask_filter, np.NaN).astype(np.single)
 
         # Normalized Difference Vegetation Index (NDVI) = (B08 - B04)/(B08 + B04)
         logger.info("Starting NDVI calculation")
@@ -456,17 +450,17 @@ class DeltaNBR_3band_s2be(Transformation):  # noqa: N801
         # 3. only keep finite values on output band.
         data["delta_ndvi"] = data.pre_ndvi - data.post_ndvi
         data["delta_ndvi"] = data.delta_ndvi.where(data.nbart_nir_1 != -999).astype(
-            numpy.single
+            np.single
         )
         data["delta_ndvi"] = data.delta_ndvi.where(
-            numpy.isfinite(data.delta_ndvi), numpy.NaN
-        ).astype(numpy.single)
-        data["delta_ndvi"] = data.delta_ndvi.where(
-            data.nbart_nir_1 != numpy.NaN
-        ).astype(numpy.single)
+            np.isfinite(data.delta_ndvi), np.NaN
+        ).astype(np.single)
+        data["delta_ndvi"] = data.delta_ndvi.where(data.nbart_nir_1 != np.NaN).astype(
+            np.single
+        )
         # FMask filter:
-        data["delta_ndvi"] = data.delta_ndvi.where(fmask_filter, numpy.NaN).astype(
-            numpy.single
+        data["delta_ndvi"] = data.delta_ndvi.where(fmask_filter, np.NaN).astype(
+            np.single
         )
 
         logger.info("Exporting data")
@@ -495,7 +489,7 @@ class BAUnsupervised_s2be(Transformation):  # noqa: N801
             "ba_unsupervised": {
                 "name": "dnbr",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             }
         }
@@ -543,20 +537,20 @@ class BAUnsupervised_s2be(Transformation):  # noqa: N801
 
         # Filter bad data
         gm_data["s2be_blue"] = gm_data.s2be_blue.where(
-            gm_data.s2be_blue != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_blue), numpy.NaN)
+            gm_data.s2be_blue != -999, np.NaN
+        ).where(np.isfinite(gm_data.s2be_blue), np.NaN)
 
         gm_data["s2be_red"] = gm_data.s2be_red.where(
-            gm_data.s2be_red != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_red), numpy.NaN)
+            gm_data.s2be_red != -999, np.NaN
+        ).where(np.isfinite(gm_data.s2be_red), np.NaN)
 
         gm_data["s2be_nir_1"] = gm_data.s2be_nir_1.where(
-            gm_data.s2be_nir_1 != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_nir_1), numpy.NaN)
+            gm_data.s2be_nir_1 != -999, np.NaN
+        ).where(np.isfinite(gm_data.s2be_nir_1), np.NaN)
 
         gm_data["s2be_swir_2"] = gm_data.s2be_swir_2.where(
-            gm_data.s2be_swir_2 != -999, numpy.NaN
-        ).where(numpy.isfinite(gm_data.s2be_swir_2), numpy.NaN)
+            gm_data.s2be_swir_2 != -999, np.NaN
+        ).where(np.isfinite(gm_data.s2be_swir_2), np.NaN)
 
         # Renaming bands to match expected band names (B02, B04, B08, B11)
         gm_data = (
@@ -567,35 +561,35 @@ class BAUnsupervised_s2be(Transformation):  # noqa: N801
                     "s2be_nir_1": "B08",
                     "s2be_swir_2": "B11",
                 }
-            ).astype(numpy.float64)
+            ).astype(np.float64)
             / 10000.0
         )
 
         # Select/compute the mask array
         mask = xr.where(data.fmask == 1, 0, 1).astype(
-            numpy.int8
+            np.int8
         )  # update fmask mask if use models
         mask = mask.isel(time=0, drop=True)
         logger.debug("uniques:")
-        logger.debug(numpy.unique(mask))
+        logger.debug(np.unique(mask))
 
         # data["nbart_blue"] = data.nbart_blue.where(data.nbart_blue == -999, numpy.NaN).astype(numpy.float64)
 
         data["nbart_blue"] = data.nbart_blue.where(
-            data.nbart_blue != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_blue), numpy.NaN)
+            data.nbart_blue != -999, np.NaN
+        ).where(np.isfinite(data.nbart_blue), np.NaN)
 
         data["nbart_red"] = data.nbart_red.where(
-            (data.nbart_red != -999), numpy.NaN
-        ).where(numpy.isfinite(data.nbart_red), numpy.NaN)
+            (data.nbart_red != -999), np.NaN
+        ).where(np.isfinite(data.nbart_red), np.NaN)
 
         data["nbart_nir_1"] = data.nbart_nir_1.where(
-            data.nbart_nir_1 != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_nir_1), numpy.NaN)
+            data.nbart_nir_1 != -999, np.NaN
+        ).where(np.isfinite(data.nbart_nir_1), np.NaN)
 
         data["nbart_swir_2"] = data.nbart_swir_2.where(
-            data.nbart_swir_2 != -999, numpy.NaN
-        ).where(numpy.isfinite(data.nbart_swir_2), numpy.NaN)
+            data.nbart_swir_2 != -999, np.NaN
+        ).where(np.isfinite(data.nbart_swir_2), np.NaN)
 
         data = (
             data.rename(
@@ -605,7 +599,7 @@ class BAUnsupervised_s2be(Transformation):  # noqa: N801
                     "nbart_nir_1": "B08",
                     "nbart_swir_2": "B11",
                 }
-            ).astype(numpy.float64)
+            ).astype(np.float64)
             / 10000.0
         )
 
@@ -707,7 +701,7 @@ class BurntArea_Unsupervised(Transformation):  # noqa: N801
             "burnt_area": {
                 "name": "burnt_area",
                 "dtype": "float",
-                "nodata": numpy.nan,
+                "nodata": np.nan,
                 "units": "",
             }
         }
@@ -734,12 +728,12 @@ class BurntArea_Unsupervised(Transformation):  # noqa: N801
 
         # Convert from xarray to numpy array
         squashed = data.to_array().transpose("y", "x", "variable", ...)
-        data = squashed.data.astype(numpy.float32) / 10000.0
+        data = squashed.data.astype(np.float32) / 10000.0
 
         gm_squashed = gm_data.to_array().transpose("y", "x", "variable", ...)
-        gm_data = gm_squashed.data.astype(numpy.float32) / 10000.0
+        gm_data = gm_squashed.data.astype(np.float32) / 10000.0
 
-        mask = numpy.zeros(data.shape[:2], dtype=bool)
+        mask = np.zeros(data.shape[:2], dtype=bool)
 
         model = UnsupervisedBurnscarDetect2()
         uyhat = model.predict(mask, gm_data, data)
