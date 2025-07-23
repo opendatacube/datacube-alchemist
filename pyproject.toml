@@ -8,6 +8,7 @@ select = [
     "D419", # No empty doc strings
     "DTZ", # flake8-datetimez
     "E",  # pycodestyle errors
+    "EXE", # flake8-executable
     "F",  # pyflakes
     "FLY", # flynt
     "I",  # isort
