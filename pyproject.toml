@@ -28,6 +28,10 @@ omit = [
     "tests/*",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--cov=datacube_alchemist"
+norecursedirs = [".*", "build", "dist", "tmp*"]
+
 [tool.ruff.lint]
 select = [
     "C4", # flake8-comprehensions
