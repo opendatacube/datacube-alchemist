@@ -149,7 +149,7 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
 
         # CalledProcessError from aws cli subprocess and ClientError from sns publishing
         # if these happen, we don't want to continue, because we might have access issues.
-        except (CalledProcessError, ClientError):
+        except (CalledProcessError, ClientError):  # noqa: PERF203
             errors += 1
             _LOG.exception("Access denied or other AWS error, stopping execution")
             break
