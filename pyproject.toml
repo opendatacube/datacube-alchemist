@@ -3,6 +3,7 @@ requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
 
 [tool.ruff.lint]
 select = [
+    "A",  # Don't shadow built-ins
     "C4", # flake8-comprehensions
     "D419", # No empty doc strings
     "E",  # pycodestyle errors
