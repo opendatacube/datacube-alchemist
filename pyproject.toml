@@ -13,6 +13,7 @@ select = [
     "Q", # flake8-quotes
     "RET", # flake8-ret
     "RUF", # Ruff-specific rules
+    "SLF", # flake8-self
     "T10", # flake8-debugger
     "UP", # pyupgrade
     "W",  # pycodestyle warnings

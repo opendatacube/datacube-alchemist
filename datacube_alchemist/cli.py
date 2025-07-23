@@ -212,7 +212,7 @@ def add_ids_to_queue(config_file, queue, dryrun, ids):
 
     datasets = alchemist.dc.index.datasets.bulk_get(ids)
     if not dryrun:
-        n_messages = alchemist._datasets_to_queue(queue, datasets)
+        n_messages = alchemist._datasets_to_queue(queue, datasets)  # noqa: SLF001
         _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
     else:
         n_messages = sum(1 for _ in datasets)

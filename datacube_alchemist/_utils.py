@@ -83,7 +83,7 @@ def _write_stac(
     checksummer = PackageChecksum()
     checksum_file = (
         Path(dataset_assembler.names.dataset_location.lstrip("file:"))
-        / dataset_assembler._accessories["checksum:sha1"].name
+        / dataset_assembler._accessories["checksum:sha1"].name  # noqa: SLF001
     )
 
     checksummer.read(checksum_file)
