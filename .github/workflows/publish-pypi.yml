@@ -15,7 +15,7 @@ concurrency:
 jobs:
   publish_pypi:
     if: github.repository == 'opendatacube/datacube-alchemist'
-
+    timeout-minutes: 35
     runs-on: ubuntu-latest
     # Permit authenticating to PyPI
     permissions:
