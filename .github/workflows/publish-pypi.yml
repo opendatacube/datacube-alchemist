@@ -4,11 +4,22 @@ on:
   release:
     types: [published]
 
+permissions: {}
+
+# When a PR is updated, cancel the jobs from the previous version. Merges
+# do not define head_ref, so use run_id to never cancel those jobs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   publish_pypi:
     if: github.repository == 'opendatacube/datacube-alchemist'
 
     runs-on: ubuntu-latest
+    # Permit authenticating to PyPI
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
