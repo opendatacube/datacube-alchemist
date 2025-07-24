@@ -1,6 +1,37 @@
 [build-system]
 requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
 
+[tool.coverage.report]
+exclude_also = [
+    # From coverage manual (https://coverage.readthedocs.io/en/latest/excluding.html).
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+
+    # OUR EXCEPTIONS:
+    "except ImportError:",
+    "pytest.fail\\(", # Parameter checks in pytest.
+    "raise TypeError\\(", # "Impossible" errors.
+]
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "datacube_alchemist/_version.py",
+    "tests/*",
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov=datacube_alchemist"
+norecursedirs = [".*", "build", "dist", "tmp*"]
+
 [tool.ruff.lint]
 select = [
     "C4", # flake8-comprehensions
