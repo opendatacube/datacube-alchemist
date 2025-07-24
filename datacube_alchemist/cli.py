@@ -149,7 +149,7 @@ def run_from_queue(config_file, queue, limit, queue_timeout, dryrun, sns_arn):
 
         # CalledProcessError from aws cli subprocess and ClientError from sns publishing
         # if these happen, we don't want to continue, because we might have access issues.
-        except (CalledProcessError, ClientError):
+        except (CalledProcessError, ClientError):  # noqa: PERF203
             errors += 1
             _LOG.exception("Access denied or other AWS error, stopping execution")
             break
@@ -212,7 +212,7 @@ def add_ids_to_queue(config_file, queue, dryrun, ids):
 
     datasets = alchemist.dc.index.datasets.bulk_get(ids)
     if not dryrun:
-        n_messages = alchemist._datasets_to_queue(queue, datasets)
+        n_messages = alchemist._datasets_to_queue(queue, datasets)  # noqa: SLF001
         _LOG.info(f"Pushed {n_messages} items in {time.time() - start_time:.2f}s.")
     else:
         n_messages = sum(1 for _ in datasets)
@@ -269,14 +269,12 @@ def redrive_to_queue(queue, to_queue, limit, dryrun):
     if to_queue:
         alive_queue = get_queue(to_queue)
     else:
-        count = 0
-        for q in dead_queue.dead_letter_source_queues.all():
-            alive_queue = q
-            count += 1
-            if count > 1:
+        for i, q in enumerate(dead_queue.dead_letter_source_queues.all()):
+            if i > 0:
                 raise Exception(
                     "Deadletter queue has more than one source, please specify the target queue name."
                 )
+            alive_queue = q
     messages = get_messages(dead_queue)
 
     count = 0

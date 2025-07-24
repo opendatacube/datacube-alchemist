@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Iterable, Mapping
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Union
 
@@ -107,8 +107,7 @@ class Alchemist:
             )
         if transform_args is not None:
             return self.transform(**transform_args)
-        else:
-            return self.transform()
+        return self.transform()
 
     def _find_dataset(self, uuid: str) -> Dataset:
         # Find a dataset for a given UUID from within the available
@@ -258,16 +257,13 @@ class Alchemist:
         dataset = self._find_dataset(uuid)
         if dataset:
             return AlchemistTask(dataset=dataset, settings=self.config)
-        else:
-            return None
+        return None
 
     def generate_tasks(self, query, limit=None) -> Iterable[AlchemistTask]:
         # Find which datasets needs to be processed
         datasets = self._find_datasets(query, limit)
 
-        tasks = (self.generate_task(ds) for ds in datasets)
-
-        return tasks
+        return (self.generate_task(ds) for ds in datasets)
 
     # Queue related functions
     def enqueue_datasets(
@@ -276,8 +272,7 @@ class Alchemist:
         datasets = self._find_datasets(query, limit, product_limit)
         if not dryrun:
             return self.datasets_to_queue(queue, datasets)
-        else:
-            return sum(1 for _ in datasets)
+        return sum(1 for _ in datasets)
 
     def find_unprocessed_datasets(self, queue, dryrun):
         """
@@ -324,8 +319,7 @@ class Alchemist:
             f" missing in the output product {output_product}"
         )
 
-        datasets = [self.dc.index.datasets.get(row[0]) for row in results]
-        return datasets
+        return [self.dc.index.datasets.get(row[0]) for row in results]
 
     def _determine_output_product(self):
         # Most of this guff is just to get a destination product name...
@@ -352,7 +346,7 @@ class Alchemist:
             if self.config.output.properties:
                 for k, v in self.config.output.properties.items():
                     dataset_assembler.properties[k] = v
-            dataset_assembler.processed = datetime.utcnow()
+            dataset_assembler.processed = datetime.now(timezone.utc)
 
             output_product = dataset_assembler.names.product_name
             dataset_assembler.cancel()
@@ -460,135 +454,137 @@ class Alchemist:
         uuid, _ = self._deterministic_uuid(task)
 
         # Write it all to a tempdir root, and then either shift or s3 sync it into place
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with DatasetAssembler(
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            DatasetAssembler(
                 collection_location=Path(temp_dir),
                 naming_conventions=self.naming_convention,
                 dataset_id=uuid,
-            ) as dataset_assembler:
-                #
-                # Organise metadata
-                #
-                if task.settings.output.reference_source_dataset:
-                    source_doc = _munge_dataset_to_eo3(task.dataset)
-                    dataset_assembler.add_source_dataset(
-                        source_doc,
-                        auto_inherit_properties=True,
-                        inherit_geometry=task.settings.output.inherit_geometry,
-                        classifier=task.settings.specification.override_product_family,
+            ) as dataset_assembler,
+        ):
+            #
+            # Organise metadata
+            #
+            if task.settings.output.reference_source_dataset:
+                source_doc = _munge_dataset_to_eo3(task.dataset)
+                dataset_assembler.add_source_dataset(
+                    source_doc,
+                    auto_inherit_properties=True,
+                    inherit_geometry=task.settings.output.inherit_geometry,
+                    classifier=task.settings.specification.override_product_family,
+                )
+                # also extract dataset maturity
+                if "dea:dataset_maturity" in source_doc.properties:
+                    dataset_assembler.properties["dea:dataset_maturity"] = (
+                        source_doc.properties["dea:dataset_maturity"]
                     )
-                    # also extract dataset maturity
-                    if "dea:dataset_maturity" in source_doc.properties:
-                        dataset_assembler.properties["dea:dataset_maturity"] = (
-                            source_doc.properties["dea:dataset_maturity"]
-                        )
 
-                # Copy in metadata and properties
-                for k, v in task.settings.output.metadata.items():
-                    setattr(dataset_assembler, k, v)
+            # Copy in metadata and properties
+            for k, v in task.settings.output.metadata.items():
+                setattr(dataset_assembler, k, v)
 
-                if task.settings.output.properties:
-                    for k, v in task.settings.output.properties.items():
-                        dataset_assembler.properties[k] = v
+            if task.settings.output.properties:
+                for k, v in task.settings.output.properties.items():
+                    dataset_assembler.properties[k] = v
 
-                # Update the GSD
-                dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
+            # Update the GSD
+            dataset_assembler.properties["eo:gsd"] = self._native_resolution(task)
 
-                dataset_assembler.processed = datetime.utcnow()
+            dataset_assembler.processed = datetime.now(timezone.utc)
 
-                dataset_assembler.note_software_version(
-                    "datacube-alchemist",
-                    "https://github.com/opendatacube/datacube-alchemist",
-                    __version__,
+            dataset_assembler.note_software_version(
+                "datacube-alchemist",
+                "https://github.com/opendatacube/datacube-alchemist",
+                __version__,
+            )
+
+            # Software Version of Transformer
+            version_url = self._get_transform_info()
+            dataset_assembler.note_software_version(
+                name=task.settings.specification.transform,
+                url=version_url["url"],
+                version=version_url["version"],
+            )
+
+            #
+            # Write out the data and ancillaries
+            #
+            dataset_assembler.write_measurements_odc_xarray(
+                output_data,
+                nodata=task.settings.output.nodata,
+                **task.settings.output.write_data_settings,
+            )
+            log.info("Finished writing measurements")
+
+            # Write out the thumbnail
+            _write_thumbnail(task, dataset_assembler)
+            log.info("Wrote thumbnail")
+
+            # Do all the deferred work from above
+            dataset_id, metadata_path = dataset_assembler.done()
+            log.info("Assembled dataset", metadata_path=metadata_path)
+
+            #
+            # Organise paths for final output information
+            #
+            relative_path = dataset_assembler.names.dataset_folder
+            dataset_location = Path(temp_dir) / relative_path
+            destination_path = (
+                f"{task.settings.output.location.rstrip('/')}/{relative_path}"
+            )
+
+            # Write STAC, because it depends on this being .done()
+            # Conveniently, this also checks that files are there!
+            stac = None
+            if task.settings.output.write_stac:
+                stac = _write_stac(
+                    metadata_path,
+                    destination_path,
+                    task.settings.output.explorer_url,
+                    dataset_assembler,
                 )
+                log.info("STAC file written")
 
-                # Software Version of Transformer
-                version_url = self._get_transform_info()
-                dataset_assembler.note_software_version(
-                    name=task.settings.specification.transform,
-                    url=version_url["url"],
-                    version=version_url["version"],
-                )
+            if s3_destination:
+                s3_command = [
+                    "aws",
+                    "s3",
+                    "sync",
+                    "--only-show-errors",
+                    "--acl bucket-owner-full-control",
+                    str(dataset_location),
+                    destination_path,
+                ]
 
-                #
-                # Write out the data and ancillaries
-                #
-                dataset_assembler.write_measurements_odc_xarray(
-                    output_data,
-                    nodata=task.settings.output.nodata,
-                    **task.settings.output.write_data_settings,
-                )
-                log.info("Finished writing measurements")
-
-                # Write out the thumbnail
-                _write_thumbnail(task, dataset_assembler)
-                log.info("Wrote thumbnail")
-
-                # Do all the deferred work from above
-                dataset_id, metadata_path = dataset_assembler.done()
-                log.info("Assembled dataset", metadata_path=metadata_path)
-
-                #
-                # Organise paths for final output information
-                #
-                relative_path = dataset_assembler.names.dataset_folder
-                dataset_location = Path(temp_dir) / relative_path
-                destination_path = (
-                    f"{task.settings.output.location.rstrip('/')}/{relative_path}"
-                )
-
-                # Write STAC, because it depends on this being .done()
-                # Conveniently, this also checks that files are there!
-                stac = None
-                if task.settings.output.write_stac:
-                    stac = _write_stac(
-                        metadata_path,
-                        destination_path,
-                        task.settings.output.explorer_url,
-                        dataset_assembler,
-                    )
-                    log.info("STAC file written")
-
-                if s3_destination:
-                    s3_command = [
-                        "aws",
-                        "s3",
-                        "sync",
-                        "--only-show-errors",
-                        "--acl bucket-owner-full-control",
-                        str(dataset_location),
-                        destination_path,
-                    ]
-
-                    if not dryrun:
-                        log.info(f"Syncing files to {destination_path}")
-                    else:
-                        s3_command.append("--dryrun")
-                        log.warning(
-                            "DRYRUN: pretending to sync files to S3",
-                            destination_path=destination_path,
-                        )
-
-                    log.info("Writing files to s3", location=destination_path)
-                    subprocess.run(" ".join(s3_command), shell=True, check=True)
+                if not dryrun:
+                    log.info(f"Syncing files to {destination_path}")
                 else:
-                    destination_path = Path(destination_path)
-                    if not dryrun:
-                        log.info("Writing files to disk", location=destination_path)
-                        # This should perhaps be couched in a warning as it delete important files
-                        if destination_path.exists():
-                            shutil.rmtree(destination_path)
-                        shutil.copytree(dataset_location, destination_path)
-                    else:
-                        log.warning(
-                            f"DRYRUN: not moving data from {dataset_location} to {destination_path}"
-                        )
+                    s3_command.append("--dryrun")
+                    log.warning(
+                        "DRYRUN: pretending to sync files to S3",
+                        destination_path=destination_path,
+                    )
 
-                log.info("Task complete")
-                if stac is not None and sns_arn:
-                    if not dryrun:
-                        _stac_to_sns(sns_arn, stac)
-                elif sns_arn:
-                    _LOG.error("Not posting to SNS because there's no STAC to post")
+                log.info("Writing files to s3", location=destination_path)
+                subprocess.run(" ".join(s3_command), shell=True, check=True)
+            else:
+                destination_path = Path(destination_path)
+                if not dryrun:
+                    log.info("Writing files to disk", location=destination_path)
+                    # This should perhaps be couched in a warning as it delete important files
+                    if destination_path.exists():
+                        shutil.rmtree(destination_path)
+                    shutil.copytree(dataset_location, destination_path)
+                else:
+                    log.warning(
+                        f"DRYRUN: not moving data from {dataset_location} to {destination_path}"
+                    )
+
+            log.info("Task complete")
+            if stac is not None and sns_arn:
+                if not dryrun:
+                    _stac_to_sns(sns_arn, stac)
+            elif sns_arn:
+                _LOG.error("Not posting to SNS because there's no STAC to post")
 
         return dataset_id, metadata_path
