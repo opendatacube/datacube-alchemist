@@ -1,5 +1,50 @@
-[build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+[project]
+name = "datacube-alchemist"
+dynamic = ["version"]
+description = "Batch process Open Data Cube datasets"
+authors = [
+    {name = "Open Data Cube", email = "earth.observation@ga.gov.au"},
+]
+dependencies = [
+    "attrs>=18.1",
+    "boto3",
+    "cattrs",
+    "dask",
+    "datacube<1.9",
+    "distributed",
+    "eodatasets3>=0.22.0",
+    "fsspec",
+    "odc-algo",
+    "odc-apps-dc-tools",
+    "requests",
+    "structlog",
+    "xarray",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = "Apache-2.0"
+keywords = ["datacube-alchemist", "opendatacube"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/opendatacube/datacube-alchemist"
+
+[project.optional-dependencies]
+dev = [
+    "moto>=5.0",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[project.scripts]
+datacube-alchemist = "datacube_alchemist.cli:cli_with_envvar_handling"
 
 [tool.coverage.report]
 exclude_also = [
@@ -62,5 +107,14 @@ select = [
 [tool.ruff.lint.pycodestyle]
 max-line-length = 118
 
+[tool.setuptools.packages.find]
+exclude = ["tests"]
+include = ["datacube*"]
+
+[build-system]
+requires = ["setuptools>=69", "setuptools_scm[toml]>=8"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools_scm]
 write_to = "datacube_alchemist/_version.py"
+fallback_version = "0.6.8.dev0"
