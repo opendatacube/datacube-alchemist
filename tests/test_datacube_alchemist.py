@@ -1,5 +1,5 @@
 import boto3
-from moto import mock_sns, mock_sqs
+from moto import mock_aws
 
 from datacube_alchemist._utils import _stac_to_sns
 from datacube_alchemist.worker import Alchemist
@@ -26,24 +26,26 @@ def test_alchemist_remote_config(remote_config_file):
     assert alchemist.transform_name == "wofs.virtualproduct.WOfSClassifier"
 
 
-@mock_sns
 def test_message_publish(stac_example):
-    sns = boto3.client("sns")
-    topic_name = "test-topic"
-    topic_arn = sns.create_topic(Name=topic_name)["TopicArn"]
+    with mock_aws():
+        sns = boto3.client("sns")
+        topic_name = "test-topic"
+        topic_arn = sns.create_topic(Name=topic_name)["TopicArn"]
 
-    _stac_to_sns(topic_arn, stac_example)
+        _stac_to_sns(topic_arn, stac_example)
 
 
-@mock_sqs
 def test_empty_queue(run_alchemist, config_file):
-    sqs = boto3.resource("sqs")
-    sqs.create_queue(QueueName=TEST_QUEUE_NAME)
+    with mock_aws():
+        sqs = boto3.resource("sqs")
+        sqs.create_queue(QueueName=TEST_QUEUE_NAME)
 
-    result = run_alchemist(
-        "run-from-queue", f"--config-file={config_file}", f"--queue={TEST_QUEUE_NAME}"
-    )
-    print(result)
+        result = run_alchemist(
+            "run-from-queue",
+            f"--config-file={config_file}",
+            f"--queue={TEST_QUEUE_NAME}",
+        )
+        print(result)
 
 
 def test_help_message(run_alchemist):
