@@ -63,13 +63,13 @@ jobs:
 
     - name: Bring up the docker container
       run: |
-        docker compose up -d --quiet-pull
-        sleep 5
-        docker compose exec -T alchemist datacube system init
+        docker compose up -d --wait --quiet-pull
 
     - name: Run tests
       run: |
-        docker compose exec -T alchemist pytest --cov=./datacube_alchemist --cov-report=xml tests/
+        docker compose exec -T alchemist /bin/bash --login -c \
+          "datacube system init && \
+            pytest --cov=./datacube_alchemist --cov-report=xml tests"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
