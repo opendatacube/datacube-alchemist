@@ -31,9 +31,11 @@ services:
       - AWS_DEFAULT_REGION=ap-southeast-2
       - AWS_ACCESS_KEY_ID=${ODC_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${ODC_SECRET_KEY}
+    tty: true
+    stdin_open: true
     volumes:
       - .:/code
       - ./output:/tmp/alchemist
     depends_on:
       - postgres
-    command: ["/bin/sh", "-ec", "while :; do echo '.'; sleep 180 ; done"]
+    command: bash
