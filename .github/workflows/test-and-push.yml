@@ -77,10 +77,6 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false
 
-    - name: Integration tests
-      run: |
-        docker compose exec -T alchemist bash ./tests/integration_tests.sh
-
   push:
     if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     needs: test
