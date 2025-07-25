@@ -43,7 +43,7 @@ RUN echo "Environment is: $ENVIRONMENT"
 # Pip installation
 RUN mkdir -p /conf
 COPY requirements.txt /conf/
-RUN pip install -r /conf/requirements.txt
+RUN pip install --root-user-action ignore -r /conf/requirements.txt
 
 # Set up a nice workdir and add the live code
 ENV APPDIR=/code
