@@ -1,13 +1,20 @@
 services:
   postgres:
     image: postgres:11
+    hostname: postgres
     environment:
       - POSTGRES_DB=opendatacube
+      - PGPORT=35435
       - POSTGRES_PASSWORD=opendatacubepassword
       - POSTGRES_USER=opendatacube
     expose:
-      - 5432
+      - "35435:35435"
     restart: always
+    healthcheck:
+          test: ["CMD", "pg_isready", "-h", "postgres", "-q", "--port", "35435", "-d", "opendatacube", "-U", "opendatacube"]
+          timeout: 45s
+          interval: 10s
+          retries: 10
 
   alchemist:
     build:
@@ -16,6 +23,8 @@ services:
         - ENVIRONMENT=dev
     environment:
       - DB_HOSTNAME=postgres
+      - PGPORT=35435
+      - DB_PORT=35435
       - DB_USERNAME=opendatacube
       - DB_PASSWORD=opendatacubepassword
       - DB_DATABASE=opendatacube
