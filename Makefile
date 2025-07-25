@@ -39,7 +39,7 @@ lint:
 	docker compose exec alchemist ruff --check datacube_alchemist
 
 integration-test:
-	docker compose up -d --wait
+	docker compose up -d --wait --quiet-pull
 	docker compose exec -T alchemist bash ./tests/integration_tests.sh
 
 # C3 Related
