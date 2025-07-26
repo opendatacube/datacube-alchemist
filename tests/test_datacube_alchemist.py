@@ -41,28 +41,30 @@ def test_empty_queue(run_alchemist, config_file):
         sqs.create_queue(QueueName=TEST_QUEUE_NAME)
 
         result = run_alchemist(
-            "run-from-queue",
-            f"--config-file={config_file}",
-            f"--queue={TEST_QUEUE_NAME}",
+            [
+                "run-from-queue",
+                f"--config-file={config_file}",
+                f"--queue={TEST_QUEUE_NAME}",
+            ]
         )
         print(result)
 
 
 def test_help_message(run_alchemist):
-    result = run_alchemist("--help")
+    result = run_alchemist(["--help"])
     print(result)
 
-    result = run_alchemist("run-one", "--help")
+    result = run_alchemist(["run-one", "--help"])
     print(result)
 
-    result = run_alchemist("run-many", "--help")
+    result = run_alchemist(["run-many", "--help"])
     print(result)
 
-    result = run_alchemist("add-to-queue", "--help")
+    result = run_alchemist(["add-to-queue", "--help"])
     print(result)
 
-    result = run_alchemist("run-from-queue", "--help")
+    result = run_alchemist(["run-from-queue", "--help"])
     print(result)
 
-    result = run_alchemist("redrive-to-queue", "--help")
+    result = run_alchemist(["redrive-to-queue", "--help"])
     print(result)
