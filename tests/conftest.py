@@ -1,4 +1,5 @@
 import json
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -10,16 +11,16 @@ import datacube_alchemist.cli
 @pytest.fixture
 def run_alchemist():
     """
-    A helpful fixture for running a a click CLI from within pytest
+    A helpful fixture for running a click CLI from within pytest
     """
 
     def _run_cli(
-        *opts,
+        opts: Sequence[str],
         catch_exceptions=False,
         expect_success=True,
         cli_method=datacube_alchemist.cli.cli,
     ):
-        exe_opts = []
+        exe_opts: list[str] = []
         exe_opts.extend(opts)
 
         runner = CliRunner()
