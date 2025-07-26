@@ -39,8 +39,8 @@ lint:
 	docker compose exec alchemist ruff --check datacube_alchemist
 
 integration-test:
-	docker compose up -d
-	docker compose exec -T alchemist bash ./tests/integration_tests.sh
+	docker compose up -d --wait --quiet-pull
+	docker compose exec -T alchemist pytest /tests/test_integration.py
 
 # C3 Related
 initdb:

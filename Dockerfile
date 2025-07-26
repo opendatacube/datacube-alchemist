@@ -1,4 +1,6 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.5
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.5 AS base
+
+FROM base
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
@@ -8,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Apt installation
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y \
+    apt-get install --no-install-recommends -y \
       build-essential \
       fish \
       git \
@@ -38,18 +40,14 @@ RUN apt-get update && \
 # Environment can be whatever is supported by setup.py
 # so, either deployment, test
 ARG ENVIRONMENT=deployment
-RUN echo "Environment is: $ENVIRONMENT"
-
-# Pip installation
-RUN mkdir -p /conf
-COPY requirements.txt /conf/
-RUN pip install -r /conf/requirements.txt
-
-# Set up a nice workdir and add the live code
 ENV APPDIR=/code
-RUN mkdir -p $APPDIR
+RUN echo "Environment is: $ENVIRONMENT" && \
+  mkdir -p /conf $APPDIR
+COPY requirements.txt /conf/
+RUN pip install --root-user-action ignore -r /conf/requirements.txt
+
 WORKDIR $APPDIR
-ADD . $APPDIR
+COPY . $APPDIR
 
 # These ENVIRONMENT flags make this a bit complex, but basically, if we are in dev
 # then we want to link the source (with the -e flag) and if we're in prod, we
@@ -59,11 +57,8 @@ RUN if [ "$ENVIRONMENT" = "deployment" ] ; then\
         rm -rf $APPDIR/* ; \
     else \
         pip install --editable ".[$ENVIRONMENT]" ; \
-    fi
-
-RUN pip freeze
-
-# Check it works
-RUN datacube-alchemist --version
+    fi && \
+    pip freeze && \
+    datacube-alchemist --version
 
 CMD ["datacube-alchemist", "--help"]
