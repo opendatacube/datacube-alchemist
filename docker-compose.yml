@@ -10,6 +10,9 @@ services:
     expose:
       - "35435:35435"
     restart: always
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data
     healthcheck:
           test: ["CMD", "pg_isready", "-h", "postgres", "-q", "--port", "35435", "-d", "opendatacube", "-U", "opendatacube"]
           timeout: 45s
