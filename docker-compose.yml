@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:11
+    image: postgis/postgis:17-3.5
     hostname: postgres
     environment:
       - POSTGRES_DB=opendatacube
@@ -10,6 +10,10 @@ services:
     expose:
       - "35435:35435"
     restart: always
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+    command: -c fsync=off -c full_page_writes=off -c synchronous_commit=off
     healthcheck:
           test: ["CMD", "pg_isready", "-h", "postgres", "-q", "--port", "35435", "-d", "opendatacube", "-U", "opendatacube"]
           timeout: 45s
