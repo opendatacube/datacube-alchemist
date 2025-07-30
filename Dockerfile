@@ -1,4 +1,4 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.5 AS base
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.5@sha256:551756b6fb08cae2620f67b16818fda4e56e5c58107070b8af84c5ccd8c30bae AS base
 
 FROM base
 
