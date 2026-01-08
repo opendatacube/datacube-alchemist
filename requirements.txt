@@ -434,7 +434,7 @@ tzdata==2025.3
     # via
     #   kombu
     #   pandas
-urllib3==2.6.2
+urllib3==2.6.3
     # via
     #   botocore
     #   distributed
