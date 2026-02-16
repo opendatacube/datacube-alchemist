@@ -395,6 +395,17 @@ class Alchemist:
             raise ValueError("Task transform is different to the Alchemist transform")
         transform = self._transform_with_args(task)
 
+        # If there is a predicate defined in the configuration
+        # Make sure that our dataset passes
+        if task.settings.specification.dataset_predicate is not None:
+            predicate = task.settings.specification.dataset_predicate
+
+            dataset_check = compile(predicate, "<string>", "eval")
+            if not eval(dataset_check, locals={"d": task.dataset}):
+                raise ValueError(
+                    f'Skipping Dataset "{task.dataset}", does not pass Predicate "{predicate}".'
+                )
+
         # Ensure output path exists, this should be fine for file or s3 paths
         s3_destination = False
         try:
