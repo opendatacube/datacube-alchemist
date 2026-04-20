@@ -35,7 +35,7 @@ jobs:
 
       - name: Build unstable + latest Docker image tag
         if: github.event_name != 'release'
-        uses: whoan/docker-build-with-cache-action@d8d3ad518e7ac382b880720d0751815e656fe032 # v8.1.0
+        uses: whoan/docker-build-with-cache-action@79574702d64f46f39ecaf1f1d771d45230e10b93 # v8.1.1
         with:
           image_name: ${{ env.IMAGE_NAME }}
           image_tag: ${{ env.UNSTABLE_TAG }},latest
