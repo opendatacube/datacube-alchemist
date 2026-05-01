@@ -56,11 +56,12 @@ class Specification:
     products: Optional[Sequence[str]] = None
     measurement_renames: Optional[Mapping[str, str]] = None
     transform_args: Any = None
-    transform_args_per_product: Mapping[str, Any] = None
+    transform_args_per_product: Optional[Mapping[str, Any]] = None
     resampling: Optional[Union[str, Mapping[str, str]]] = None
     override_product_family: Optional[str] = attr.ib(default=None)
     basis: Optional[str] = attr.ib(default=None)
     aws_unsigned: Optional[bool] = True
+    dataset_predicate: Optional[str] = None
 
 
 @attr.s(auto_attribs=True)
