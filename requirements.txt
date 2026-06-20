@@ -210,7 +210,7 @@ locket==1.0.0
     #   partd
 markupsafe==3.0.3
     # via jinja2
-msgpack==1.1.2
+msgpack==1.2.1
     # via distributed
 multidict==6.7.0
     # via
