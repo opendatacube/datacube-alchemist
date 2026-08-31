@@ -10,7 +10,7 @@ dependencies = [
     "boto3",
     "cattrs",
     "dask",
-    "datacube<1.9",
+    "datacube<1.10",
     "distributed",
     "eodatasets3>=0.22.0",
     "fsspec",
