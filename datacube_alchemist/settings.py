@@ -18,8 +18,7 @@ def _convert_union_mapping(obj, typ):
 
 
 cattr.register_structure_hook(str | Mapping[str, str], _convert_union_mapping)
-cattr.register_structure_hook(str | Mapping[str, str] | None,  _convert_union_mapping
-)
+cattr.register_structure_hook(str | Mapping[str, str] | None, _convert_union_mapping)
 
 
 def _convert_write_data_settings(settings):
