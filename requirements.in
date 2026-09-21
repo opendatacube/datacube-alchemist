@@ -4,7 +4,7 @@
 --no-binary rasterio
 --no-binary shapely
 
-datacube[s3]<1.9
+datacube[s3]<1.10
 aiobotocore[awscli, boto3]
 fractional_cover
 kombu
