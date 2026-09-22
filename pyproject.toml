@@ -10,12 +10,13 @@ dependencies = [
     "boto3",
     "cattrs",
     "dask",
-    "datacube[postgres]>=1.9.20,<1.10",
+    "datacube>=1.9.20,<1.10",
     "distributed",
     "eodatasets3>=0.22.0",
     "fsspec",
     "odc-algo",
     "odc-apps-dc-tools",
+    "psycopg2-binary",
     "requests",
     "structlog",
     "xarray",
@@ -43,6 +44,20 @@ dev = [
     "pytest-cov",
     "ruff",
     "pip-tools",
+]
+
+ops = [
+    "aiobotocore",
+    "datacube[s3]>=1.9.20,<1.10",
+    "fiona",
+    "fractional_cover",
+    "kombu",
+    "fsspec",
+    "geomad",
+    "odc-algo",
+    "odc-apps-cloud",
+    "odc-apps-dc-tools",
+    "wofs",
 ]
 
 [project.scripts]
