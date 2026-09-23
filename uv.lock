@@ -898,21 +898,21 @@ requires-dist = [
     { name = "requests" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "structlog" },
-    { name = "wofs", marker = "extra == 'ops'" },
+    { name = "wofs", marker = "extra == 'ops'", specifier = ">=1.6.7rc1" },
     { name = "xarray" },
 ]
 provides-extras = ["dev", "ops"]
 
 [[package]]
 name = "datadog"
-version = "0.53.0"
+version = "0.54.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/77/4a/8c61a6bd82be61a7b2a1f9dd77104f52299aa81d377fe6a35f9477167361/datadog-0.53.0.tar.gz", hash = "sha256:9f69a18089c852e20edff7e55226a6f4ca9749e162cfa4ae88c949dd722ebef8", size = 378021, upload-time = "2026-07-24T15:11:56.572Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/01/0f7b044e0cd3f3d851948a612fc09d48cd28b436fe09dd357fbde8f134aa/datadog-0.54.0.tar.gz", hash = "sha256:62afcedb3e56b8ea6fff04aa807ebcbf9a6bd843bd1c7feab0a9035ce21b8ca2", size = 407291, upload-time = "2026-09-22T20:53:51.34Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/83/1fda660aef15fa7f80fc9ad0f056d45dbe8dd09b1774a9cd6c4cfc6cf24d/datadog-0.53.0-py2.py3-none-any.whl", hash = "sha256:e42467bad752c4739a232986e4ebdb8e4690134e901965557f2eaff0f40eb177", size = 138980, upload-time = "2026-07-24T15:11:55.221Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/7f/d9538fded4be4f13b26e2848e74aafdf8d20d4bee94b966c443145c53cf8/datadog-0.54.0-py2.py3-none-any.whl", hash = "sha256:5a3d47154ed5ef223ca85533da3703691ba8707812db1a95f335094cdf884d4b", size = 152270, upload-time = "2026-09-22T20:53:49.677Z" },
 ]
 
 [[package]]
@@ -1478,14 +1478,14 @@ wheels = [
 
 [[package]]
 name = "mako"
-version = "1.4.1"
+version = "1.4.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markupsafe" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2a/12/b5fa2353e2754cd67fb9f83793fa48ff42c213a5da7e719869d2301f6ab8/mako-1.4.1.tar.gz", hash = "sha256:d7904710b662996425a21627710c4777c45053146942cf8a7aebf757c92b8c27", size = 410165, upload-time = "2026-08-05T06:10:56.611Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/09/e07c4b5579a79f4b16f8d4f29f6c54514ac787c4ad506b8c4f28a0e6b0bf/mako-1.4.3.tar.gz", hash = "sha256:cd6537fe88d5fec315c55c2f8529bc4ce7a9a352ad7db3eeaa6a66e2dd4ec37a", size = 412799, upload-time = "2026-09-22T20:54:31.509Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/54/12ed58d458474aaab5c3d180173e745a4fe131bb330370596876d19ff60f/mako-1.4.1-py3-none-any.whl", hash = "sha256:a359d9a94a541213958742b2698d0a7757bb83551767bc468a74b9905aba9617", size = 80010, upload-time = "2026-08-05T06:10:58.248Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/a0/053d6af3e8f871e0073b4a36732d9e65be77a72e5434c31b94f6af78a6bb/mako-1.4.3-py3-none-any.whl", hash = "sha256:723296007c870bfd6b3f0c3230dba7198096e5269297ebf5e4eff9e7ffa39d4f", size = 80164, upload-time = "2026-09-22T20:54:33.128Z" },
 ]
 
 [[package]]
@@ -3472,7 +3472,7 @@ wheels = [
 
 [[package]]
 name = "wofs"
-version = "1.6.6"
+version = "1.6.7rc1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datacube" },
@@ -3480,9 +3480,9 @@ dependencies = [
     { name = "scipy" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/53/22/07c518b58e6303ae3baebafa02508a2d38b033861ea82643bcda59ccd634/wofs-1.6.6.tar.gz", hash = "sha256:435e2b01bf6758f6483e5e10d4ad8298c09a89467ad4d16e57b61461eea47991", size = 717812, upload-time = "2023-10-23T05:34:14.548Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/ed/a40a51980c10dce04497ff36fdcb08df17562805fd47f160b6d1354c6643/wofs-1.6.7rc1.tar.gz", hash = "sha256:4ff523aae73aca6ca0308405cd7ade4013d3d503b3a668d5e060be848e20f121", size = 818348, upload-time = "2026-09-23T04:51:09.694Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/75/3e/bf253e86f3c0339ac42803de506fb055afa06d98dee7fa73f594ad02b806/wofs-1.6.6-py2.py3-none-any.whl", hash = "sha256:bd2c2e57113e2732ab5b58ff1d320c9d22caaf4ff105f44c05a4909979f97f41", size = 31826, upload-time = "2023-10-23T05:34:10.295Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/20/7bff01f74d91b35e439d55cb7f7a513aa555df851447de51dbeee4774be3/wofs-1.6.7rc1-py2.py3-none-any.whl", hash = "sha256:0efb7cd27624835f31b03e8c305e9481fec1883a9b56ac32496395d04914ac02", size = 36195, upload-time = "2026-09-23T04:51:04.893Z" },
 ]
 
 [[package]]
