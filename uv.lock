@@ -898,7 +898,7 @@ requires-dist = [
     { name = "requests" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "structlog" },
-    { name = "wofs", marker = "extra == 'ops'", specifier = ">=1.6.7rc1" },
+    { name = "wofs", marker = "extra == 'ops'", specifier = ">=1.6.7rc2" },
     { name = "xarray" },
 ]
 provides-extras = ["dev", "ops"]
@@ -3472,7 +3472,7 @@ wheels = [
 
 [[package]]
 name = "wofs"
-version = "1.6.7rc1"
+version = "1.6.7rc2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datacube" },
@@ -3480,9 +3480,9 @@ dependencies = [
     { name = "scipy" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/38/ed/a40a51980c10dce04497ff36fdcb08df17562805fd47f160b6d1354c6643/wofs-1.6.7rc1.tar.gz", hash = "sha256:4ff523aae73aca6ca0308405cd7ade4013d3d503b3a668d5e060be848e20f121", size = 818348, upload-time = "2026-09-23T04:51:09.694Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/f5/537f025ee94fcdd01ea591719513f112f42a4c3571755e835bbc98cba5df/wofs-1.6.7rc2.tar.gz", hash = "sha256:9b117a5ba9caa9a30c5b68b10d120d618165bbbc615fbe9b777189c69546048c", size = 818356, upload-time = "2026-09-23T05:49:02.552Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1a/20/7bff01f74d91b35e439d55cb7f7a513aa555df851447de51dbeee4774be3/wofs-1.6.7rc1-py2.py3-none-any.whl", hash = "sha256:0efb7cd27624835f31b03e8c305e9481fec1883a9b56ac32496395d04914ac02", size = 36195, upload-time = "2026-09-23T04:51:04.893Z" },
+    { url = "https://files.pythonhosted.org/packages/59/fa/6559624d8720eb861703319572b5b330f123d3efa51aa8d74691a0e8e56c/wofs-1.6.7rc2-py2.py3-none-any.whl", hash = "sha256:6986664519b78d2ad9185e4dd9fbd9360576ed4d1aef073059dcac0446c11249", size = 36198, upload-time = "2026-09-23T05:48:59.541Z" },
 ]
 
 [[package]]
