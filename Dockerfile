@@ -47,11 +47,7 @@ COPY --link --from=uv /uv /uvx /usr/local/bin/
 
 COPY --link pyproject.toml uv.lock /build/
 
-# Use a separate cache volume for uv on opendatacube projects, so it is
-# not inseparable from pip/poetry/npm/etc. cache stored in /root/.cache.
-# Note that fiona bundles libgdal and SHOULD be compiled locally, but the
-# latest release at time of writing (1.10.1) does not compile cleanly against
-# Python 3.14.
+# Use a separate cache volume for uv on opendatacube projects. cache stored in /root/.cache.
 RUN --mount=type=cache,id=opendatacube-uv-cache,target=/root/.cache \
     uv sync --locked --all-extras --no-install-project \
       --no-binary-package fiona \
