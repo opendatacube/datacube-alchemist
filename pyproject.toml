@@ -56,7 +56,7 @@ ops = [
     "odc-algo",
     "odc-apps-cloud",
     "odc-apps-dc-tools",
-    "wofs>=1.6.7rc2",
+    "wofs>=1.6.7",
 ]
 
 [project.scripts]
