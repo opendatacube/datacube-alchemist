@@ -56,6 +56,7 @@ RUN --mount=type=cache,id=opendatacube-uv-cache,target=/root/.cache \
     uv sync --locked --all-extras --no-install-project \
       --no-binary-package fiona \
       --no-binary-package rasterio \
+      --no-binary-package psycopg2 \
       --no-binary-package shapely
 
 FROM base
