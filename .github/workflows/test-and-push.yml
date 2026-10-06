@@ -12,10 +12,7 @@ on:
       - 'Dockerfile'
       - 'docker-compose.yml'
       - 'pyproject.toml'
-      - 'requirements.in'
-      - 'requirements.txt'
-      - 'setup.cfg'
-      - 'setup.py'
+      - 'uv.lock'
 
   pull_request:
     branches: *branches
