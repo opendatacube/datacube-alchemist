@@ -18,6 +18,7 @@ dependencies = [
     "odc-algo",
     "odc-apps-dc-tools",
     "requests",
+    "shapely!=2.2.0",   # Shapely 2.2.0 doesn't build nobinary.
     "structlog",
     "xarray",
 ]
