@@ -13,11 +13,12 @@ dependencies = [
     "dask",
     "datacube[postgres]>=1.9.20,<1.10",
     "distributed",
-    "eodatasets3>=0.22.0",
+    "eodatasets3>=1.9.9",
     "fsspec",
     "odc-algo",
     "odc-apps-dc-tools",
     "requests",
+    "shapely!=2.2.0",   # Shapely 2.2.0 doesn't build nobinary.
     "structlog",
     "xarray",
 ]

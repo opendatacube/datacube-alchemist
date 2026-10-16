@@ -36,6 +36,7 @@ output:
       192: [186, 211, 242] # cloudy water
   write_data_settings:
     overview_resampling: mode
+    gdal_ovr_chunk_size: 268435456
   reference_source_dataset: True
   write_stac: True
   inherit_geometry: True
