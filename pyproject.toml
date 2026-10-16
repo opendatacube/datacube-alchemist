@@ -13,7 +13,7 @@ dependencies = [
     "dask",
     "datacube[postgres]>=1.9.20,<1.10",
     "distributed",
-    "eodatasets3>=0.22.0",
+    "eodatasets3>=1.9.9",
     "fsspec",
     "odc-algo",
     "odc-apps-dc-tools",
