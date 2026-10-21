@@ -415,8 +415,9 @@ class Alchemist:
             )
         else:
             data = native_load(
-                task.dataset,
-                measurements=task.settings.specification.measurements,
+                [task.dataset],
+                bands=task.settings.specification.measurements,
+                groupby=datacube.Datacube.group_datasets,
                 dask_chunks=task.settings.processing.dask_chunks,
                 basis=task.settings.specification.basis,
                 resampling=task.settings.specification.resampling,
