@@ -19,6 +19,7 @@ dependencies = [
     "odc-apps-dc-tools",
     "requests",
     "shapely!=2.2.0",   # Shapely 2.2.0 doesn't build nobinary.
+    "SQLAlchemy>2,<2.1",
     "structlog",
     "xarray",
 ]
@@ -135,4 +136,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "datacube_alchemist/_version.py"
-fallback_version = "0.7.2.dev0"
+fallback_version = "0.7.3.dev0"
