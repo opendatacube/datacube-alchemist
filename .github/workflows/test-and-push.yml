@@ -109,7 +109,7 @@ jobs:
 
       - name: Get Git commit timestamps
         run: |
-          TIMESTAMP=$(git log -1 --pretty=%ct pyproject.toml uv.lock datacube_ows)
+          TIMESTAMP=$(git log -1 --pretty=%ct pyproject.toml uv.lock datacube_alchemist)
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
 
       - name: Build and push Docker image
